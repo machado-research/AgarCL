@@ -17,6 +17,8 @@ option(RENDERABLE "Make environments renderable" OFF) # Disabled by default
 if (RENDERABLE)
     message("Renderable")
     add_definitions(-DRENDERABLE)
+    
+
 endif ()
 
 
@@ -47,9 +49,18 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
     find_library(GLFW REQUIRED)
     find_package(glfw3)
     find_package(glm REQUIRED)
+    #NEW
+    find_package(GLEW REQUIRED)
 
-    include_directories(${GLM_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${GLFW_INCLUDE_DIR})
+    #NEW
+    include_directories(${GLEW_INCLUDE_DIRS})
+    
+    include_directories(${GLM_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${GLFW_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
+    
     link_directories(${GLM_LIBRARY_DIRS})
+    #NEW
+    link_directories(${GLEW_LIBRARY_DIRS})
+    
     add_definitions(${GLM_DEFINITIONS})
 
     pybind11_add_module(agarle bindings.cpp renderable.hpp
@@ -58,7 +69,7 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
 
     target_include_directories(agarle PRIVATE "..")
     target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glm glfw)
+    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} GLEW glm glfw)
     target_compile_options(agarle PUBLIC -fsized-deallocation)
 
 else()

@@ -2,7 +2,7 @@
 
 #include <GL/glew.h>
 #define GLFW_INCLUDE_NONE
-#include "rendering/platform.hpp"
+#include "agario/rendering/platform.hpp"
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -15,9 +15,9 @@
 #include <math.h>
 #include <optional>
 
-#include "engine/GameState.hpp"
-#include <core/Entities.hpp>
-#include <core/Player.hpp>
+#include "agario/engine/GameState.hpp"
+#include <agario/core/Entities.hpp>
+#include <agario/core/Player.hpp>
 
 #include "agario/rendering/Canvas.hpp"
 #include "agario/rendering/shader.hpp"

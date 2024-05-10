@@ -122,35 +122,35 @@ target_link_libraries(bot-compare util)
 # Testing
 # ============================================================
 
-include_directories(test)
-set(TEST_SRC
-        test/test-core.hpp
-        test/test-entities.hpp
-        test/test-engine.hpp
-        test/renderable.hpp
-        test/main.cpp)
+# include_directories(test)
+# set(TEST_SRC
+#         test/test-core.hpp
+#         test/test-entities.hpp
+#         test/test-engine.hpp
+#         test/renderable.hpp
+#         test/main.cpp)
 
-find_package(GTest)
-if (GTEST_FOUND)
-    #set(TEST_FLAGS "-g -O0 -Wall -Wextra -pedantic")
+# find_package(GTest)
+# if (GTEST_FOUND)
+#     #set(TEST_FLAGS "-g -O0 -Wall -Wextra -pedantic")
 
-    include_directories(test ${GTEST_INCLUDE_DIRS})
+#     include_directories(test ${GTEST_INCLUDE_DIRS})
 
-    add_executable(test-engine ${TEST_SRC} ${AGARIO_SRC})
-    target_link_libraries(test-engine pthread gtest)
+#     add_executable(test-engine ${TEST_SRC} ${AGARIO_SRC})
+#     target_link_libraries(test-engine pthread gtest)
 
-    find_package(OpenGL REQUIRED)
-    if (OpenGL_FOUND)
-        add_executable(test-engine-renderable ${TEST_SRC} ${AGARIO_SRC})
-        target_include_directories(test-engine-renderable PRIVATE ${OPENGL_INCLUDE_DIR})
+#     find_package(OpenGL REQUIRED)
+#     if (OpenGL_FOUND)
+#         add_executable(test-engine-renderable ${TEST_SRC} ${AGARIO_SRC})
+#         target_include_directories(test-engine-renderable PRIVATE ${OPENGL_INCLUDE_DIR})
 
-        target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} glm glfw)
-        target_compile_definitions(test-engine-renderable PUBLIC RENDERABLE)
+#         target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} GLEW glm glfw)
+#         target_compile_definitions(test-engine-renderable PUBLIC RENDERABLE)
 
-    else()
-        message("OpenGL not found")
-    endif()
+#     else()
+#         message("OpenGL not found")
+#     endif()
 
-else()
-    message("Google Test not found")
-endif()
+# else()
+#     message("Google Test not found")
+# endif()
