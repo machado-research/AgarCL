@@ -10,7 +10,7 @@ Game Mechanics
   - small cells can push big cells (they shouldn't)
   - Feeding viruses cause virus splitting
   - names on players
-  - respawn bots
+  - respawn bots 
 
 Bugs
   - viruses appear inside players => splitting them
