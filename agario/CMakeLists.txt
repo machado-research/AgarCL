@@ -77,10 +77,19 @@ set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 #find_library(GLFW REQUIRED)
 find_package(glm REQUIRED)
+#NEW
+find_package(GLEW REQUIRED)
 
 include_directories(${GLM_INCLUDE_DIRS})
+#NEW
+include_directories(${GLEW_INCLUDE_DIRS})
+
 link_directories(${GLM_LIBRARY_DIRS})
+#NEW
+link_directories(${GLEW_LIBRARY_DIRS})
+
 add_definitions(${GLM_DEFINITIONS})
+
 
 include_directories(client engine ${OPENGL_INCLUDE_DIR})
 
@@ -93,7 +102,7 @@ set(AGARIO_CLIENT_SRC
         rendering/shader.hpp)
 
 add_executable(client ${AGARIO_CLIENT_SRC} ${AGARIO_BOT_SRC} client/main.cpp)
-target_link_libraries(client ${OPENGL_LIBRARIES} glfw glm)
+target_link_libraries(client ${OPENGL_LIBRARIES} GLEW glfw glm)
 
 include_directories(server)
 set(AGARIO_SERVER_SRC

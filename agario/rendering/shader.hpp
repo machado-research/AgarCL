@@ -61,6 +61,14 @@ public:
 
     unsigned int vertex, fragment;
 
+    //Check whether it is already compiled
+    std::cout << "Compiling vertex shader" << std::endl;
+    if (glewInit() != GLEW_OK) 
+    { 
+        fprintf(stderr, "Failed to initialize GLEW\n");
+        return;
+    }
+
     // vertex shader
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, nullptr);
