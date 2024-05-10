@@ -64,7 +64,7 @@ import agarle
 
 
 class AgarioEnv(gym.Env):
-    metadata = {'render.modes': ['human']}
+    metadata = {'render_modes': ['human']}
 
     def __init__(self, obs_type='grid', **kwargs):
         super(AgarioEnv, self).__init__()
@@ -115,7 +115,7 @@ class AgarioEnv(gym.Env):
         # passing the raw target numpy array is tricky because
         # of data formatting :(
         actions = [(tgt[0], tgt[1], a) for tgt, a in actions]
-
+        
         # set the action for each agent
         self._env.take_actions(actions)
 

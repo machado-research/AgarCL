@@ -15,7 +15,7 @@ import gym, gym_agario
 import numpy as np
 import cProfile
 
-null_action = (np.zeros(2), 0)
+null_action = (np.random.rand(1, 2)[0].astype(np.float32), np.random.randint(0, 3))
 default_config = {
     'ticks_per_step':  4,
     'num_frames':      1,
@@ -46,7 +46,8 @@ def main():
     for _ in range(args.num_steps):
         state, reward, done, info = env.step(null_action)
         states.append(state)
-    del states
+    import pdb; pdb.set_trace()
+    env.render()
 
 
 def parse_args():
