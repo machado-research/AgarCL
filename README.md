@@ -138,4 +138,4 @@ will render the game onto the screen. This feature is turned off by default
 for performance and portability reasons, but can be turned on during
 compilation by using the following cmake command instead of the one shown above. 
 
-    cmake -DCMAKE_BUILD_TYPE=Release -DDEFINE_RENDERABLE=ON ..
+    cmake -DCMAKE_BUILD_TYPE=Release -DRENDERABLE=ON ..
