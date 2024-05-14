@@ -13,7 +13,7 @@ IF(APPLE)
 ENDIF()
 
 # Allow for making
-option(RENDERABLE "Make environments renderable" OFF) # Disabled by default
+option(RENDERABLE "Make environments renderable" ON) # Disabled by default
 if (RENDERABLE)
     message("Renderable")
     add_definitions(-DRENDERABLE)
@@ -46,7 +46,7 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
     # define the preprocessor macro to include the relevant code
     add_definitions(-DINCLUDE_SCREEN_ENV)
 
-    find_library(GLFW REQUIRED)
+    # find_library(GLFW REQUIRED)
     find_package(glfw3)
     find_package(glm REQUIRED)
     #NEW
@@ -69,15 +69,18 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
 
     target_include_directories(agarle PRIVATE "..")
     target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} GLEW glm glfw)
-    target_compile_options(agarle PUBLIC -fsized-deallocation)
+    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw)
 
 else()
 
     # standard compilation with Grid and Ram environments only
     pybind11_add_module(agarle bindings.cpp renderable.hpp
             ${AGARIO_ENVS_SOURCE})
+            
     target_include_directories(agarle PRIVATE "..")
+    target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
+    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw)
+
     target_compile_options(agarle PUBLIC -fsized-deallocation)
 
 endif()
@@ -87,17 +90,23 @@ endif()
 # Testing
 # ============================================================
 
-find_package(GTest)
-if (GTEST_FOUND)
+# find_package(GTest)
+# if (GTEST_FOUND)
 
-    set(TEST_SRC
-            test/main.cpp
-            test/grid-env-test.hpp)
+#     set(TEST_SRC
+#             test/main.cpp
+#             test/grid-env-test.hpp)
+    
+    
+#     # set(EXT_SOURCE_DIR "/usr/include")
+#     # set(EXT_INCLUDE_DIR "/usr/include")
+#     # add_library(glad "${EXT_INCLUDE_DIR}/glad/glad.h" "${EXT_SOURCE_DIR}/glad/glad.c")
+#     # target_include_directories(glad PUBLIC ${EXT_INCLUDE_DIR})
 
-    add_executable(test-envs ${TEST_SRC} ${AGARIO_GRID_ENV_SOURCE})
-    target_include_directories(test-envs PUBLIC ".." ${GTEST_INDLUCE_DIRS})
-    target_link_libraries(test-envs gtest pthread)
+#     add_executable(test-envs ${TEST_SRC} ${AGARIO_GRID_ENV_SOURCE})
+#     target_include_directories(test-envs PUBLIC ".." ${GTEST_INDLUCE_DIRS})
+#     target_link_libraries(test-envs glad glfw gtest pthread)
 
-else()
-    message("Google Test not found")
-endif()
+# else()
+#     message("Google Test not found")
+# endif()

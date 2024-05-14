@@ -11,7 +11,7 @@ class WindowException : public std::runtime_error {
   using runtime_error::runtime_error;
 };
 
-void glfw_error_callback(int error, const char *description) {
+void glfw_error_callback_Window(int error, const char *description) {
   (void) error;
   throw WindowException(description);
 }
@@ -24,7 +24,7 @@ public:
     screen_height(screen_height),
     _destroy(false) {
 
-    glfwSetErrorCallback(glfw_error_callback);
+    glfwSetErrorCallback(glfw_error_callback_Window);
 
     if (!glfwInit())
       throw WindowException("GLFW initialization failed.");

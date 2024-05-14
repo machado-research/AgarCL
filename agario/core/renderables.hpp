@@ -1,6 +1,7 @@
 #pragma once
 #define GL_SILENCE_DEPRECATION
-
+// #include <GL/glew.h>
+#include"glad/glad.h"
 #include "agario/rendering/platform.hpp"
 
 #include "agario/core/color.hpp"

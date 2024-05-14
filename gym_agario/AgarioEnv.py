@@ -64,7 +64,7 @@ import agarle
 
 
 class AgarioEnv(gym.Env):
-    metadata = {'render_modes': ['human']}
+    metadata = {'render_modes': ['human'], 'render_fps': []}
 
     def __init__(self, obs_type='grid', **kwargs):
         super(AgarioEnv, self).__init__()
@@ -180,7 +180,6 @@ class AgarioEnv(gym.Env):
         assert obs_type in ("ram", "screen", "grid")
 
         args = self._get_env_args(kwargs)
-
         if obs_type == "grid":
             num_frames = kwargs.get("num_frames", 2)
             grid_size = kwargs.get("grid_size", 128)
@@ -188,7 +187,6 @@ class AgarioEnv(gym.Env):
             observe_others = kwargs.get("observe_others",   True)
             observe_viruses = kwargs.get("observe_viruses", True)
             observe_pellets = kwargs.get("observe_pellets", True)
-
             env = agarle.GridEnvironment(*args)
             env.configure_observation({
                 "num_frames": num_frames,

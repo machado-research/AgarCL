@@ -1,10 +1,9 @@
 #pragma once
-
+#include "glad/glad.h"
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
 #define GL_SILENCE_DEPRECATION
 #include <GLFW/glfw3.h>
 
@@ -63,12 +62,17 @@ public:
 
     //Check whether it is already compiled
     std::cout << "Compiling vertex shader" << std::endl;
-    if (glewInit() != GLEW_OK) 
-    { 
-        fprintf(stderr, "Failed to initialize GLEW\n");
+    // if (glewInit() != GLEW_OK) 
+    // { 
+    //     fprintf(stderr, "Failed to initialize GLEW\n");
+    //     return;
+    // }
+      if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        fprintf(stderr, "Failed to initialize GLAD\n");
         return;
+        
     }
-
     // vertex shader
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, nullptr);

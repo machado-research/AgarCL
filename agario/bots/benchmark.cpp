@@ -231,7 +231,7 @@ cxxopts::Options options() {
     options.parse_positional({"server"});
     return options;
 
-  } catch (const cxxopts::OptionException &e) {
+  } catch (const std::exception &e) {
     std::cout << "error parsing options: " << e.what() << std::endl;
     exit(1);
   }
@@ -239,34 +239,34 @@ cxxopts::Options options() {
 
 int main(int argc, char *argv[]) {
 
-  using namespace agario::bot;
-  using HungryBot = HungryBot<RENDERABLE>;
-  using HungryShyBot = HungryShyBot<RENDERABLE>;
-  using AggressiveBot = AggressiveBot<RENDERABLE>;
-  using AggressiveShyBot = AggressiveShyBot<RENDERABLE>;
+  // using namespace agario::bot;
+  // using HungryBot = HungryBot<RENDERABLE>;
+  // using HungryShyBot = HungryShyBot<RENDERABLE>;
+  // using AggressiveBot = AggressiveBot<RENDERABLE>;
+  // using AggressiveShyBot = AggressiveShyBot<RENDERABLE>;
 
-  /* configure which bots to evaluate in this template pack */
-  using Evaluator = BotEvaluator<
-    HungryBot,
-    HungryShyBot,
-    AggressiveBot,
-    AggressiveShyBot>;
+  // /* configure which bots to evaluate in this template pack */
+  // using Evaluator = BotEvaluator<
+  //   HungryBot,
+  //   HungryShyBot,
+  //   AggressiveBot,
+  //   AggressiveShyBot>;
 
-  /* command line parsing and evaluation */
+  // /* command line parsing and evaluation */
 
-  auto opts = options();
-  auto args = opts.parse(argc, argv);
+  // auto opts = options();
+  // auto args = opts.parse(argc, argv);
 
-  int num_games = args["games"].as<int>();
-  int num_bots = args["bots"].as<int>();
-  float game_duration = args["duration"].as<float>();
-  int tick_freq = args["frequency"].as<int>();
-  int threads = args["threads"].as<int>();
+  // int num_games = args["games"].as<int>();
+  // int num_bots = args["bots"].as<int>();
+  // float game_duration = args["duration"].as<float>();
+  // int tick_freq = args["frequency"].as<int>();
+  // int threads = args["threads"].as<int>();
 
-  Evaluator evaluator(num_bots, game_duration, tick_freq, threads);
-  evaluator.run(num_games);
+  // Evaluator evaluator(num_bots, game_duration, tick_freq, threads);
+  // evaluator.run(num_games);
 
-  std::cout << evaluator.stats() << std::endl;
+  // std::cout << evaluator.stats() << std::endl;
 
-  return 0;
+  // return 0;
 }

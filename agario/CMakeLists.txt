@@ -5,9 +5,10 @@ project(Agario
         VERSION 0.1
         DESCRIPTION "Agar.io Game Engine"
         HOMEPAGE_URL "https://github.com/jondeaton/AgarLE"
-        LANGUAGES CXX)
+        LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
+# For C as well 
 
 set(DEBUG_FLAGS "-g -O0 -fpermissive -fsized-deallocation")
 set(RELEASE_FLAGS "-O3 -fpermissive")
@@ -64,6 +65,7 @@ set(AGARIO_ENGINE_SRC
         core/settings.hpp)
 
 set(AGARIO_RENDERING_SRC
+        # /usr/include/glad/glad.h
         rendering/types.hpp
         rendering/platform.hpp
         rendering/renderer.hpp
@@ -77,16 +79,17 @@ set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 #find_library(GLFW REQUIRED)
 find_package(glm REQUIRED)
+find_package(glfw3 REQUIRED)
 #NEW
-find_package(GLEW REQUIRED)
-
+# find_package(GLEW REQUIRED)
+#NEW 
 include_directories(${GLM_INCLUDE_DIRS})
 #NEW
-include_directories(${GLEW_INCLUDE_DIRS})
+# include_directories(${GLEW_INCLUDE_DIRS})
 
 link_directories(${GLM_LIBRARY_DIRS})
 #NEW
-link_directories(${GLEW_LIBRARY_DIRS})
+# link_directories(${GLEW_LIBRARY_DIRS})
 
 add_definitions(${GLM_DEFINITIONS})
 
@@ -99,10 +102,25 @@ set(AGARIO_CLIENT_SRC
         core/Entities.hpp
         client/client.hpp
         rendering/renderer.hpp
-        rendering/shader.hpp)
+        rendering/shader.hpp
+        # /usr/include/glad/include/glad/glad.h
+        )
 
-add_executable(client ${AGARIO_CLIENT_SRC} ${AGARIO_BOT_SRC} client/main.cpp)
-target_link_libraries(client ${OPENGL_LIBRARIES} GLEW glfw glm)
+
+
+set(EXT_SOURCE_DIR "/usr/include")
+set(EXT_INCLUDE_DIR "/usr/include")
+add_library(glad "${EXT_INCLUDE_DIR}/glad/glad.h" "${EXT_SOURCE_DIR}/glad/glad.c")
+
+# Add the -fPIC flag to ensure position-independent code
+set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(glad PUBLIC ${EXT_INCLUDE_DIR})
+
+
+
+add_executable(client ${AGARIO_CLIENT_SRC} ${AGARIO_BOT_SRC}  client/main.cpp)
+target_link_libraries(client ${OPENGL_LIBRARIES} glad glfw glm)
 
 include_directories(server)
 set(AGARIO_SERVER_SRC

@@ -1,6 +1,6 @@
 #pragma once
-
-#include <GL/glew.h>
+#include "glad/glad.h"
+// #include <GL/glew.h>
 #define GLFW_INCLUDE_NONE
 #include "agario/rendering/platform.hpp"
 #include <GLFW/glfw3.h>
@@ -19,9 +19,9 @@
 #include <agario/core/Entities.hpp>
 #include <agario/core/Player.hpp>
 
+#include "agario/core/renderables.hpp"
 #include "agario/rendering/Canvas.hpp"
 #include "agario/rendering/shader.hpp"
-#include "agario/core/renderables.hpp"
 
 #define NUM_GRID_LINES 11
 

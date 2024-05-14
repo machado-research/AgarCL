@@ -343,9 +343,13 @@ namespace agario::env {
       }
 
       void render() override {
+        std::cout <<"BEFORE RENDERING\n";
 #ifdef RENDERABLE
+          std::cout <<"INSIDE RENDERING\n";
+
       for (auto &pid: this->pids_) {
         auto &player = this->engine_.player(pid);
+        std::cout <<"INSIDE RENDERING\n";
         renderer->render_screen(player, this->engine_.game_state());
       }
         glfwPollEvents();

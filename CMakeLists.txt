@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 17)
 # To configure for "release", then run cmake with:
 # cmake -DCMAKE_BUILD_TYPE=Release
 
+
 add_subdirectory(agario)
 add_subdirectory(environment)
 add_subdirectory(utils)
