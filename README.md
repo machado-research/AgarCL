@@ -139,3 +139,6 @@ for performance and portability reasons, but can be turned on during
 compilation by using the following cmake command instead of the one shown above. 
 
     cmake -DCMAKE_BUILD_TYPE=Release -DRENDERABLE=ON ..
+# Debugging 
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build
