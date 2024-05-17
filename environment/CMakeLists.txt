@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.5)
 project (AvarioEnv)
 
 set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -fsanitize=address  -fsanitize=leak -g")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=leak -g")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fsanitize=leak -g")
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -fsanitize=leak")
+# set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address -fsanitize=leak")
 
 include_directories("." "..")
 add_subdirectory(pybind11)
@@ -90,23 +95,18 @@ endif()
 # Testing
 # ============================================================
 
-# find_package(GTest)
-# if (GTEST_FOUND)
+find_package(GTest)
+if (GTEST_FOUND)
 
-#     set(TEST_SRC
-#             test/main.cpp
-#             test/grid-env-test.hpp)
+    set(TEST_SRC
+            test/main.cpp
+            test/grid-env-test.hpp)
     
-    
-#     # set(EXT_SOURCE_DIR "/usr/include")
-#     # set(EXT_INCLUDE_DIR "/usr/include")
-#     # add_library(glad "${EXT_INCLUDE_DIR}/glad/glad.h" "${EXT_SOURCE_DIR}/glad/glad.c")
-#     # target_include_directories(glad PUBLIC ${EXT_INCLUDE_DIR})
 
-#     add_executable(test-envs ${TEST_SRC} ${AGARIO_GRID_ENV_SOURCE})
-#     target_include_directories(test-envs PUBLIC ".." ${GTEST_INDLUCE_DIRS})
-#     target_link_libraries(test-envs glad glfw gtest pthread)
+    add_executable(test-envs ${TEST_SRC} ${AGARIO_GRID_ENV_SOURCE})
+    target_include_directories(test-envs PUBLIC ".." ${GTEST_INDLUCE_DIRS})
+    target_link_libraries(test-envs glad glfw gtest pthread)
 
-# else()
-#     message("Google Test not found")
-# endif()
+else()
+    message("Google Test not found")
+endif()

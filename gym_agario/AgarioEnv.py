@@ -138,7 +138,7 @@ class AgarioEnv(gym.Env):
 
         self.steps += 1
         return observations, rewards, dones, {'steps': self.steps}
-
+    
     def reset(self):
         """ resets the environment
         :return: the state of the environment at the beginning
@@ -150,6 +150,8 @@ class AgarioEnv(gym.Env):
 
     def render(self, mode='human'):
         self._env.render()
+    def close(self):
+        self._env.close()
 
     def _make_observations(self):
         """ creates an observation object from the underlying environment
@@ -199,7 +201,7 @@ class AgarioEnv(gym.Env):
 
             channels, width, height = env.observation_shape()
             shape = (width, height, channels)
-            dtype = np.int32
+            dtype = np.uint8
             observation_space = spaces.Box(-1, np.iinfo(dtype).max, shape, dtype=dtype)
 
         elif obs_type == "ram":
@@ -227,7 +229,7 @@ class AgarioEnv(gym.Env):
 
         else:
             raise ValueError(obs_type)
-
+        
         return env, observation_space
 
     def _get_env_args(self, kwargs):

@@ -62,17 +62,15 @@ public:
 
     //Check whether it is already compiled
     std::cout << "Compiling vertex shader" << std::endl;
-    // if (glewInit() != GLEW_OK) 
-    // { 
-    //     fprintf(stderr, "Failed to initialize GLEW\n");
-    //     return;
-    // }
+
       if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         fprintf(stderr, "Failed to initialize GLAD\n");
         return;
         
     }
+    gladLoadGL();
+
     // vertex shader
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, nullptr);
@@ -91,7 +89,6 @@ public:
     glAttachShader(program, fragment);
     glLinkProgram(program);
     check_compile_errors(program, "PROGRAM");
-
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
@@ -100,7 +97,9 @@ public:
   void use() {
     glUseProgram(program);
   }
-
+  void cleanup() {
+    glDeleteProgram(program);
+  }
   void setBool(const std::string &name, bool value) const {
     glUniform1i(glGetUniformLocation(program, name.c_str()), (int) value);
   }
@@ -130,7 +129,8 @@ public:
     return std::string((const char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
   }
 
-  ~Shader() { glDeleteProgram(program); }
+  ~Shader() { 
+  }
 
 private:
 

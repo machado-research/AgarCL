@@ -8,10 +8,15 @@ project(AgarLE
         LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-
+# set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -fsanitize=address  -fsanitize=leak -g")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=leak -g")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fsanitize=leak -g")
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -fsanitize=leak")
+# set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address -fsanitize=leak")
 # To configure for "release", then run cmake with:
 # cmake -DCMAKE_BUILD_TYPE=Release
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
 add_subdirectory(agario)
 add_subdirectory(environment)
@@ -20,7 +25,7 @@ add_subdirectory(bench)
 
 enable_testing()
 
-find_package(GTest)
+find_package(GTest REQUIRED)
 if (GTEST_FOUND)
 
     add_test(NAME GameEngine
@@ -37,3 +42,10 @@ endif()
 add_test(NAME OpenAI-Gym
         COMMAND python -m tests
         WORKING_DIRECTORY ..)
+
+
+
+# To build the tests, run:
+# cmake -DBUILD_TESTING=ON ..
+# make
+# make test

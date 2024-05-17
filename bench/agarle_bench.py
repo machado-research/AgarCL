@@ -19,9 +19,9 @@ default_config = {
     'ticks_per_step':  4,
     'num_frames':      1,
     'arena_size':      1000,
-    'num_pellets':     1000,
-    'num_viruses':     25,
-    'num_bots':        25,
+    'num_pellets':     100,
+    'num_viruses':     100,
+    'num_bots':        100,
     'pellet_regen':    True,
     'grid_size':       128,
     'observe_cells':   True,
@@ -40,15 +40,19 @@ def main():
     }
 
     env = gym.make(args.env, **env_config)
-    env.reset()
+    env.reset() 
     states = []
     for _ in range(args.num_steps):
-        null_action = ([np.random.rand(1, 2)[0].astype(np.float32), np.random.randint(0, 3)])
+        max_val, min_val = 1, -1
+        range_size = max_val - min_val
+        random_values = np.random.rand(2) * range_size + min_val
+        null_action = ([(random_values[0], random_values[1]),0])
+    #     # import pdb; pdb.set_trace()
         state, reward, done, info = env.step(null_action)
-        states.append(state)
         env.render()
 
-
+    env.close()
+# 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")

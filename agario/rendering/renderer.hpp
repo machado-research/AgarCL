@@ -146,8 +146,12 @@ namespace agario {
 
       for (auto &virus : state.viruses)
         virus.draw(shader);
-    }
 
+    }
+    void close_program()
+    {
+      shader.cleanup(); 
+    }
     /**
      * Sets the canvas to render to
      * @param canvas pointer to a canvas to render to
@@ -157,7 +161,7 @@ namespace agario {
     }
 
     ~Renderer() {
-      glfwTerminate();
+      // glfwTerminate();
     }
 
   private:

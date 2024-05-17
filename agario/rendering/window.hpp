@@ -71,11 +71,14 @@ public:
 
   void destroy() {
     if (_destroy)
-      glfwDestroyWindow(window);
+      {
+        glfwDestroyWindow(window);
+        // glfwTerminate();
+      }
     _destroy = false;
   }
 
-  ~Window() { destroy(); }
+  ~Window() { std::cout << "Window destroyed" << std::endl;}
 
 private:
 

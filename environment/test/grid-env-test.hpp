@@ -175,4 +175,14 @@ namespace {
     }
   }
 
+  /* ===================== Rendering Tests ===================== */
+  TEST_F(EnvTest, Render) {
+    SetUp();
+    ASSERT_NO_THROW(env->render());
+  }
+  TEST_F(EnvTest, close) {
+    SetUp();
+    ASSERT_NO_THROW(env->close());
+  }
 }
+

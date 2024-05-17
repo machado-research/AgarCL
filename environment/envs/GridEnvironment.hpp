@@ -293,6 +293,12 @@ namespace agario::env {
         renderer = std::make_unique<agario::Renderer>(window,
                                                       this->engine_.arena_width(),
                                                       this->engine_.arena_height());
+        // //make the renderer as normal pointer 
+        // renderer  = new agario::Renderer(window,
+        //           this->engine_.arena_width(),
+        //           this->engine_.arena_height());
+
+
 #endif
       }
 
@@ -343,13 +349,10 @@ namespace agario::env {
       }
 
       void render() override {
-        std::cout <<"BEFORE RENDERING\n";
 #ifdef RENDERABLE
-          std::cout <<"INSIDE RENDERING\n";
 
       for (auto &pid: this->pids_) {
         auto &player = this->engine_.player(pid);
-        std::cout <<"INSIDE RENDERING\n";
         renderer->render_screen(player, this->engine_.game_state());
       }
         glfwPollEvents();
@@ -357,10 +360,29 @@ namespace agario::env {
 #endif
       }
 
+       void close() override {
+#ifdef RENDERABLE
+      renderer->close_program(); 
+      window->destroy();
+      // glfwTerminate();
+      // glDeleteProgram(renderer->shader.program);
+      // std::cout <<"Closing the Environment\n";
+#endif
+    }
+    virtual ~GridEnvironment() {
+#ifdef RENDERABLE
+
+
+    // delete renderer;
+#endif
+      // std::cout << "GridEnvironment destroyed" << std::endl;
+    }
+
     private:
       std::vector<Observation> observations;
 
 #ifdef RENDERABLE
+      // agario::Renderer renderer;
       std::unique_ptr<agario::Renderer> renderer;
       std::shared_ptr<Window> window;
 #endif

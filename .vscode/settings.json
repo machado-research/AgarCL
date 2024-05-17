@@ -71,6 +71,8 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "stdarg.h": "c"
-    }
+        "stdarg.h": "c",
+        "*.glsl": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

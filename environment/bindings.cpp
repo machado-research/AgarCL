@@ -97,24 +97,24 @@ PYBIND11_MODULE(agarle, module) {
     .def("reset", &GridEnvironment::reset)
     .def("render", &GridEnvironment::render)
     .def("step", &GridEnvironment::step)
-    .def("get_state", &get_state<GridEnvironment>);
-
+    .def("get_state", &get_state<GridEnvironment>)
+    .def("close", &GridEnvironment::close);
   
   /* ================ Ram Environment ================ */
-  using RamEnvironment = agario::env::RamEnvironment<renderable>;
+  // using RamEnvironment = agario::env::RamEnvironment<renderable>;
 
-  py::class_<RamEnvironment>(module, "RamEnvironment")
-    .def(py::init<int, int, int, bool, int, int, int>())
-    .def("seed", &RamEnvironment::seed)
-    .def("observation_shape", &RamEnvironment::observation_shape)
-    .def("dones", &RamEnvironment::dones)
-    .def("take_actions", [](RamEnvironment &env, const py::list &actions) {
-      env.take_actions(to_action_vector(actions));
-    })
-    .def("reset", &RamEnvironment::reset)
-    .def("render", &RamEnvironment::render)
-    .def("step", &RamEnvironment::step)
-    .def("get_state", &get_state<RamEnvironment>);
+  // py::class_<RamEnvironment>(module, "RamEnvironment")
+  //   .def(py::init<int, int, int, bool, int, int, int>())
+  //   .def("seed", &RamEnvironment::seed)
+  //   .def("observation_shape", &RamEnvironment::observation_shape)
+  //   .def("dones", &RamEnvironment::dones)
+  //   .def("take_actions", [](RamEnvironment &env, const py::list &actions) {
+  //     env.take_actions(to_action_vector(actions));
+  //   })
+  //   .def("reset", &RamEnvironment::reset)
+  //   .def("render", &RamEnvironment::render)
+  //   .def("step", &RamEnvironment::step)
+  //   .def("get_state", &get_state<RamEnvironment>);
 
   
   /* ================ Screen Environment ================ */

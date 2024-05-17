@@ -46,7 +46,8 @@ namespace agario {
         pids_.reserve(num_agents);
         reset();
       }
-
+      virtual void close(){}
+      ~BaseEnvironment()=default; 
       [[nodiscard]] int num_agents() const { return num_agents_; }
 
       /**
