@@ -120,16 +120,16 @@ PYBIND11_MODULE(agarle, module) {
   /* ================ Screen Environment ================ */
   /* we only include this conditionally if OpenGL was found available for linking */
 
-#ifdef INCLUDE_SCREEN_ENV
+// #ifdef INCLUDE_SCREEN_ENV
 
-  // todo: convert ScreenEnvironment to multi-environment
+//   // todo: convert ScreenEnvironment to multi-environment
 
 //  using ScreenEnvironment = agario::env::ScreenEnvironment<renderable>;
-//
+
 //  py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
-//    .def(py::init<int, int, int, bool, int, int, int>())
+//    .def(py::init<int, int, int, bool, int, int, int, int, int>())
 //    .def("seed", &ScreenEnvironment::seed)
-//    .def("observation_shape", &ScreenEnvironment::observation_shape)
+//   //  .def("observation_shape", &ScreenEnvironment::observation_shape)
 //    .def("dones", &ScreenEnvironment::dones)
 //    .def("take_actions", [](ScreenEnvironment &env, const py::list &actions) {
 //      env.take_actions(to_action_vector(actions));
@@ -139,12 +139,12 @@ PYBIND11_MODULE(agarle, module) {
 //    .def("step", &ScreenEnvironment::step)
 //    .def("get_state", &get_state<ScreenEnvironment>);
 
-  module.attr("has_screen_env") = py::bool_(true);
+//   module.attr("has_screen_env") = py::bool_(true);
 
-#else
+// #else
 
-  module.attr("has_screen_env") = py::bool_(false);
+//   module.attr("has_screen_env") = py::bool_(false);
 
-#endif
+// #endif
 
 }

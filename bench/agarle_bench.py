@@ -21,13 +21,14 @@ default_config = {
     'arena_size':      1000,
     'num_pellets':     100,
     'num_viruses':     100,
-    'num_bots':        100,
+    'num_bots':        1000000,
     'pellet_regen':    True,
     'grid_size':       128,
     'observe_cells':   True,
     'observe_others':  True,
     'observe_viruses': True,
-    'observe_pellets': True
+    'observe_pellets': True,
+    'obs_type'       : "grid"   #Two options: screen, grid, screen
 }
 
 
@@ -47,10 +48,10 @@ def main():
         range_size = max_val - min_val
         random_values = np.random.rand(2) * range_size + min_val
         null_action = ([(random_values[0], random_values[1]),0])
-    #     # import pdb; pdb.set_trace()
         state, reward, done, info = env.step(null_action)
         env.render()
-
+        # print("BOT:", state[:,:,4])
+        # import pdb; pdb.set_trace()
     env.close()
 # 
 

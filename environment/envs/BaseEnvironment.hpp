@@ -172,6 +172,7 @@ namespace agario {
       /* override this to allow environment to get it's state from
        * intermediate frames between the start and end of a "step" */
       virtual void _partial_observation(int agent_index, int tick_index) {};
+      virtual void _partial_observation(Player &player, int tick_index) {};
 
     private:
       /* adds the specified number of bots to the game */

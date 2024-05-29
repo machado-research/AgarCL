@@ -64,7 +64,7 @@ import agarle
 
 
 class AgarioEnv(gym.Env):
-    metadata = {'render_modes': ['human'], 'render_fps': []}
+    metadata = {'render_modes': ['human'], 'render_fps': 60}
 
     def __init__(self, obs_type='grid', **kwargs):
         super(AgarioEnv, self).__init__()
@@ -150,6 +150,7 @@ class AgarioEnv(gym.Env):
 
     def render(self, mode='human'):
         self._env.render()
+        
     def close(self):
         self._env.close()
 
@@ -201,7 +202,7 @@ class AgarioEnv(gym.Env):
 
             channels, width, height = env.observation_shape()
             shape = (width, height, channels)
-            dtype = np.uint8
+            dtype = np.int32
             observation_space = spaces.Box(-1, np.iinfo(dtype).max, shape, dtype=dtype)
 
         elif obs_type == "ram":
