@@ -178,10 +178,20 @@ namespace agario {
       std::vector<Cell> created_cells; // list of new cells that will be created
       int create_limit = PLAYER_CELL_LIMIT - player.cells.size();
 
+      bool can_eat_virus = player.cells.size() >= NUM_CELLS_TO_SPLIT;
+
+      for(Cell &cell : player.cells){
+        if(cell.mass() < MIN_CELL_SPLIT_MASS){
+          can_eat_virus = false;
+          break;
+        }
+      }
+
       for (Cell &cell : player.cells) {
+        
         eat_pellets(cell);
         eat_food(cell);
-        check_virus_collisions(cell, created_cells, create_limit);
+        check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
       }
 
       create_limit -= created_cells.size();
@@ -464,12 +474,24 @@ namespace agario {
       }
     }
 
-    void check_virus_collisions(Cell &cell, std::vector<Cell> &created_cells, int create_limit) {
+    void check_virus_collisions(Cell &cell, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus) {
       for (auto it = state.viruses.begin(); it != state.viruses.end();) {
         Virus &virus = *it;
 
         if (cell.can_eat(virus) && cell.collides_with(virus)) {
-          disrupt(cell, virus, created_cells, create_limit);
+          /*
+          We have two options: 
+                  1: if I am within the time of being splitted (Not yet recombined) and I am trying to eat another virus, good. Eat it! 
+                  Note that You can consume viruses if you are split into 16 cells. One of them has to be at least 130 in mass 
+                  (or 10% larger than the virus) to consume the viruses. You gain 100 mass from each virus you eat.
+                  2: If I am fully shaped and I am trying to eat a virus, then I will be splitted into multiple cells.
+
+          */
+          if(can_eat_virus)
+            cell.increment_mass(virus.mass());
+          else
+            disrupt(cell, virus, created_cells, create_limit);
+
           std::swap(*it, state.viruses.back()); // O(1) removal
           state.viruses.pop_back();
           return; // only collide once
@@ -488,7 +510,7 @@ namespace agario {
       cell.increment_mass((total_mass - cell.mass()) % CELL_POP_SIZE);
 
       agario::mass pop_mass = total_mass - cell.mass(); // mass conservation
-      int num_new_cells = div_round_up<agario::mass>(pop_mass, CELL_POP_SIZE);
+      int num_new_cells = div_round_up<agario::mass>(pop_mass, CELL_POP_SIZE); //just ceil(POP_MASS, cell_pop_size)
 
       // limit the number of cells created to the cell-creation limit
       num_new_cells = std::min<int>(num_new_cells, create_limit);

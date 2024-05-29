@@ -239,9 +239,9 @@ class AgarioEnv(gym.Env):
         :param kwargs: arguments from the instantiation of t
         :return: list of arguments to the underlying environment
         """
-        difficulty = kwargs.get("difficulty", "normal")
+        difficulty = kwargs.get("difficulty", "normal").lower()
         if difficulty not in ["normal", "empty", "trivial"]:
-            raise ValueError(difficulty)
+            raise ValueError(f'Unrecognized difficulty: {difficulty}')
 
         multi_agent = False
         num_agents = 1

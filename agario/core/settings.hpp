@@ -29,3 +29,7 @@
 #define DEFAULT_NUM_PELLETS 1024
 #define DEFAULT_NUM_VIRUSES 25
 #define PLAYER_CELL_LIMIT 25
+
+//split condition 
+#define NUM_CELLS_TO_SPLIT 16
+#define MIN_CELL_SPLIT_MASS 130

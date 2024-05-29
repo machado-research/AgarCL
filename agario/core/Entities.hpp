@@ -151,6 +151,7 @@ namespace agario {
                          std::chrono::seconds(RECOMBINE_TIMER_SEC);
       _can_recombine = false;
     }
+    
 
     agario::Velocity splitting_velocity;
     agario::real_time _recombine_timer;
