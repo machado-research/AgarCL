@@ -132,8 +132,13 @@ namespace agario {
       this->y += (this->velocity.dy + splitting_velocity.dy) * dt;
     }
 
+
     void set_mass(agario::mass new_mass) {
-      _mass = std::max<agario::mass>(new_mass, CELL_MIN_SIZE);
+
+      if(CELL_MIN_SIZE >= VIRUS_MASS)
+        _mass = new_mass;
+      else
+        _mass = std::max<agario::mass>(new_mass, CELL_MIN_SIZE);
     }
 
     void increment_mass(agario::mass inc) { set_mass(mass() + inc); }
