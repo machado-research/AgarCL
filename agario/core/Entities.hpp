@@ -15,6 +15,8 @@
 #define FOOD_SIDES 7
 #define CELL_SIDES 50
 
+#define CELL_EAT_REQUIREMENT 25
+
 namespace agario {
 
   template<bool renderable, unsigned NumSides = PELLET_SIDES>
@@ -122,6 +124,17 @@ namespace agario {
     Cell(distance x, distance y, agario::mass mass) : Cell(Location(x, y), Velocity(), mass) {}
 
     agario::mass mass() const override { return _mass; }
+
+    template<typename T>
+    bool can_eat(const T& other) const {
+      return Ball::can_eat(other);
+    }
+
+    // Enforce only eating others once size is sufficiently high.
+    bool can_eat(const Cell& other) const {
+
+      return mass() > CELL_EAT_REQUIREMENT && Ball::can_eat(other);
+    }
 
     distance radius() const override {
       return radius_conversion(mass());
