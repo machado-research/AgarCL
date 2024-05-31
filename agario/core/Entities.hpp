@@ -15,6 +15,8 @@
 #define FOOD_SIDES 7
 #define CELL_SIDES 50
 
+#define CELL_EAT_REQUIREMENT 25
+
 namespace agario {
 
   template<bool renderable, unsigned NumSides = PELLET_SIDES>
@@ -123,6 +125,17 @@ namespace agario {
 
     agario::mass mass() const override { return _mass; }
 
+    template<typename T>
+    bool can_eat(const T& other) const {
+      return Ball::can_eat(other);
+    }
+
+    // Enforce only eating others once size is sufficiently high.
+    bool can_eat(const Cell& other) const {
+
+      return mass() > CELL_EAT_REQUIREMENT && Ball::can_eat(other);
+    }
+
     distance radius() const override {
       return radius_conversion(mass());
     }
@@ -132,8 +145,13 @@ namespace agario {
       this->y += (this->velocity.dy + splitting_velocity.dy) * dt;
     }
 
+
     void set_mass(agario::mass new_mass) {
-      _mass = std::max<agario::mass>(new_mass, CELL_MIN_SIZE);
+
+      if(CELL_MIN_SIZE >= VIRUS_MASS)
+        _mass = new_mass;
+      else
+        _mass = std::max<agario::mass>(new_mass, CELL_MIN_SIZE);
     }
 
     void increment_mass(agario::mass inc) { set_mass(mass() + inc); }
@@ -151,6 +169,7 @@ namespace agario {
                          std::chrono::seconds(RECOMBINE_TIMER_SEC);
       _can_recombine = false;
     }
+    
 
     agario::Velocity splitting_velocity;
     agario::real_time _recombine_timer;

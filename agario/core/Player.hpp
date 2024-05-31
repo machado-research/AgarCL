@@ -17,6 +17,7 @@
 namespace agario {
 
   template<bool renderable>
+
   class Player {
 
   public:
@@ -28,6 +29,7 @@ namespace agario {
     Player(agario::pid pid, std::string name, agario::color color) :
       action(none), target(0, 0), split_cooldown(0), feed_cooldown(0),
       _pid(pid), _name(std::move(name)), _score(0), _color(color) {
+      _maxMassCell = 0;
     }
 
     Player(agario::pid pid, const std::string &name) : Player(pid, name, random_color()) {}
@@ -48,6 +50,7 @@ namespace agario {
     add_cell(Args &&... args) {
       cells.emplace_back(std::forward<Args>(args)...);
       cells.back().color = _color;
+
     }
 
     // non-renderable version of add_cell
@@ -57,8 +60,18 @@ namespace agario {
       cells.emplace_back(std::forward<Args>(args)...);
     }
 
-    void kill() { cells.clear(); }
+    void kill(){ 
+      cells.clear(); 
+      _maxMassCell =CELL_MIN_SIZE; 
+    }
     bool dead() const { return cells.empty(); }
+
+    void set_max_mass_cell(agario::mass maxMassCell){
+      _maxMassCell = maxMassCell;
+    }
+    agario::mass get_max_mass_cell(){
+      return _maxMassCell;
+    }
 
     void set_score(score new_score) { _score = new_score; }
 
@@ -151,6 +164,8 @@ namespace agario {
     std::string _name;
     agario::score _score;
     agario::color _color;
+    agario::mass _maxMassCell;
+
   };
 
 

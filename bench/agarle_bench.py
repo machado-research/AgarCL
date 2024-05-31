@@ -20,15 +20,15 @@ default_config = {
     'num_frames':      1,
     'arena_size':      1000,
     'num_pellets':     100,
-    'num_viruses':     100,
-    'num_bots':        1000000,
+    'num_viruses':     1000,
+    'num_bots':        10,
     'pellet_regen':    True,
-    'grid_size':       128,
+    'grid_size':       9,
     'observe_cells':   True,
     'observe_others':  True,
     'observe_viruses': True,
     'observe_pellets': True,
-    'obs_type'       : "grid"   #Two options: screen, grid, screen
+    'obs_type'       : "grid"   #Two options: screen, grid
 }
 
 
@@ -52,6 +52,8 @@ def main():
         env.render()
         # print("BOT:", state[:,:,4])
         # import pdb; pdb.set_trace()
+        if(_ % 100 == 0):
+            import pdb; pdb.set_trace()
     env.close()
 # 
 

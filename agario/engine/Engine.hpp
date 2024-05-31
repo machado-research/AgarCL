@@ -5,6 +5,7 @@
 #include <chrono>
 #include <algorithm>
 #include <sstream>
+#include<set>
 
 #include "agario/core/Player.hpp"
 #include "agario/core/settings.hpp"
@@ -20,6 +21,7 @@ namespace agario {
 
   template<bool renderable>
   class Engine {
+  std::vector<std::pair<agario::distance, agario::distance>> entity_locations;
   public:
     using Player = Player<renderable>;
     using Cell = Cell<renderable>;
@@ -100,6 +102,35 @@ namespace agario {
     agario::Location random_location() {
       auto x = random<agario::distance>(arena_width());
       auto y = random<agario::distance>(arena_height());
+      
+      return Location(x, y);
+    }
+
+    bool is_location_free(agario::distance x, agario::distance y, agario::distance radius) {
+
+      for (auto &entity_loc : entity_locations) {
+        auto entity_x = entity_loc.first;
+        auto entity_y = entity_loc.second;
+
+        agario::distance dx = x - entity_x;
+        agario::distance dy = y - entity_y;
+        agario::distance dis = std::sqrt(dx * dx + dy * dy);
+        if(dis <= 2*radius)
+          return false;
+      }
+      entity_locations.push_back(std::make_pair(x, y));
+      return true;
+    }
+    agario::Location random_location(agario::distance radius) {
+      auto mx_value = arena_width() - 2*radius;
+      auto my_value = arena_height() - 2*radius;
+      
+      agario::distance x, y;
+    do{
+      x = random<agario::distance>(mx_value) + radius; //if it is 0, it will be 0 + radius. 
+      y = random<agario::distance>(my_value) + radius;
+    }while(!is_location_free(x, y,radius));
+
       return Location(x, y);
     }
 
@@ -149,15 +180,20 @@ namespace agario {
       player.kill();
       player.add_cell(random_location(), CELL_MIN_SIZE);
     }
+    
+
 
     void add_pellets(int n) {
+      agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
+      
       for (int p = 0; p < n; p++)
-        state.pellets.emplace_back(random_location());
+        state.pellets.emplace_back(random_location(pellet_radius));
     }
 
     void add_viruses(int n) {
+      agario::distance virus_radius = agario::radius_conversion(VIRUS_MASS);
       for (int v = 0; v < n; v++)
-        state.viruses.emplace_back(random_location());
+        state.viruses.emplace_back(random_location(virus_radius));
     }
 
     /**
@@ -178,10 +214,13 @@ namespace agario {
       std::vector<Cell> created_cells; // list of new cells that will be created
       int create_limit = PLAYER_CELL_LIMIT - player.cells.size();
 
+      bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT) & (player.get_max_mass_cell() >= MIN_CELL_SPLIT_MASS));
+
       for (Cell &cell : player.cells) {
+
         eat_pellets(cell);
         eat_food(cell);
-        check_virus_collisions(cell, created_cells, create_limit);
+        check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
       }
 
       create_limit -= created_cells.size();
@@ -204,11 +243,11 @@ namespace agario {
      */
     void move_player(Player &player, const agario::time_delta &elapsed_seconds) {
       auto dt = elapsed_seconds.count();
-
+      agario::mass best_mass_cell = 0; 
       for (auto &cell : player.cells) {
         cell.velocity.dx = 3 * (player.target.x - cell.x);
         cell.velocity.dy = 3 * (player.target.y - cell.y);
-
+        best_mass_cell = std::max(best_mass_cell, cell.mass());
         // clip speed
         auto speed_limit = max_speed(cell.mass());
         cell.velocity.clamp_speed(0, speed_limit);
@@ -218,7 +257,7 @@ namespace agario {
 
         check_boundary_collisions(cell);
       }
-
+      player.set_max_mass_cell(best_mass_cell);
       // make sure not to move two of players own cells into one another
       check_player_self_collisions(player);
     }
@@ -464,12 +503,24 @@ namespace agario {
       }
     }
 
-    void check_virus_collisions(Cell &cell, std::vector<Cell> &created_cells, int create_limit) {
+    void check_virus_collisions(Cell &cell, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus) {
       for (auto it = state.viruses.begin(); it != state.viruses.end();) {
         Virus &virus = *it;
 
         if (cell.can_eat(virus) && cell.collides_with(virus)) {
-          disrupt(cell, virus, created_cells, create_limit);
+          /*
+          We have two options: 
+                  1: if I am within the time of being splitted (Not yet recombined) and I am trying to eat another virus, good. Eat it! 
+                  Note that You can consume viruses if you are split into 16 cells. One of them has to be at least 130 in mass 
+                  (or 10% larger than the virus) to consume the viruses. You gain 100 mass from each virus you eat.
+                  2: If I am fully shaped and I am trying to eat a virus, then I will be splitted into multiple cells.
+
+          */
+          if(can_eat_virus)
+            cell.increment_mass(virus.mass());
+          else
+            disrupt(cell, virus, created_cells, create_limit);
+
           std::swap(*it, state.viruses.back()); // O(1) removal
           state.viruses.pop_back();
           return; // only collide once
@@ -488,7 +539,7 @@ namespace agario {
       cell.increment_mass((total_mass - cell.mass()) % CELL_POP_SIZE);
 
       agario::mass pop_mass = total_mass - cell.mass(); // mass conservation
-      int num_new_cells = div_round_up<agario::mass>(pop_mass, CELL_POP_SIZE);
+      int num_new_cells = div_round_up<agario::mass>(pop_mass, CELL_POP_SIZE); //just ceil(POP_MASS, cell_pop_size)
 
       // limit the number of cells created to the cell-creation limit
       num_new_cells = std::min<int>(num_new_cells, create_limit);

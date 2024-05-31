@@ -106,6 +106,7 @@ namespace agario::env {
           channel++;
           for (auto &pair : game_state.players) {
             Player &other_player = *pair.second;
+            if (other_player.pid() == player.pid()) continue;
             _store_entities<Cell>(other_player.cells, player, channel);
           }
         }
