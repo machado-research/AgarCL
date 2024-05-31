@@ -18,7 +18,7 @@ IF(APPLE)
 ENDIF()
 
 # Allow for making
-option(RENDERABLE "Make environments renderable" ON) # Disabled by default
+option(RENDERABLE "Make environments renderable" OFF) # Disabled by default
 if (RENDERABLE)
     message("Renderable")
     add_definitions(-DRENDERABLE)
@@ -37,7 +37,7 @@ set(AGARIO_SCREEN_ENV_SOURCE
         envs/ScreenEnvironment.hpp)
 
 # make including the screen environment an option
-option(INCLUDE_SCREEN_ENV "Compile Screen Environment" ON)
+option(INCLUDE_SCREEN_ENV "Compile Screen Environment" OFF)
 if (INCLUDE_SCREEN_ENV)
 
     set(OpenGL_GL_PREFERENCE GLVND)
