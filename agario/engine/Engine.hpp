@@ -5,6 +5,7 @@
 #include <chrono>
 #include <algorithm>
 #include <sstream>
+#include<set>
 
 #include "agario/core/Player.hpp"
 #include "agario/core/settings.hpp"
@@ -20,6 +21,7 @@ namespace agario {
 
   template<bool renderable>
   class Engine {
+  std::vector<std::pair<agario::distance, agario::distance>> entity_locations;
   public:
     using Player = Player<renderable>;
     using Cell = Cell<renderable>;
@@ -100,6 +102,35 @@ namespace agario {
     agario::Location random_location() {
       auto x = random<agario::distance>(arena_width());
       auto y = random<agario::distance>(arena_height());
+      
+      return Location(x, y);
+    }
+
+    bool is_location_free(agario::distance x, agario::distance y, agario::distance radius) {
+
+      for (auto &entity_loc : entity_locations) {
+        auto entity_x = entity_loc.first;
+        auto entity_y = entity_loc.second;
+
+        agario::distance dx = x - entity_x;
+        agario::distance dy = y - entity_y;
+        agario::distance dis = std::sqrt(dx * dx + dy * dy);
+        if(dis <= 2*radius)
+          return false;
+      }
+      entity_locations.push_back(std::make_pair(x, y));
+      return true;
+    }
+    agario::Location random_location(agario::distance radius) {
+      auto mx_value = arena_width() - 2*radius;
+      auto my_value = arena_height() - 2*radius;
+      
+      agario::distance x, y;
+    do{
+      x = random<agario::distance>(mx_value) + radius; //if it is 0, it will be 0 + radius. 
+      y = random<agario::distance>(my_value) + radius;
+    }while(!is_location_free(x, y,radius));
+
       return Location(x, y);
     }
 
@@ -149,15 +180,20 @@ namespace agario {
       player.kill();
       player.add_cell(random_location(), CELL_MIN_SIZE);
     }
+    
+
 
     void add_pellets(int n) {
+      agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
+      
       for (int p = 0; p < n; p++)
-        state.pellets.emplace_back(random_location());
+        state.pellets.emplace_back(random_location(pellet_radius));
     }
 
     void add_viruses(int n) {
+      agario::distance virus_radius = agario::radius_conversion(VIRUS_MASS);
       for (int v = 0; v < n; v++)
-        state.viruses.emplace_back(random_location());
+        state.viruses.emplace_back(random_location(virus_radius));
     }
 
     /**
