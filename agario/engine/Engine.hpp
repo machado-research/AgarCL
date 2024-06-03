@@ -21,7 +21,7 @@ namespace agario {
 
   template<bool renderable>
   class Engine {
-  std::vector<std::pair<agario::distance, agario::distance>> entity_locations;
+  std::set<std::pair<agario::distance, agario::distance>> viruses_loc;
   public:
     using Player = Player<renderable>;
     using Cell = Cell<renderable>;
@@ -100,17 +100,21 @@ namespace agario {
     void respawn(agario::pid pid) { _respawn(player(pid)); }
 
     agario::Location random_location() {
-      auto x = random<agario::distance>(arena_width());
-      auto y = random<agario::distance>(arena_height());
+      return random_location(0);
+    }
+
+    agario::Location random_location(agario::distance radius) {
+      auto x = random<agario::distance>(arena_width() - 2*radius) + radius; //if it is 0, it will be 0 + radius. 
+      auto y = random<agario::distance>(arena_height() - 2*radius) + radius;
       
       return Location(x, y);
     }
 
     bool is_location_free(agario::distance x, agario::distance y, agario::distance radius) {
 
-      for (auto &entity_loc : entity_locations) {
-        auto entity_x = entity_loc.first;
-        auto entity_y = entity_loc.second;
+      for (auto &virus_loc : viruses_loc) {
+        auto entity_x = virus_loc.first;
+        auto entity_y = virus_loc.second;
 
         agario::distance dx = x - entity_x;
         agario::distance dy = y - entity_y;
@@ -118,13 +122,14 @@ namespace agario {
         if(dis <= 2*radius)
           return false;
       }
-      entity_locations.push_back(std::make_pair(x, y));
+      viruses_loc.insert(std::make_pair(x, y));
       return true;
     }
-    agario::Location random_location(agario::distance radius) {
-      auto mx_value = arena_width() - 2*radius;
-      auto my_value = arena_height() - 2*radius;
-      
+    agario::Location random_non_overlapped_location(agario::distance radius) {
+     
+      Location m_value = random_location(radius); 
+      auto mx_value = m_value.x;
+      auto my_value = m_value.y;
       agario::distance x, y;
     do{
       x = random<agario::distance>(mx_value) + radius; //if it is 0, it will be 0 + radius. 
@@ -141,6 +146,7 @@ namespace agario {
      * since the previous game tick.
      */
     void tick(const agario::time_delta &elapsed_seconds) {
+
       for (auto &pair : state.players) {
         auto &player = *pair.second;
         if (!player.dead())
@@ -178,38 +184,29 @@ namespace agario {
      */
     void _respawn(Player &player) {
       player.kill();
-      player.add_cell(random_location(), CELL_MIN_SIZE);
+      player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), CELL_MIN_SIZE);
     }
     
 
 
     void add_pellets(int n) {
-      int mx_num_pellets = std::min(arena_height(), arena_width())/PELLET_MASS; 
-      if(n > mx_num_pellets){
-        //warning message, as it will be overlapping 
-        std::cout << "Warning: Number of pellets is too high. It will be overlapping with each other." << std::endl;
-        for (int p = 0; p < n; p++)
-          state.pellets.emplace_back(random_location());
-      }
-      else{
-        agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
+      agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
         for (int p = 0; p < n; p++)
           state.pellets.emplace_back(random_location(pellet_radius));
-      }
     }
 
     void add_viruses(int n) {
-      int mx_num_viruses = std::min(arena_height(), arena_width())/VIRUS_MASS;
+      agario::distance virus_radius = agario::radius_conversion(VIRUS_MASS);
+      int mx_num_viruses = std::min(arena_height(), arena_width())/virus_radius;
       if(n > mx_num_viruses) {
         //warning message, as it will be overlapping 
-        std::cout << "Warning: Number of viruses is too high. It will be overlapping with each other." << std::endl;
+        std::cout << "\033[33mWarning: Number of viruses is too high. It will be overlapping with each other.\033[0m" << std::endl;
         for (int v = 0; v < n; v++)
-          state.viruses.emplace_back(random_location());
+          state.viruses.emplace_back(random_location(virus_radius));
       }
       else{ 
-      agario::distance virus_radius = agario::radius_conversion(VIRUS_MASS);
       for (int v = 0; v < n; v++)
-        state.viruses.emplace_back(random_location(virus_radius ));
+        state.viruses.emplace_back(random_non_overlapped_location(virus_radius));
       }
     }
 
@@ -364,6 +361,7 @@ namespace agario {
                          return cell.can_eat(pellet) && cell.collides_with(pellet);
                        }),
         state.pellets.end());
+      
       auto num_eaten = prev_size - pellet_count();
       cell.increment_mass(num_eaten * PELLET_MASS);
     }
@@ -539,6 +537,7 @@ namespace agario {
             disrupt(cell, virus, created_cells, create_limit);
 
           std::swap(*it, state.viruses.back()); // O(1) removal
+          viruses_loc.erase(std::make_pair(it->x, it->y));
           state.viruses.pop_back();
           return; // only collide once
         } else ++it;
