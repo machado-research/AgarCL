@@ -184,16 +184,33 @@ namespace agario {
 
 
     void add_pellets(int n) {
-      agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
-      
-      for (int p = 0; p < n; p++)
-        state.pellets.emplace_back(random_location(pellet_radius));
+      int mx_num_pellets = std::min(arena_height(), arena_width())/PELLET_MASS; 
+      if(n > mx_num_pellets){
+        //warning message, as it will be overlapping 
+        std::cout << "Warning: Number of pellets is too high. It will be overlapping with each other." << std::endl;
+        for (int p = 0; p < n; p++)
+          state.pellets.emplace_back(random_location());
+      }
+      else{
+        agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
+        for (int p = 0; p < n; p++)
+          state.pellets.emplace_back(random_location(pellet_radius));
+      }
     }
 
     void add_viruses(int n) {
+      int mx_num_viruses = std::min(arena_height(), arena_width())/VIRUS_MASS;
+      if(n > mx_num_viruses) {
+        //warning message, as it will be overlapping 
+        std::cout << "Warning: Number of viruses is too high. It will be overlapping with each other." << std::endl;
+        for (int v = 0; v < n; v++)
+          state.viruses.emplace_back(random_location());
+      }
+      else{ 
       agario::distance virus_radius = agario::radius_conversion(VIRUS_MASS);
       for (int v = 0; v < n; v++)
         state.viruses.emplace_back(random_location(virus_radius ));
+      }
     }
 
     /**

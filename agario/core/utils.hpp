@@ -24,4 +24,26 @@ namespace agario {
     return static_cast<T>((num + denom - 1) / denom);
   }
 
+
+  template <typename T> T get_max(T a, T b) {
+    return a > b ? a : b;
+  }
+
+  template <typename T> T get_min(T a, T b) {
+    if (a == 0)
+      return b; 
+
+    return a < b ? a : b;
+  }
+
+  template <typename T> T get_abs(T a) {
+    return a < 0 ? -a : a;
+  }
+
+  template <typename T> T get_total(T a, T b) {
+    return a + b;
+  }
+
+
+
 }
