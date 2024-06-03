@@ -6,6 +6,18 @@ The Agar.io Learning Environment (AgarLE) is a performant implementation of the 
 <img width="460" alt="Screenshot" src="https://user-images.githubusercontent.com/15920014/57587859-dbb31400-74c0-11e9-8f47-3e39113b99b4.png">
 </p>
 
+# Prerequisites
+Before you begin, ensure you have the following installed on your system:
+
+- **CMake**: A cross-platform tool designed to build, test, and package software.
+- **GLM**: A header-only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications.
+- **cxxopts**: Lightweight C++ command-line option parser.
+
+Additionally, you will need to install some essential packages for OpenGL development.
+
+## Linux 
+
+
 # Installation
 Clone this repository (with submodules)
 
