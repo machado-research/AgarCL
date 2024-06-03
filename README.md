@@ -13,9 +13,76 @@ Before you begin, ensure you have the following installed on your system:
 - **GLM**: A header-only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications.
 - **cxxopts**: Lightweight C++ command-line option parser.
 
-Additionally, you will need to install some essential packages for OpenGL development.
+Additionally, you will need to install some essential packages for OpenGL development: **GLFW** and **GLAD**.
 
 ## Linux 
+### Installation Instructions
+
+### Step 1: Install CMake
+
+To install CMake, use the Snap package manager:
+
+```sh
+sudo snap install cmake
+```
+
+### Step 2: Install GLM
+
+Download and install GLM from its GitHub repository:
+```sh
+git clone https://github.com/g-truc/glm
+cd /path/to/glm
+cmake \
+    -DGLM_BUILD_TESTS=OFF \
+    -DBUILD_SHARED_LIBS=OFF \
+    -B build .
+cmake --build build -- all
+cmake --build build -- install
+```
+### Step 3: Install Cxxopts: 
+Clone the cxxopts repository and install it following the instructions of this link: 
+```sh
+https://github.com/jarro2783/cxxopts/blob/master/INSTALL
+```
+### Step 4 Install required OPENGL Packages: 
+Some additional packages are required for OpenGL development. Refer to the following:
+```sh
+sudo apt-get install libgl1-mesa-dev
+sudo apt-get install libglu1-mesa-dev
+sudo apt-get install libglfw3-dev
+```
+### Step 5: Install GLAD Specification
+
+After modifying the code, you will need to install the GLAD specification. Follow these steps:
+
+1. Go to [GLAD](https://glad.dav1d.de/).
+2. Configure the following options:
+   - **gl**: 4.6
+   - **Profile**: Core
+   - Ignore other options
+3. Download the generated files and add the path of glad in the this file: ```agario/CMakeLists.txt```
+
+### Step 6: USE CLANG Compiler
+The code is compatible with the CLANG compiler only. If you have GCC installed, you will need to remove it. This is a known issue that needs to be addressed.
+
+To remove GCC:
+
+```sh
+sudo apt-get remove gcc
+```
+To install CLANG:
+```sh
+sudo apt-get install clang
+```
+
+**Final Note**: Ensure that your environment variables and paths are correctly set for all installed tools and libraries. You can add them using the following export line: 
+
+```sh 
+export CPLUS_INCLUDE_PATH=environment variables path :$CPLUS_INCLUDE_PATH
+```
+
+## MAC
+
 
 
 # Installation
