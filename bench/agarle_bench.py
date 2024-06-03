@@ -51,7 +51,6 @@ def main():
         state, reward, done, info = env.step(null_action)
         env.render()
         # print("BOT:", state[:,:,4])
-        # import pdb; pdb.set_trace()
         if(_ % 100 == 0):
             import pdb; pdb.set_trace()
     env.close()

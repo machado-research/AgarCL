@@ -17,8 +17,8 @@ register(id='agario-grid-v0',
          kwargs={'obs_type': 'grid'})
 
 
-if agarle.has_screen_env:
-    # only register the screen environment if its available
-    register(id='agario-screen-v0',
-             entry_point='gym_agario.AgarioEnv:AgarioEnv',
-             kwargs={'obs_type': 'screen'})
+# if agarle.has_screen_env:
+#     # only register the screen environment if its available
+#     register(id='agario-screen-v0',
+#              entry_point='gym_agario.AgarioEnv:AgarioEnv',
+#              kwargs={'obs_type': 'screen'})

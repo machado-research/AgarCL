@@ -29,6 +29,13 @@ namespace agario::env {
       using Pellet = Pellet<renderable>;
       using Virus = Virus<renderable>;
       using Food = Food<renderable>;
+      
+      enum calc_type {
+        at_least_ = 0,
+        total_mass_ = 1,
+        min_ = 2,
+        max_ = 3
+      };
 
     public:
       using dtype = T;
@@ -86,20 +93,24 @@ namespace agario::env {
 
         int channel = channels_per_frame() * frame_index;
         _mark_out_of_bounds(player, channel, game_state.arena_width, game_state.arena_height);
-
+        
         if (config_.observe_pellets) {
           channel++;
-          _store_entities<Pellet>(game_state.pellets, player, channel);
+          _store_entities<Pellet>(game_state.pellets, player, channel, calc_type::at_least_); //at least one_pellet
+          channel++;
+          _store_entities<Pellet>(game_state.pellets, player, channel, calc_type::total_mass_); //total_number_of_pellets
         }
 
         if (config_.observe_viruses) {
           channel++;
-          _store_entities<Virus>(game_state.viruses, player, channel);
+          _store_entities<Virus>(game_state.viruses, player, channel, calc_type::at_least_); //at least one_virus
+          channel++;
+          _store_entities<Virus>(game_state.viruses, player, channel, calc_type::total_mass_); //total_number_of_viruses
         }
 
         if (config_.observe_cells) {
           channel++;
-          _store_entities<Cell>(player.cells, player, channel);
+          _store_entities<Cell>(player.cells, player, channel); //just one cell (agent)
         }
 
         if (config_.observe_others) {
@@ -107,7 +118,9 @@ namespace agario::env {
           for (auto &pair : game_state.players) {
             Player &other_player = *pair.second;
             if (other_player.pid() == player.pid()) continue;
-            _store_entities<Cell>(other_player.cells, player, channel);
+            _store_entities<Cell>(other_player.cells, player, channel, calc_type::min_); //min_mass
+            channel++;
+            _store_entities<Cell>(other_player.cells, player, channel, calc_type::max_); //max_mass
           }
         }
       }
@@ -176,8 +189,13 @@ namespace agario::env {
       /* the number of channels in each frame */
       [[nodiscard]] int channels_per_frame() const {
         // the +1 is for the out-of-bounds channel
-        return static_cast<int>(1 + config_.observe_cells + config_.observe_others
-                                + config_.observe_viruses + config_.observe_pellets);
+        // Pellets: one says if there is a pellet in the cell, the other says the total pellets in the cell.
+        // Viruses: one says if there is a virus in the cell, the other says the total viruses in the cell.
+        // Observing others: one says if there is a cell in the cell, the other says the maximum in the cell.
+        // return static_cast<int>(1 + config_.observe_cells + config_.observe_others
+        //                         + config_.observe_viruses + config_.observe_pellets);
+        return static_cast<int>(1 + config_.observe_cells + 2*config_.observe_others
+                                + 2*config_.observe_viruses + 2*config_.observe_pellets);
       }
 
       /* creates the shape and strides to represent the multi-dimensional array */
@@ -192,10 +210,10 @@ namespace agario::env {
           dtype_size
         };
       }
-
+      
       /* stores the given entities in the data array at the given `channel` */
       template<typename U>
-      void _store_entities(const std::vector<U> &entities, const Player &player, int channel) {
+      void _store_entities(const std::vector<U> &entities, const Player &player, int channel, calc_type calc = calc_type::total_mass_) {
         float view_size = _view_size(player);
 
         int grid_x, grid_y;
@@ -203,10 +221,18 @@ namespace agario::env {
           _world_to_grid(player, entity.location(), view_size, grid_x, grid_y);
 
           int index = _index(channel, grid_x, grid_y);
-          if (_inside_grid(grid_x, grid_y))
-            data_[index] = entity.mass();
+          if (_inside_grid(grid_x, grid_y)) {
+             if(calc == calc_type::at_least_)
+              data_[index] = entity.mass();
+             else if(calc == calc_type::total_mass_)
+              data_[index] += entity.mass();
+             else if(calc == calc_type::max_)
+                data_[index] = std::max(static_cast<int>(data_[index]), static_cast<int>(entity.mass()));
+             else
+                data_[index] = (data_[index] == 0 ? static_cast<int>(entity.mass()) : std::min(static_cast<int>(data_[index]), static_cast<int>(entity.mass())));
         }
       }
+    }
 
       /* marks out-of-bounds locations on the given `channel` */
       void _mark_out_of_bounds(const Player &player, int channel,
