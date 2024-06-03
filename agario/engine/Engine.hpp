@@ -193,7 +193,7 @@ namespace agario {
     void add_viruses(int n) {
       agario::distance virus_radius = agario::radius_conversion(VIRUS_MASS);
       for (int v = 0; v < n; v++)
-        state.viruses.emplace_back(random_location(virus_radius));
+        state.viruses.emplace_back(random_location(virus_radius ));
     }
 
     /**
