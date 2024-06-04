@@ -787,3 +787,5 @@ venv.bak/
 .mypy_cache/
 
 cmake-build-debug/
+
+.history 
