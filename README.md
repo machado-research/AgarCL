@@ -6,59 +6,207 @@ The Agar.io Learning Environment (AgarLE) is a performant implementation of the 
 <img width="460" alt="Screenshot" src="https://user-images.githubusercontent.com/15920014/57587859-dbb31400-74c0-11e9-8f47-3e39113b99b4.png">
 </p>
 
-# Installation
-Clone this repository (with submodules)
+# Prerequisites
+Before you begin, ensure you have the following installed on your system:
 
-    git clone --recursive https://github.com/jondeaton/AgarLE.git
+- **CMake**: A cross-platform tool designed to build, test, and package software.
+- **GLM**: A header-only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications.
+- **cxxopts**: Lightweight C++ command-line option parser.
 
-run the included installation script
+Additionally, you will need to install some essential packages for OpenGL development: **GLFW** and **GLAD**.
 
-    python setup.py install
 
-# Usage
 
-Installation will have installed the python module `gym_agario`, which when imported
-registers the AgarLE gym environments. You need only import `gym_agario` and then
-make an environment in the standard way 
+## Clone this repository (with submodules)
+```sh
+    git clone --recursive git@github.com:machado-research/AgarLE.git
+```
+## Linux 
 
-```python
-import gym
-import gym_agario
-    
-env = gym.make("agario-grid-v0")
-    
-game_state = env.reset()
-print(game_state.shape) # (128, 128, 10) , (grid_size, grid_size, num_channels)
+### Step 1: Install CMake
 
-action = np.array([0, 0]), 0  # don't move, don't split
-while True:
-  game_state, reward, done, info = env.step(action)
-  if done: break
+To install CMake, use the Snap package manager:
+
+```sh
+sudo snap install cmake
 ```
 
-The Agar.io game and observation space are highly configurable. You can change
-the parameters of the game and observation properties like so (default configuration
-shown).
+### Step 2: Install GLM
 
-```python
-config = {
-  'ticks_per_step':  4,     # Number of game ticks per step
-  'num_frames':      2,     # Number of game ticks observed at each step
-  'arena_size':      1000,  # Game arena size
-  'num_pellets':     1000,
-  'num_viruses':     25,
-  'num_bots':        25,
-  'pellet_regen':    True,  # Whether pellets regenerate randomly when eaten
-  'grid_size':       128,   # Size of spatial dimensions of observations
-  'observe_cells':   True,  # Include an observation channel with agent's cells
-  'observe_others':  True,  # Include an observation channel with other players' cells
-  'observe_viruses': True,  # Include an observation channel with viruses
-  'observe_pellets': True   # Include an observation channel with pellets
-}
+Download and install GLM from its GitHub repository:
+```sh
+git clone https://github.com/g-truc/glm
+cd /path/to/glm
+cmake \
+    -DGLM_BUILD_TESTS=OFF \
+    -DBUILD_SHARED_LIBS=OFF \
+    -B build .
+cmake --build build -- all
+cmake --build build -- install
+```
+### Step 3: Install Cxxopts: 
+Clone the cxxopts repository and install it following the instructions of this link: 
+```sh
+https://github.com/jarro2783/cxxopts/blob/master/INSTALL
+```
+### Step 4 Install required OPENGL Packages: 
+Some additional packages are required for OpenGL development. Refer to the following:
+```sh
+sudo apt-get install libgl1-mesa-dev
+sudo apt-get install libglu1-mesa-dev
+sudo apt-get install libglfw3-dev
+```
+### Step 5: Install GLAD Specification
 
-env = gym.make("agario-grid-v0", **config)
+After modifying the code, you will need to install the GLAD specification. Follow these steps:
+
+1. Go to [GLAD](https://glad.dav1d.de/).
+2. Configure the following options:
+   - **gl**: 4.6
+   - **Profile**: Core
+   - Ignore other options
+3. Download the generated files and add the path of glad in the this file: ```agario/CMakeLists.txt```
+
+### Step 6: USE CLANG Compiler
+The code is compatible with the CLANG compiler only. If you have GCC installed, you will need to remove it. This is a known issue that needs to be addressed.
+
+To remove GCC:
+
+```sh
+sudo apt-get remove gcc
+```
+To install CLANG:
+```sh
+sudo apt-get install clang
+```
+Then: 
+```sh
+ CXX=`which clang++`
 ```
 
+**Final Note**: Ensure that your environment variables and paths are correctly set for all installed tools and libraries. You can add them using the following export line: 
+
+```sh 
+export CPLUS_INCLUDE_PATH=environment variables path :$CPLUS_INCLUDE_PATH
+```
+
+## MAC
+
+Ensure you have [Homebrew](https://brew.sh/) installed on your macOS system. Homebrew is a package manager for macOS that simplifies the installation of software.
+
+### Step 1: Install Required Tools and Libraries
+
+To install the required tools and libraries, run the following commands:
+
+1. Install **CMake**:
+   ```sh
+   brew install cmake
+   ```
+2. Install **cxxopts**: 
+    ```sh
+    brew install cxxopts
+    ```
+3. Install **GLM**:
+    ```sh
+    brew install glm
+    ```
+4. Install **GLFW**:
+    ```sh
+    brew install glfw
+    ```
+
+### Step 2: Update Include Paths
+
+If your Mac does not see the installed packages, add the following paths to your .zshrc file:
+```sh
+    export CPLUS_INCLUDE_PATH=glfw_path:$CPLUS_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=cxxopt_path:$CPLUS_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=glm_path:$CPLUS_INCLUDE_PATH
+```
+
+After adding these lines, reload your shell configuration:
+```sh
+source ~/.zshrc
+```
+
+## Step 3: Install pybind11
+Follow the instructions at the [pybind11 documentation](https://pybind11.readthedocs.io/en/stable/) to install pybind11.
+
+## Step 4: Install GLAD
+1. Go to the [GLAD](https://glad.dav1d.de/) website.
+2. Configure the following options:
+   - `gl`: 4.6
+   - `Profile`: Core
+3. Ignore other options.
+4. Download the generated files and integrate them into your project.
+5. Ensure the correct path is specified in your `CMakeLists.txt`.
+
+## Step 5: Resolve GLAD and OpenGL Conflicts
+If you encounter conflicts between GLAD and OpenGL, follow these steps to fix them:
+
+1. In `glad/src/glad.c`, remove the line:
+   ```c
+   #include <GLFW/glfw3.h>
+   ```
+2. In rendering/platform.hpp, comment out the line at line 10:
+   ```c
+    //#include <OpenGL/gl3.h>
+    ```
+
+
+
+# Running the code
+
+If you want the crafted observations and run it over python, do the following: 
+1.    run the included installation script
+
+        ```python setup.py install```
+2. execute the following line: ```project_path/bench/agarle_bench.py```
+
+    ## Usage
+
+    Installation will have installed the python module `gym_agario`, which when imported
+    registers the AgarLE gym environments. You need only import `gym_agario` and then
+    make an environment in the standard way 
+
+    ```python
+    import gym
+    import gym_agario
+        
+    env = gym.make("agario-grid-v0")
+        
+    game_state = env.reset()
+    print(game_state.shape) # (128, 128, 10) , (grid_size, grid_size, num_channels)
+
+    action = np.array([0, 0]), 0  # don't move, don't split
+    while True:
+    game_state, reward, done, info = env.step(action)
+    if done: break
+    ```
+
+    The Agar.io game and observation space are highly configurable. You can change
+    the parameters of the game and observation properties like so (default configuration
+    shown).
+
+    ```python
+    config = {
+    'ticks_per_step':  4,     # Number of game ticks per step
+    'num_frames':      2,     # Number of game ticks observed at each step
+    'arena_size':      1000,  # Game arena size
+    'num_pellets':     1000,
+    'num_viruses':     25,
+    'num_bots':        25,
+    'pellet_regen':    True,  # Whether pellets regenerate randomly when eaten
+    'grid_size':       128,   # Size of spatial dimensions of observations
+    'observe_cells':   True,  # Include an observation channel with agent's cells
+    'observe_others':  True,  # Include an observation channel with other players' cells
+    'observe_viruses': True,  # Include an observation channel with viruses
+    'observe_pellets': True   # Include an observation channel with pellets
+    }
+
+    env = gym.make("agario-grid-v0", **config)
+    ```
+<!-- 
 # Multi-Agent Environments
 
 This gym supports multiple agents in the same game. By default, there will
@@ -93,9 +241,9 @@ that is not "done". Only when all agents are done must the environment
 be reset.
 
 Note that if you pass `num_agents` greater than 1, `multi_agent`
-will be set True automatically.
+will be set True automatically. -->
 
-# Caveats
+<!-- # Caveats
 
 Currently compilation/installation is only working with Clang, so if you're
 on Linux then you'll need to set your C++ compiler to Clang in your environment
@@ -110,9 +258,9 @@ work so will not work on headless Linux machines, for instance. Calling `render`
 will only work if the executable has been built with rendering turned on as can be
 done by following the advanced set up guide. Rendering will not work
 with the "screen" environment, despite the fact that that environment uses
-the screen image as the environment's observation.
+the screen image as the environment's observation. -->
 
-# Advanced setup
+# Self-Play setup
 In order to play the game yourself or enable rendering in the gym environment,
 you will need to build the game client yourself on a system where OpenGL has
 been installed. This is most likely to succeed on macOS, but will probably work
