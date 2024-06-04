@@ -69,7 +69,6 @@ namespace agario {
       add_bot<HungryShyBot>(n);
       add_bot<AggressiveBot>(n);
       add_bot<AggressiveShyBot>(n);
-      std::cout << "RANGE BOTS: " << range_bot_pids.first << " " << range_bot_pids.second << std::endl;
     }
 
     void initialize_renderer() {
@@ -108,6 +107,9 @@ namespace agario {
         auto now = std::chrono::system_clock::now();
         auto dt = now - before;
         before = now;
+
+        auto &player = engine.player(player_pid);
+
         range_bot_pids = std::make_pair(std::min(range_bot_pids.first,player_pid), std::max(range_bot_pids.second,player_pid));
         for (agario::pid i = range_bot_pids.first; i <= range_bot_pids.second; i++) {
           auto &player = engine.player(i);
@@ -117,13 +119,6 @@ namespace agario {
             engine.respawn(i);
           }
         }
-        auto &player = engine.player(player_pid);
-
-        // if (player.dead()) {
-        //   std::cout << "Player \"" << player.name() << "\" (pid ";
-        //   std::cout << player.pid() << ") died." << std::endl;
-        //   engine.respawn(player_pid);
-        // }
 
         process_input();
         renderer->render_screen(player, engine.game_state());
@@ -141,7 +136,6 @@ namespace agario {
     int port;
 
     agario::pid player_pid; // pid of the player we're tracking
-    // std::vector<agario::pid> bot_pids;
     std::pair<agario::pid, agario::pid> range_bot_pids;
     agario::Engine<true> engine;
 
