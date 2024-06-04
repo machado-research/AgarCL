@@ -64,10 +64,12 @@ namespace agario {
       using AggressiveShyBot = AggressiveShyBot<RENDERABLE>;
 
       int n = 7;
+      range_bot_pids = std::make_pair(1e9,0);
       add_bot<HungryBot>(n);
       add_bot<HungryShyBot>(n);
       add_bot<AggressiveBot>(n);
       add_bot<AggressiveShyBot>(n);
+      std::cout << "RANGE BOTS: " << range_bot_pids.first << " " << range_bot_pids.second << std::endl;
     }
 
     void initialize_renderer() {
@@ -106,14 +108,22 @@ namespace agario {
         auto now = std::chrono::system_clock::now();
         auto dt = now - before;
         before = now;
-
+        range_bot_pids = std::make_pair(std::min(range_bot_pids.first,player_pid), std::max(range_bot_pids.second,player_pid));
+        for (agario::pid i = range_bot_pids.first; i <= range_bot_pids.second; i++) {
+          auto &player = engine.player(i);
+          if (player.dead()) {
+            std::cout << "Player \"" << player.name() << "\" (pid ";
+            std::cout << player.pid() << ") died." << std::endl;
+            engine.respawn(i);
+          }
+        }
         auto &player = engine.player(player_pid);
 
-        if (player.dead()) {
-          std::cout << "Player \"" << player.name() << "\" (pid ";
-          std::cout << player.pid() << ") died." << std::endl;
-          engine.respawn(player_pid);
-        }
+        // if (player.dead()) {
+        //   std::cout << "Player \"" << player.name() << "\" (pid ";
+        //   std::cout << player.pid() << ") died." << std::endl;
+        //   engine.respawn(player_pid);
+        // }
 
         process_input();
         renderer->render_screen(player, engine.game_state());
@@ -131,7 +141,8 @@ namespace agario {
     int port;
 
     agario::pid player_pid; // pid of the player we're tracking
-
+    // std::vector<agario::pid> bot_pids;
+    std::pair<agario::pid, agario::pid> range_bot_pids;
     agario::Engine<true> engine;
 
     std::unique_ptr<agario::Renderer> renderer;
@@ -139,8 +150,14 @@ namespace agario {
 
     template <typename T>
     void add_bot(int num_bots) {
+      agario::pid pid = 0; 
       for (int i = 0; i < num_bots; i++)
-        engine.add_player<T>();
+        {
+          pid = engine.add_player<T>();
+
+          range_bot_pids.first = std::min(range_bot_pids.first, pid);
+          range_bot_pids.second = std::max(range_bot_pids.second, pid);
+        }
     }
 
     void process_input() {
