@@ -93,7 +93,6 @@ namespace agario::env {
 
         int channel = channels_per_frame() * frame_index;
         _mark_out_of_bounds(player, channel, game_state.arena_width, game_state.arena_height);
-        
         if (config_.observe_pellets) {
           channel++;
           _store_entities<Pellet>(game_state.pellets, player, channel, calc_type::at_least_); //at least one_pellet
@@ -107,20 +106,17 @@ namespace agario::env {
           channel++;
           _store_entities<Virus>(game_state.viruses, player, channel, calc_type::total_mass_); //total_number_of_viruses
         }
-
         if (config_.observe_cells) {
           channel++;
           _store_entities<Cell>(player.cells, player, channel); //just one cell (agent)
         }
-
         if (config_.observe_others) {
           channel++;
           for (auto &pair : game_state.players) {
             Player &other_player = *pair.second;
             if (other_player.pid() == player.pid()) continue;
             _store_entities<Cell>(other_player.cells, player, channel, calc_type::min_); //min_mass
-            channel++;
-            _store_entities<Cell>(other_player.cells, player, channel, calc_type::max_); //max_mass
+            _store_entities<Cell>(other_player.cells, player, channel+1, calc_type::max_); //max_mass
           }
         }
       }
@@ -201,6 +197,7 @@ namespace agario::env {
       /* creates the shape and strides to represent the multi-dimensional array */
       void _make_shapes() {
         int num_channels = config_.num_frames * channels_per_frame();
+        
         shape_ = {num_channels, config_.grid_size, config_.grid_size};
 
         auto dtype_size = static_cast<long>(sizeof(dtype));
@@ -363,16 +360,22 @@ namespace agario::env {
         assert(tick_index < this->ticks_per_step());
 
         auto &player = this->engine_.player(this->pids_[agent_index]);
-        if (player.dead()) return;
+        // if (player.dead()) return;
+        if (player.dead())
+        {
+          std::cout << "Player \"" << player.name() << "\" (pid ";
+            std::cout << player.pid() << ") died." << std::endl;
+          this->engine_.respawn(this->pids_[agent_index]);
+        }
 
         Observation &observation = observations[agent_index];
 
         auto &state = this->engine_.game_state();
-
         // we store in the observation the last `num_frames` frames between each step
         int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
         if (frame_index >= 0)
           observation.add_frame(player, state, frame_index);
+      
       }
 
       void render() override {
@@ -393,7 +396,6 @@ namespace agario::env {
       window->destroy();
       // glfwTerminate();
       // glDeleteProgram(renderer->shader.program);
-      // std::cout <<"Closing the Environment\n";
 #endif
     }
     virtual ~GridEnvironment() {
@@ -402,7 +404,6 @@ namespace agario::env {
 
     // delete renderer;
 #endif
-      // std::cout << "GridEnvironment destroyed" << std::endl;
     }
 
     private:

@@ -18,10 +18,10 @@ import cProfile
 default_config = {
     'ticks_per_step':  4,
     'num_frames':      1,
-    'arena_size':      1000,
+    'arena_size':      500,
     'num_pellets':     1000,
     'num_viruses':     25,
-    'num_bots':        10,
+    'num_bots':        100000,
     'pellet_regen':    True,
     'grid_size':       9,
     'observe_cells':   True,
@@ -46,16 +46,17 @@ def main():
     for _ in range(args.num_steps):
         max_val, min_val = 1, -1
         range_size = max_val - min_val
-        random_values = np.random.rand(2) * range_size + min_val
+        random_values = [0.0, 0.01]
         null_action = ([(random_values[0], random_values[1]),0])
         state, reward, done, info = env.step(null_action)
+        env.render()
     env.close()
 # 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=100, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=10000, type=int, help="Number of steps")
 
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")
