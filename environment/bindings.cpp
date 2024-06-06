@@ -87,8 +87,9 @@ PYBIND11_MODULE(agarle, module) {
       bool viruses   = config.contains("observe_viruses") ? config["observe_viruses"].cast<bool>() : true;
       bool pellets   = config.contains("observe_pellets") ? config["observe_pellets"].cast<bool>() : true;
       bool respawn   = config.contains("allow_respawn")   ? config["allow_respawn"].cast<bool>()   : true;
+      int c_death    = config.contains("c_death")         ? config["c_death"].cast<int>()           : 0;
     
-      env.configure_observation(num_frames, grid_size, cells, others, viruses, pellets, respawn);
+      env.configure_observation(num_frames, grid_size, cells, others, viruses, pellets, respawn, c_death);
     })
     .def("observation_shape", &GridEnvironment::observation_shape)
     .def("dones", &GridEnvironment::dones)

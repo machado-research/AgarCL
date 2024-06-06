@@ -43,7 +43,7 @@ namespace agario {
         ticks_per_step_(ticks_per_step), num_bots_(num_bots),
         reward_type_(reward_type),
         step_dt_(DEFAULT_DT) {
-
+          
         pids_.reserve(num_agents);
         reset();
       }
@@ -72,8 +72,9 @@ namespace agario {
         auto rewards = masses<reward>();
         if(reward_type_){
           for (int i = 0; i < num_agents(); ++i)
-            rewards[i] -= before[i];
+            rewards[i] -= (before[i] - c_death_);
         }
+        
         return rewards;
       }
 
@@ -132,7 +133,7 @@ namespace agario {
         engine_.reset();
 
         pids_.clear();
-
+        c_death_ = 0;
         // add players
         for (int i = 0; i < num_agents_; i++) {
           auto name = "agent" + std::to_string(i);
@@ -162,7 +163,7 @@ namespace agario {
       Engine <renderable> engine_;
       std::vector<agario::pid> pids_;
       std::vector<bool> dones_;
-
+      int c_death_;
       const int num_agents_;
       const int ticks_per_step_;
       const int num_bots_;
@@ -197,6 +198,9 @@ namespace agario {
               break;
             case 3:
               engine_.template add_player<AggressiveShyBot>();
+              break;
+            default:
+              engine_.template add_player<HungryBot>();
               break;
           }
         }

@@ -135,6 +135,9 @@ namespace agario::env {
 
       /* Give me whether the agents [my agent and other bots] should respawn or not*/
       [[nodiscard]] bool respawn() const { return config_.respawn; }
+
+      /* Give more negative reward for the agent if it getting eaten*/  
+      [[nodiscard]] int c_death() const { return config_.c_death; }
       // no copy operations because if you're copying this object then
       // you're probably not using it correctly
       GridObservation(const GridObservation &) = delete; // no copy constructor
@@ -170,17 +173,18 @@ namespace agario::env {
       public:
         Configuration(int num_frames, int grid_size,
                       bool observe_cells, bool observe_others,
-                      bool observe_viruses, bool observe_pellets, bool respawn) :
+                      bool observe_viruses, bool observe_pellets, bool respawn, int c_death = 0) :
           num_frames(num_frames), grid_size(grid_size),
           observe_cells(observe_cells), observe_others(observe_others),
-          observe_pellets(observe_pellets), observe_viruses(observe_viruses), respawn(respawn) {}
+          observe_pellets(observe_pellets), observe_viruses(observe_viruses), respawn(respawn), c_death(c_death) {}
         int num_frames;
         int grid_size;
         bool observe_pellets;
         bool observe_cells;
         bool observe_viruses;
         bool observe_others;
-        bool respawn= false; // allow respawn
+        bool respawn; // allow respawn
+        int c_death; // more negative reward for the agent if it getting eaten
       };
 
       Configuration config_;
@@ -363,7 +367,8 @@ namespace agario::env {
         assert(tick_index < this->ticks_per_step());
 
         auto &player = this->engine_.player(this->pids_[agent_index]);
-        
+        this-> c_death_ = 0;
+
         Observation &observation = observations[agent_index];
 
         if (player.dead())
@@ -372,6 +377,7 @@ namespace agario::env {
             std::cout << "Player \"" << player.name() << "\" (pid ";
               std::cout << player.pid() << ") died." << std::endl;
             this->engine_.respawn(this->pids_[agent_index]);
+            this-> c_death_ = observation.c_death();
           }
           else 
             {
