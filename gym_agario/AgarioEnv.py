@@ -257,6 +257,7 @@ class AgarioEnv(gym.Env):
         num_bots = 25
         pellet_regen = True
         allow_respawn = True
+        reward_type   = 1 #means diff 
         if difficulty == "normal":
             pass  # default
 
@@ -282,6 +283,8 @@ class AgarioEnv(gym.Env):
         self.num_bots        = kwargs.get("num_bot", num_bots)
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
+        self.reward_type   = kwargs.get("reward_type", reward_type)
+
         self.multi_agent = self.multi_agent or self.num_agents > 1
 
         # todo: more assertions
@@ -290,7 +293,7 @@ class AgarioEnv(gym.Env):
 
         return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
-               self.num_viruses, self.num_bots
+               self.num_viruses, self.num_bots, self.reward_type
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility

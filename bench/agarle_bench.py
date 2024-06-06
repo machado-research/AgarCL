@@ -15,6 +15,14 @@ import gym, gym_agario
 import numpy as np
 import cProfile
 
+
+def mass(): 
+    return 0
+
+def diff():
+    return 1
+
+
 default_config = {
     'ticks_per_step':  4,
     'num_frames':      10,
@@ -29,7 +37,8 @@ default_config = {
     'observe_viruses': True,
     'observe_pellets': True,
     'obs_type'       : "grid",   #Two options: screen, grid
-    'allow_respawn'  : False # If False, the game will end when the player is eaten
+    'allow_respawn'  : True, # If False, the game will end when the player is eaten
+    'reward_type'    : diff() # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
 }
 
 
@@ -50,6 +59,7 @@ def main():
         random_values = [0.0, 0.01]
         null_action = ([(random_values[0], random_values[1]),0])
         state, reward, done, step_num = env.step(null_action) 
+        print(reward)
         env.render()
     env.close()
 # 

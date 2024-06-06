@@ -76,7 +76,7 @@ PYBIND11_MODULE(agarle, module) {
   using GridEnvironment = agario::env::GridEnvironment<int, renderable>;
 
   py::class_<GridEnvironment>(module, "GridEnvironment")
-    .def(py::init<int, int, int, bool, int, int, int>())
+    .def(py::init<int, int, int, bool, int, int, int, bool>())
     .def("seed", &GridEnvironment::seed)
     .def("configure_observation", [](GridEnvironment &env, const py::dict &config) {
 

@@ -311,9 +311,9 @@ namespace agario::env {
       using Observation = GridObservation;
 
       explicit GridEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots) :
+                               int num_pellets, int num_viruses, int num_bots, bool reward_type) :
         Super(num_agents, ticks_per_step, arena_size, pellet_regen, 
-              num_pellets, num_viruses, num_bots) {
+              num_pellets, num_viruses, num_bots,reward_type) {
 
 #ifdef RENDERABLE
         window = std::make_shared<Window>("Agar.io Environment", 512, 512);
