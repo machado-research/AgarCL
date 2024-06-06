@@ -18,7 +18,7 @@ IF(APPLE)
 ENDIF()
 
 # Allow for making
-option(RENDERABLE "Make environments renderable" ON) # Disabled by default
+option(RENDERABLE "Make environments renderable" OFF) # Disabled by default
 if (RENDERABLE)
     message("Renderable")
     add_definitions(-DRENDERABLE)

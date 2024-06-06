@@ -60,9 +60,6 @@ def main():
         random_values = [0.01, 0.1]
         null_action = ([(random_values[0], random_values[1]),0])
         state, reward, done, step_num = env.step(null_action) 
-        # print(reward, done)
-        # if(reward < 0):
-        #     import pdb; pdb.set_trace()
         # env.render()
     env.close()
 # 
