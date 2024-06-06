@@ -68,7 +68,7 @@ namespace agario {
               this->_partial_observation(agent, tick);
         }
 
-        // reward = mass after - mass before
+        // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
         if(reward_type_){
           for (int i = 0; i < num_agents(); ++i)

@@ -374,7 +374,10 @@ namespace agario::env {
             this->engine_.respawn(this->pids_[agent_index]);
           }
           else 
-            return; // if the player is dead and we don't want to respawn, we don't need to store the observation
+            {
+              this->dones_[agent_index] = true;
+              return;
+            }
         }
 
        

@@ -191,7 +191,6 @@ class AgarioEnv(gym.Env):
             observe_viruses = kwargs.get("observe_viruses", True)
             observe_pellets = kwargs.get("observe_pellets", True)
             allow_respawn = kwargs.get("allow_respawn", True)
-            print("ALLOW RESPAWN: ", allow_respawn) 
             env = agarle.GridEnvironment(*args)
             env.configure_observation({
                 "num_frames": num_frames,
