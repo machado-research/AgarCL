@@ -133,6 +133,8 @@ namespace agario::env {
       /* the number of frames captured by the observation */
       [[nodiscard]] int num_frames() const { return config_.num_frames; }
 
+      /* Give me whether the agents [my agent and other bots] should respawn or not*/
+      [[nodiscard]] bool respawn() const { return config_.respawn; }
       // no copy operations because if you're copying this object then
       // you're probably not using it correctly
       GridObservation(const GridObservation &) = delete; // no copy constructor
@@ -168,16 +170,17 @@ namespace agario::env {
       public:
         Configuration(int num_frames, int grid_size,
                       bool observe_cells, bool observe_others,
-                      bool observe_viruses, bool observe_pellets) :
+                      bool observe_viruses, bool observe_pellets, bool respawn) :
           num_frames(num_frames), grid_size(grid_size),
           observe_cells(observe_cells), observe_others(observe_others),
-          observe_pellets(observe_pellets), observe_viruses(observe_viruses) {}
+          observe_pellets(observe_pellets), observe_viruses(observe_viruses), respawn(respawn) {}
         int num_frames;
         int grid_size;
         bool observe_pellets;
         bool observe_cells;
         bool observe_viruses;
         bool observe_others;
+        bool respawn= false; // allow respawn
       };
 
       Configuration config_;
@@ -360,16 +363,21 @@ namespace agario::env {
         assert(tick_index < this->ticks_per_step());
 
         auto &player = this->engine_.player(this->pids_[agent_index]);
-        // if (player.dead()) return;
-        if (player.dead())
-        {
-          std::cout << "Player \"" << player.name() << "\" (pid ";
-            std::cout << player.pid() << ") died." << std::endl;
-          this->engine_.respawn(this->pids_[agent_index]);
-        }
-
+        
         Observation &observation = observations[agent_index];
 
+        if (player.dead())
+        {
+          if(observation.respawn()){
+            std::cout << "Player \"" << player.name() << "\" (pid ";
+              std::cout << player.pid() << ") died." << std::endl;
+            this->engine_.respawn(this->pids_[agent_index]);
+          }
+          else 
+            return; // if the player is dead and we don't want to respawn, we don't need to store the observation
+        }
+
+       
         auto &state = this->engine_.game_state();
         // we store in the observation the last `num_frames` frames between each step
         int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());

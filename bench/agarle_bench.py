@@ -17,18 +17,19 @@ import cProfile
 
 default_config = {
     'ticks_per_step':  4,
-    'num_frames':      1,
+    'num_frames':      10,
     'arena_size':      500,
     'num_pellets':     1000,
     'num_viruses':     25,
     'num_bots':        100000,
     'pellet_regen':    True,
     'grid_size':       9,
-    'observe_cells':   True,
+    'observe_cells':   False,
     'observe_others':  True,
     'observe_viruses': True,
     'observe_pellets': True,
-    'obs_type'       : "grid"   #Two options: screen, grid
+    'obs_type'       : "grid",   #Two options: screen, grid
+    'allow_respawn'  : False # If False, the game will end when the player is eaten
 }
 
 
@@ -48,7 +49,7 @@ def main():
         range_size = max_val - min_val
         random_values = [0.0, 0.01]
         null_action = ([(random_values[0], random_values[1]),0])
-        state, reward, done, info = env.step(null_action)
+        state, reward, done, step_num = env.step(null_action) 
         env.render()
     env.close()
 # 
