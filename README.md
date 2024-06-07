@@ -123,6 +123,12 @@ If your Mac does not see the installed packages, add the following paths to your
     export CPLUS_INCLUDE_PATH=YOUR_CXXOPT_PATH/include:$CPLUS_INCLUDE_PATH
     export CPLUS_INCLUDE_PATH=YOUR_GLM_PATH/include:$CPLUS_INCLUDE_PATH
 ```
+Then, open your ~/.zshrc file and check. Add these lines if they do not have it:
+
+```sh
+export CPATH=/opt/homebrew/include
+export LIBRARY_PATH=/opt/homebrew/lib
+```
 
 After adding these lines, reload your shell configuration:
 ```sh
