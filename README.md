@@ -119,9 +119,15 @@ To install the required tools and libraries, run the following commands:
 
 If your Mac does not see the installed packages, add the following paths to your .zshrc file:
 ```sh
-    export CPLUS_INCLUDE_PATH=glfw_path:$CPLUS_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=cxxopt_path:$CPLUS_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=glm_path:$CPLUS_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=YOUR_GLFW_PATH/include:$CPLUS_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=YOUR_CXXOPT_PATH/include:$CPLUS_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=YOUR_GLM_PATH/include:$CPLUS_INCLUDE_PATH
+```
+Then, open your ~/.zshrc file and check. Add these lines if they do not have it:
+
+```sh
+export CPATH=/opt/homebrew/include
+export LIBRARY_PATH=/opt/homebrew/lib
 ```
 
 After adding these lines, reload your shell configuration:
@@ -133,13 +139,16 @@ source ~/.zshrc
 Follow the instructions at the [pybind11 documentation](https://pybind11.readthedocs.io/en/stable/) to install pybind11.
 
 ## Step 4: Install GLAD
-1. Go to the [GLAD](https://glad.dav1d.de/) website.
+### Step 5: Install GLAD Specification
+
+After modifying the code, you will need to install the GLAD specification. Follow these steps:
+
+1. Go to [GLAD](https://glad.dav1d.de/).
 2. Configure the following options:
-   - `gl`: 4.6
-   - `Profile`: Core
-3. Ignore other options.
-4. Download the generated files and integrate them into your project.
-5. Ensure the correct path is specified in your `CMakeLists.txt`.
+   - **gl**: 4.6
+   - **Profile**: Core
+   - Ignore other options
+3. Download the generated files and add the path of glad in the this file: ```agario/CMakeLists.txt```
 
 ## Step 5: Resolve GLAD and OpenGL Conflicts
 If you encounter conflicts between GLAD and OpenGL, follow these steps to fix them:
