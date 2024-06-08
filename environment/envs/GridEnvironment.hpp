@@ -315,7 +315,7 @@ namespace agario::env {
       using Observation = GridObservation;
 
       explicit GridEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots, bool reward_type) :
+                               int num_pellets, int num_viruses, int num_bots, bool reward_type=0) :
         Super(num_agents, ticks_per_step, arena_size, pellet_regen, 
               num_pellets, num_viruses, num_bots,reward_type) {
 

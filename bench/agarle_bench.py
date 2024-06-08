@@ -60,14 +60,14 @@ def main():
         random_values = [0.01, 0.1]
         null_action = ([(random_values[0], random_values[1]),0])
         state, reward, done, step_num = env.step(null_action) 
-        # env.render()
+        env.render()
     env.close()
 # 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=10000, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
 
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")

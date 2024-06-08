@@ -8,8 +8,8 @@
 //#include <OpenGL/gl.h>
 //#include <OpenGL/glu.h>
 
-#else
-  #include <OpenGL/gl3.h>
+// #else
+//   #include <OpenGL/gl3.h>
 
 #ifdef _WIN32
   #include <windows.h>
