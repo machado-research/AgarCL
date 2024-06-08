@@ -787,3 +787,6 @@ venv.bak/
 .mypy_cache/
 
 cmake-build-debug/
+
+.history 
+.DS_store
