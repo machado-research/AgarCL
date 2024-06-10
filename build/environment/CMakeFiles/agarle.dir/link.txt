@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -flto -shared  -o agarle.cpython-311-x86_64-linux-gnu.so CMakeFiles/agarle.dir/bindings.cpp.o   -L/usr/lib/gcc/x86_64-linux-gnu/11  ../agario/libglad.a -lglm -lglfw 
