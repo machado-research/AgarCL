@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -O0 -fpermissive -fsized-deallocation CMakeFiles/test-engine-renderable.dir/test/main.cpp.o -o test-engine-renderable   -L/usr/lib/gcc/x86_64-linux-gnu/11  -lpthread -lgtest /usr/lib/x86_64-linux-gnu/libOpenGL.so /usr/lib/x86_64-linux-gnu/libGLX.so /usr/lib/x86_64-linux-gnu/libGLU.so libglad.a -lglm /usr/lib/x86_64-linux-gnu/libglfw.so.3.3 

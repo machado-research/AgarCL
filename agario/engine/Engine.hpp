@@ -231,10 +231,12 @@ namespace agario {
       bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT) & (player.get_max_mass_cell() >= MIN_CELL_SPLIT_MASS));
 
       for (Cell &cell : player.cells) {
-
+        
         eat_pellets(cell);
         eat_food(cell);
         check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
+        if(ticks() % DECAY_FOR_NUM_TICKS == 0)
+          cell.mass_decay(); // each cell should decay its mass concurrently after number of ticks 
       }
 
       create_limit -= created_cells.size();

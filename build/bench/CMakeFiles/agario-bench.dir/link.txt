@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/agario-bench.dir/main.cpp.o -o agario-bench  -lbenchmark -lpthread 

@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/test-envs.dir/test/main.cpp.o -o test-envs   -L/usr/lib/gcc/x86_64-linux-gnu/11  ../agario/libglad.a -lglfw -lgtest -lpthread 

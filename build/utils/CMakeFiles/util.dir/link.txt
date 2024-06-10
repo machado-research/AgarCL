@@ -1,2 +1,0 @@
-/usr/bin/ar qc libutil.a CMakeFiles/util.dir/thread-pool.cpp.o CMakeFiles/util.dir/ostreamlock.cpp.o
-/usr/bin/ranlib libutil.a

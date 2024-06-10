@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -O0 -fpermissive -fsized-deallocation CMakeFiles/bot-compare.dir/bots/benchmark.cpp.o -o bot-compare  ../utils/libutil.a 
