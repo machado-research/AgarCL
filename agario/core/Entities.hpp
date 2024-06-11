@@ -175,7 +175,7 @@ namespace agario {
       However, when you have multiple cells, each of the cells loses mass concurrently.
      */
     void mass_decay() {
-      agario::mass new_decayed_mass = mass() * (1 - PLAYER_RATE*GAME_RATE_MODIFIER);
+      agario::mass new_decayed_mass = mass() * (1 - PLAYER_RATE * GAME_RATE_MODIFIER);
       set_mass(new_decayed_mass); // if new_decayed_mass is less than CELL_MIN_SIZE, set_mass will set it as CELL_MIN_SIZE
     }
 
