@@ -156,7 +156,6 @@ namespace agario {
       check_player_collisions();
 
       move_foods(elapsed_seconds);
-
       if (_pellet_regen) {
         add_pellets(_num_pellets - state.pellets.size());
       }
@@ -172,7 +171,7 @@ namespace agario {
     Engine &operator=(Engine &&) = delete; // no move assignment
 
   private:
-
+    std::unordered_map<agario::pid, float> player_elapsed_time; // time since the first tick
     agario::GameState<renderable> state;
 
     agario::pid next_pid;
@@ -185,6 +184,7 @@ namespace agario {
     void _respawn(Player &player) {
       player.kill();
       player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), CELL_MIN_SIZE);
+      player_elapsed_time[player.pid()] = 0;
     }
     
 
@@ -223,13 +223,19 @@ namespace agario {
 
       bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT) & (player.get_max_mass_cell() >= MIN_CELL_SPLIT_MASS));
 
+      player_elapsed_time[player.pid()] += elapsed_seconds.count();
+
+      std::cout << player_elapsed_time[player.pid()] << " " << std::endl;  
       for (Cell &cell : player.cells) {
         
         eat_pellets(cell);
         eat_food(cell);
         check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
-        if(ticks() % DECAY_FOR_NUM_TICKS == 0)
-          cell.mass_decay(); // each cell should decay its mass concurrently after number of ticks 
+        if(player_elapsed_time[player.pid()] >= DECAY_FOR_NUM_SECONDS)
+          {
+            cell.mass_decay(); // each cell should decay its mass concurrently after number of seconds 
+            player_elapsed_time[player.pid()] = 0;
+          }
       }
 
       create_limit -= created_cells.size();
@@ -253,7 +259,7 @@ namespace agario {
     void move_player(Player &player, const agario::time_delta &elapsed_seconds) {
       auto dt = elapsed_seconds.count();
       agario::mass best_mass_cell = 0; 
-
+      int i = 0;
       for (auto &cell : player.cells) {
         cell.velocity.dx = 3 * (player.target.x - cell.x);
         cell.velocity.dy = 3 * (player.target.y - cell.y);
@@ -264,7 +270,7 @@ namespace agario {
 
         cell.move(dt);
         cell.splitting_velocity.decelerate(SPLIT_DECELERATION, dt);
-
+        std::cout << i++ << " " << cell.velocity.dx << " " << cell.velocity.dy << std::endl;
         check_boundary_collisions(cell);
       }
       player.set_max_mass_cell(best_mass_cell);
