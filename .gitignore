@@ -163,6 +163,7 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
+.vscode
 
 # Chutzpah Test files
 _Chutzpah*
@@ -788,5 +789,8 @@ venv.bak/
 
 cmake-build-debug/
 
+
 .history 
 .DS_store
+test_opengl*
+.vscode/settings.json
