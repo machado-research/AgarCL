@@ -3,7 +3,7 @@
 int main(int argc, char** argv) {
     std::cout << "Benchmarking! Need to fix benchmarking lib issue" << std::endl;
     return 0;
-
+}
 // #include <benchmark/benchmark.h>
 
 // #include <agario/engine/Engine.hpp>
