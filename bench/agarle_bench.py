@@ -50,7 +50,7 @@ def main():
         null_action = ([(random_values[0], random_values[1]),0])
         state, reward, done, info = env.step(null_action)
     env.close()
-# 
+#
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
