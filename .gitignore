@@ -789,8 +789,6 @@ venv.bak/
 
 cmake-build-debug/
 
-
 .history 
 .DS_store
 test_opengl*
-.vscode/settings.json
