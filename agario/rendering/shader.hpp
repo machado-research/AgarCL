@@ -60,7 +60,7 @@ public:
     unsigned int vertex, fragment;
 
     //Check whether it is already compiled
-    std::cout << "Compiling vertex shader" << std::endl;
+    // std::cout << "Compiling vertex shader" << std::endl;
 
       if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
