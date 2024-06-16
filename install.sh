@@ -3,6 +3,7 @@ echo "Operating System: $os_name"
 
 # Check if the OS is MacOS
 if [ "$os_name" == "Darwin" ]; then
+    current_dir=$(pwd)
     # Step 1: Install packages
     if ! command -v brew &> /dev/null; then
         echo "Homebrew is not installed. Installing Homebrew..."
@@ -11,7 +12,7 @@ if [ "$os_name" == "Darwin" ]; then
         echo "Homebrew is already installed."
     fi
 
-    packages=(cmake cxxopts glm glfw)
+    packages=(cmake cxxopts glm glfw mesa)
     for package in "${packages[@]}"; do
         if brew list "$package" &>/dev/null; then
             echo "$package is already installed."
@@ -29,22 +30,22 @@ if [ "$os_name" == "Darwin" ]; then
     fi
     
     echo "Updating include paths in $ZSHRC_PATH"
-    echo "export CPLUS_INCLUDE_PATH=YOUR_GLFW_PATH/include:$CPLUS_INCLUDE_PATH" >> "$ZSHRC_PATH"
-    echo "export CPLUS_INCLUDE_PATH=YOUR_CXXOPT_PATH/include:$CPLUS_INCLUDE_PATH" >> "$ZSHRC_PATH"
-    echo "export CPLUS_INCLUDE_PATH=YOUR_GLM_PATH/include:$CPLUS_INCLUDE_PATH" >> "$ZSHRC_PATH"
+    echo "export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH" #>> "$ZSHRC_PATH"
+    echo "export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include:$CPLUS_INCLUDE_PATH" #>> "$ZSHRC_PATH"
+    echo "export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH" #>> "$ZSHRC_PATH"
     
     if grep -qxF "CPATH=/opt/homebrew/include" "$ZSHRC_PATH"; then
         echo "CPATH already in $ZSHRC_PATH"
     else
         echo "Include CPATH in $ZSHRC_PATH"
-        echo "export CPATH=/opt/homebrew/include" >> "$ZSHRC_PATH"
+        echo "export CPATH=/opt/homebrew/include" # >> "$ZSHRC_PATH"
     fi
 
     if grep -qxF "LIBRARY_PATH=/opt/homebrew/lib" "$ZSHRC_PATH"; then
         echo "LIBRARY_PATH already in $ZSHRC_PATH"
     else
         echo "Include LIBRARY_PATH in $ZSHRC_PATH"
-        echo "export LIBRARY_PATH=/opt/homebrew/lib" >> "$ZSHRC_PATH"
+        echo "export LIBRARY_PATH=/opt/homebrew/lib" #>> "$ZSHRC_PATH"
     fi
 
     source "$ZSHRC_PATH"
@@ -57,7 +58,19 @@ if [ "$os_name" == "Darwin" ]; then
         echo "pip3 is already installed."
     fi
 
-    current_dir=$(pwd)
+    python3 -m venv venv
+    VENV_PATH="$current_dir/venv"
+
+    # Check if the virtual environment exists
+    if [ -d "$VENV_PATH" ]; then
+        # Activate the virtual environment
+        source "$VENV_PATH/bin/activate"
+        echo "Virtual environment activated."
+    else
+        echo "Virtual environment not found at $VENV_PATH"
+        exit 1
+    fi
+
     pybind11_path="$current_dir/environment/pybind11"
     if [ ! -d "$pybind11_path" ]; then
         echo "No pybind11 directory found. Cloning pybind11..."
@@ -84,9 +97,8 @@ if [ "$os_name" == "Darwin" ]; then
             exit 1
         fi
 
-        # INCLUDE_TEXT="set(EXT_SOURCE_DIR "$current_dir/environment/glad/include")"
-        SRC_TEXT="set(EXT_SOURCE_DIR \"$current_dir/environment/glad/src\")"
-        INCLUDE_TEXT="set(EXT_INCLUDE_DIR \"$current_dir/environment/glad/include\")"
+        SRC_TEXT="set(EXT_SOURCE_DIR \"$current_dir/build/glad/src\")"
+        INCLUDE_TEXT="set(EXT_INCLUDE_DIR \"$current_dir/build/glad/include\")"
         
         ESCAPED_INCLUDE_TEXT=$(printf '%s\n' "$INCLUDE_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
         ESCAPED_SRC_TEXT=$(printf '%s\n' "$SRC_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
@@ -96,11 +108,12 @@ if [ "$os_name" == "Darwin" ]; then
     fi
 
     # Step 5: Running the code
-    python setup.py install
-    python "$current_dir/bench/agarle_bench.py"
+
+    python3 setup.py install
+    # "$PYTHON" "$current_dir/bench/agarle_bench.py"
 
     # Step 6: Self-play setup
-    # mkdir build && cd build
+    # cd build
     # cmake -DCMAKE_BUILD_TYPE=Release ..
     # make -j 2 client agarle
 
