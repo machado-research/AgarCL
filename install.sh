@@ -71,9 +71,10 @@ if [ "$os_name" == "Darwin" ]; then
 
     # Step 4: Install GLAD
     cd ../..
-    glad_path="$current_dir/environment/glad"
+    mkdir -p "$current_dir/build"
+    glad_path="$current_dir/build/glad"
     if [ ! -d "$glad_path" ]; then
-        echo "No glad directory found. Cloning glad..."
+        echo "No glad directory found. Please install glad first in build directory."
     else
         echo "Glad directory found."
 
