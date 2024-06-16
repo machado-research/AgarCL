@@ -1,5 +1,7 @@
 os_name=$(uname -s)
+arch=$(uname -m)
 echo "Operating System: $os_name"
+echo "Architecture: $arch"
 
 # Check if the OS is MacOS
 if [ "$os_name" == "Darwin" ]; then
@@ -12,7 +14,7 @@ if [ "$os_name" == "Darwin" ]; then
         echo "Homebrew is already installed."
     fi
 
-    packages=(cmake cxxopts glm glfw mesa)
+    packages=(cmake cxxopts glm glfw)
     for package in "${packages[@]}"; do
         if brew list "$package" &>/dev/null; then
             echo "$package is already installed."
@@ -30,22 +32,30 @@ if [ "$os_name" == "Darwin" ]; then
     fi
     
     echo "Updating include paths in $ZSHRC_PATH"
-    echo "export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH" #>> "$ZSHRC_PATH"
-    echo "export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include:$CPLUS_INCLUDE_PATH" #>> "$ZSHRC_PATH"
-    echo "export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH" #>> "$ZSHRC_PATH"
+    echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+    echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+    echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
     
-    if grep -qxF "CPATH=/opt/homebrew/include" "$ZSHRC_PATH"; then
+    if grep -qxF "CPATH" "$ZSHRC_PATH"; then
         echo "CPATH already in $ZSHRC_PATH"
     else
         echo "Include CPATH in $ZSHRC_PATH"
-        echo "export CPATH=/opt/homebrew/include" # >> "$ZSHRC_PATH"
+        if [ "$arch" == "x86_64" ]; then
+            echo "export CPATH=/usr/local/include" >> "$ZSHRC_PATH"
+        else
+            echo "export CPATH=/opt/homebrew/include" >> "$ZSHRC_PATH"
+        fi
     fi
 
-    if grep -qxF "LIBRARY_PATH=/opt/homebrew/lib" "$ZSHRC_PATH"; then
+    if grep -qxF "LIBRARY_PATH" "$ZSHRC_PATH"; then
         echo "LIBRARY_PATH already in $ZSHRC_PATH"
     else
         echo "Include LIBRARY_PATH in $ZSHRC_PATH"
-        echo "export LIBRARY_PATH=/opt/homebrew/lib" #>> "$ZSHRC_PATH"
+        if [ "$arch" == "x86_64" ]; then
+            echo "export CPATH=/usr/local/lib" >> "$ZSHRC_PATH"
+        else
+            echo "export CPATH=/opt/homebrew/lib" >> "$ZSHRC_PATH"
+        fi
     fi
 
     source "$ZSHRC_PATH"
@@ -58,19 +68,15 @@ if [ "$os_name" == "Darwin" ]; then
         echo "pip3 is already installed."
     fi
 
-    python3 -m venv venv
     VENV_PATH="$current_dir/venv"
 
     # Check if the virtual environment exists
-    if [ -d "$VENV_PATH" ]; then
-        # Activate the virtual environment
-        source "$VENV_PATH/bin/activate"
-        echo "Virtual environment activated."
-    else
-        echo "Virtual environment not found at $VENV_PATH"
-        exit 1
+    if ! [ -d "$VENV_PATH" ]; then
+        echo "Virtual environment not found at $VENV_PATH, making one..."
+        python3.10 -m venv venv
     fi
-
+    
+    source "$VENV_PATH/bin/activate"
     pybind11_path="$current_dir/environment/pybind11"
     if [ ! -d "$pybind11_path" ]; then
         echo "No pybind11 directory found. Cloning pybind11..."
@@ -79,15 +85,15 @@ if [ "$os_name" == "Darwin" ]; then
 
     cd "$pybind11_path" || { echo "Error: Cannot change to directory $PROJECT_DIR"; exit 1; }
 
-    # pip install -e .
+    pip install -e .
     echo "Pybind11 installed successfully."
 
     # Step 4: Install GLAD
     cd ../..
-    mkdir -p "$current_dir/build"
-    glad_path="$current_dir/build/glad"
+    mkdir -p "$current_dir/environment"
+    glad_path="$current_dir/environment/glad"
     if [ ! -d "$glad_path" ]; then
-        echo "No glad directory found. Please install glad first in build directory."
+        echo "No glad directory found. Please install glad first in environment directory."
     else
         echo "Glad directory found."
 
@@ -97,8 +103,8 @@ if [ "$os_name" == "Darwin" ]; then
             exit 1
         fi
 
-        SRC_TEXT="set(EXT_SOURCE_DIR \"$current_dir/build/glad/src\")"
-        INCLUDE_TEXT="set(EXT_INCLUDE_DIR \"$current_dir/build/glad/include\")"
+        SRC_TEXT="set(EXT_SOURCE_DIR \"$current_dir/environment/glad/src\")"
+        INCLUDE_TEXT="set(EXT_INCLUDE_DIR \"$current_dir/environment/glad/include\")"
         
         ESCAPED_INCLUDE_TEXT=$(printf '%s\n' "$INCLUDE_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
         ESCAPED_SRC_TEXT=$(printf '%s\n' "$SRC_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
@@ -108,14 +114,16 @@ if [ "$os_name" == "Darwin" ]; then
     fi
 
     # Step 5: Running the code
+    pip install gym==0.26.2
+    pip install numpy==1.24.4
 
     python3 setup.py install
-    # "$PYTHON" "$current_dir/bench/agarle_bench.py"
+    python3 "$current_dir/bench/agarle_bench.py"
 
     # Step 6: Self-play setup
-    # cd build
-    # cmake -DCMAKE_BUILD_TYPE=Release ..
-    # make -j 2 client agarle
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    make -j 2 client agarle
 
 # Check if the OS is Linux
 elif [ "$os_name" == "Linux" ]; then
