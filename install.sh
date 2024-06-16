@@ -103,6 +103,74 @@ if [ "$os_name" == "Darwin" ]; then
     # cmake -DCMAKE_BUILD_TYPE=Release ..
     # make -j 2 client agarle
 
+# Check if the OS is Linux
+elif [ "$os_name" == "Linux" ]; then
+    current_dir=$(pwd)
+
+    # Step 1: Install CMake
+    sudo snap install cmake
+
+    # Step 2: Install GLM
+    mkdir -p "$current_dir/build"
+    cd "$current_dir/build"
+
+    git clone https://github.com/g-truc/glm
+    cmake \
+        -DGLM_BUILD_TESTS=OFF \
+        -DBUILD_SHARED_LIBS=OFF \
+        -B build .
+    cmake --build build -- all
+    cmake --build build -- install
+
+    # Step 3: Install Cxxopts
+    mkdir -p "$current_dir/build/cxxopts"
+
+
+    # Step 4: Install required OPENGL Packages
+    sudo apt-get install libgl1-mesa-dev
+    sudo apt-get install libglu1-mesa-dev
+    sudo apt-get install libglfw3-dev
+
+    # Step 5: Install GLAD
+    cd ..
+
+    glad_path="$current_dir/environment/glad"
+    if [ ! -d "$glad_path" ]; then
+        echo "No glad directory found."
+        exit 1
+    else
+        echo "Glad directory found."
+
+        cmake_file_path="$current_dir/agario/CMakeLists.txt"
+        if [ ! -f "$cmake_file_path" ]; then
+            echo "CMakeLists.txt not found."
+            exit 1
+        fi
+
+        # INCLUDE_TEXT="set(EXT_SOURCE_DIR "$current_dir/environment/glad/include")"
+        SRC_TEXT="set(EXT_SOURCE_DIR \"$current_dir/environment/glad/src\")"
+        INCLUDE_TEXT="set(EXT_INCLUDE_DIR \"$current_dir/environment/glad/include\")"
+        
+        ESCAPED_INCLUDE_TEXT=$(printf '%s\n' "$INCLUDE_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
+        ESCAPED_SRC_TEXT=$(printf '%s\n' "$SRC_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
+        
+        sed -i '' "111s/.*/${ESCAPED_SRC_TEXT}/" "$cmake_file_path"
+        sed -i '' "112s/.*/${ESCAPED_INCLUDE_TEXT}/" "$cmake_file_path"
+    fi
+
+    # Step 6: USE CLANG Compiler
+    if command -v gcc &> /dev/null; then
+        sudo apt-get remove gcc
+    fi
+
+    if ! command -v clang &> /dev/null; then
+        sudo apt-get install clang
+    fi
+    CXX=`which clang++`
+
+    # export CPLUS_INCLUDE_PATH=environment variables path :$CPLUS_INCLUDE_PATH
+
 else
-    echo "no"
+    echo "Unsupported Operating System: $os_name"
+    exit 1
 fi
