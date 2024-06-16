@@ -1,10 +1,11 @@
 os_name=$(uname -s)
-arch=$(uname -m)
 echo "Operating System: $os_name"
-echo "Architecture: $arch"
 
 # Check if the OS is MacOS
 if [ "$os_name" == "Darwin" ]; then
+    arch=$(uname -m)
+    echo "Architecture: $arch"
+
     current_dir=$(pwd)
     # Step 1: Install packages
     if ! command -v brew &> /dev/null; then
@@ -31,12 +32,15 @@ if [ "$os_name" == "Darwin" ]; then
         touch "$ZSHRC_PATH"
     fi
     
-    echo "Updating include paths in $ZSHRC_PATH"
-    echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
-    echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
-    echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+    if ! grep -q "CPLUS_INCLUDE_PATH" "$ZSHRC_PATH"; then
+        echo "Updating include paths in $ZSHRC_PATH"
+
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+    fi
     
-    if grep -qxF "CPATH" "$ZSHRC_PATH"; then
+    if grep -q "CPATH" "$ZSHRC_PATH"; then
         echo "CPATH already in $ZSHRC_PATH"
     else
         echo "Include CPATH in $ZSHRC_PATH"
@@ -47,14 +51,14 @@ if [ "$os_name" == "Darwin" ]; then
         fi
     fi
 
-    if grep -qxF "LIBRARY_PATH" "$ZSHRC_PATH"; then
+    if grep -q "LIBRARY_PATH" "$ZSHRC_PATH"; then
         echo "LIBRARY_PATH already in $ZSHRC_PATH"
     else
         echo "Include LIBRARY_PATH in $ZSHRC_PATH"
         if [ "$arch" == "x86_64" ]; then
-            echo "export CPATH=/usr/local/lib" >> "$ZSHRC_PATH"
+            echo "export LIBRARY_PATH=/usr/local/lib" >> "$ZSHRC_PATH"
         else
-            echo "export CPATH=/opt/homebrew/lib" >> "$ZSHRC_PATH"
+            echo "export LIBRARY_PATH=/opt/homebrew/lib" >> "$ZSHRC_PATH"
         fi
     fi
 
