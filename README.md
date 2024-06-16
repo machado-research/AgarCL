@@ -6,58 +6,24 @@ The Agar.io Learning Environment (AgarLE) is a performant implementation of the 
 <img width="460" alt="Screenshot" src="https://user-images.githubusercontent.com/15920014/57587859-dbb31400-74c0-11e9-8f47-3e39113b99b4.png">
 </p>
 
-# Prerequisites
-Before you begin, ensure you have the following installed on your system:
+<!-- # Prerequisites -->
+<!-- Before you begin, ensure you have the following installed on your system:
 
 - **CMake**: A cross-platform tool designed to build, test, and package software.
 - **GLM**: A header-only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications.
 - **cxxopts**: Lightweight C++ command-line option parser.
 
-Additionally, you will need to install some essential packages for OpenGL development: **GLFW** and **GLAD**.
+Additionally, you will need to install some essential packages for OpenGL development: **GLFW** and **GLAD**. -->
 
 
 
 ## Clone this repository (with submodules)
 ```sh
-    git clone --recursive git@github.com:machado-research/AgarLE.git
+git clone --recursive git@github.com:machado-research/AgarLE.git
 ```
-## Linux 
+# Installation 
 
-### Step 1: Install CMake
-
-To install CMake, use the Snap package manager:
-
-```sh
-sudo snap install cmake
-```
-
-### Step 2: Install GLM
-
-Download and install GLM from its GitHub repository:
-```sh
-git clone https://github.com/g-truc/glm
-cd /path/to/glm
-cmake \
-    -DGLM_BUILD_TESTS=OFF \
-    -DBUILD_SHARED_LIBS=OFF \
-    -B build .
-cmake --build build -- all
-cmake --build build -- install
-```
-### Step 3: Install Cxxopts: 
-Clone the cxxopts repository and install it following the instructions of this link: 
-```sh
-https://github.com/jarro2783/cxxopts/blob/master/INSTALL
-```
-### Step 4 Install required OPENGL Packages: 
-Some additional packages are required for OpenGL development. Refer to the following:
-```sh
-sudo apt-get install libgl1-mesa-dev
-sudo apt-get install libglu1-mesa-dev
-sudo apt-get install libglfw3-dev
-```
-### Step 5: Install GLAD Specification
-
+### Step 1: Download GLAD
 After modifying the code, you will need to install the GLAD specification. Follow these steps:
 
 1. Go to [GLAD](https://glad.dav1d.de/).
@@ -65,156 +31,61 @@ After modifying the code, you will need to install the GLAD specification. Follo
    - **gl**: 4.6
    - **Profile**: Core
    - Ignore other options
-3. Download the generated files and add the path of glad in the this file: ```agario/CMakeLists.txt```
+3. Download the generated files and add them to the folder ```environment```
 
-### Step 6: USE CLANG Compiler
-The code is compatible with the CLANG compiler only. If you have GCC installed, you will need to remove it. This is a known issue that needs to be addressed.
-
-To remove GCC:
-
+### Step 2: Install AgarLE
+Run the following line in the terminal:
 ```sh
-sudo apt-get remove gcc
+./install.sh
 ```
-To install CLANG:
-```sh
-sudo apt-get install clang
-```
-Then: 
-```sh
- CXX=`which clang++`
-```
-
-**Final Note**: Ensure that your environment variables and paths are correctly set for all installed tools and libraries. You can add them using the following export line: 
-
-```sh 
-export CPLUS_INCLUDE_PATH=environment variables path :$CPLUS_INCLUDE_PATH
-```
-
-## MAC
-
-Ensure you have [Homebrew](https://brew.sh/) installed on your macOS system. Homebrew is a package manager for macOS that simplifies the installation of software.
-
-### Step 1: Install Required Tools and Libraries
-
-To install the required tools and libraries, run the following commands:
-
-1. Install **CMake**:
-   ```sh
-   brew install cmake
-   ```
-2. Install **cxxopts**: 
-    ```sh
-    brew install cxxopts
-    ```
-3. Install **GLM**:
-    ```sh
-    brew install glm
-    ```
-4. Install **GLFW**:
-    ```sh
-    brew install glfw
-    ```
-
-### Step 2: Update Include Paths
-
-If your Mac does not see the installed packages, add the following paths to your .zshrc file:
-```sh
-    export CPLUS_INCLUDE_PATH=YOUR_GLFW_PATH/include:$CPLUS_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=YOUR_CXXOPT_PATH/include:$CPLUS_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=YOUR_GLM_PATH/include:$CPLUS_INCLUDE_PATH
-```
-Then, open your ~/.zshrc file and check. Add these lines if they do not have it:
-
-```sh
-export CPATH=/opt/homebrew/include
-export LIBRARY_PATH=/opt/homebrew/lib
-```
-
-After adding these lines, reload your shell configuration:
-```sh
-source ~/.zshrc
-```
-
-## Step 3: Install pybind11
-Follow the instructions at the [pybind11 documentation](https://pybind11.readthedocs.io/en/stable/) to install pybind11.
-
-## Step 4: Install GLAD
-### Step 5: Install GLAD Specification
-
-After modifying the code, you will need to install the GLAD specification. Follow these steps:
-
-1. Go to [GLAD](https://glad.dav1d.de/).
-2. Configure the following options:
-   - **gl**: 4.6
-   - **Profile**: Core
-   - Ignore other options
-3. Download the generated files and add the path of glad in the this file: ```agario/CMakeLists.txt```
-
-## Step 5: Resolve GLAD and OpenGL Conflicts
-If you encounter conflicts between GLAD and OpenGL, follow these steps to fix them:
-
-1. In `glad/src/glad.c`, remove the line:
-   ```c
-   #include <GLFW/glfw3.h>
-   ```
-2. In rendering/platform.hpp, comment out the line at line 10:
-   ```c
-    //#include <OpenGL/gl3.h>
-    ```
-
-
 
 # Running the code
 
-If you want the crafted observations and run it over python, do the following: 
-1.    run the included installation script
+If you want the crafted observations and run it over python, execute the following line: ```project_path/bench/agarle_bench.py```
 
-        ```python setup.py install```
-2. execute the following line: ```project_path/bench/agarle_bench.py```
+## Usage
 
-    ## Usage
+Installation will have installed the python module `gym_agario`, which when imported
+registers the AgarLE gym environments. You need only import `gym_agario` and then
+make an environment in the standard way 
 
-    Installation will have installed the python module `gym_agario`, which when imported
-    registers the AgarLE gym environments. You need only import `gym_agario` and then
-    make an environment in the standard way 
+```python
+import gym
+import gym_agario
+    
+env = gym.make("agario-grid-v0")
+    
+game_state = env.reset()
+print(game_state.shape) # (128, 128, 10) , (grid_size, grid_size, num_channels)
 
-    ```python
-    import gym
-    import gym_agario
-        
-    env = gym.make("agario-grid-v0")
-        
-    game_state = env.reset()
-    print(game_state.shape) # (128, 128, 10) , (grid_size, grid_size, num_channels)
+action = np.array([0, 0]), 0  # don't move, don't split
+while True:
+game_state, reward, done, info = env.step(action)
+if done: break
+```
 
-    action = np.array([0, 0]), 0  # don't move, don't split
-    while True:
-    game_state, reward, done, info = env.step(action)
-    if done: break
-    ```
+The Agar.io game and observation space are highly configurable. You can change
+the parameters of the game and observation properties like so (default configuration
+shown).
 
-    The Agar.io game and observation space are highly configurable. You can change
-    the parameters of the game and observation properties like so (default configuration
-    shown).
+```python
+config = {
+'ticks_per_step':  4,     # Number of game ticks per step
+'num_frames':      2,     # Number of game ticks observed at each step
+'arena_size':      1000,  # Game arena size
+'num_pellets':     1000,
+'num_viruses':     25,
+'num_bots':        25,
+'pellet_regen':    True,  # Whether pellets regenerate randomly when eaten
+'grid_size':       128,   # Size of spatial dimensions of observations
+'observe_cells':   True,  # Include an observation channel with agent's cells
+'observe_others':  True,  # Include an observation channel with other players' cells
+'observe_viruses': True,  # Include an observation channel with viruses
+'observe_pellets': True   # Include an observation channel with pellets
+}
 
-    ```python
-    config = {
-    'ticks_per_step':  4,     # Number of game ticks per step
-    'num_frames':      2,     # Number of game ticks observed at each step
-    'arena_size':      1000,  # Game arena size
-    'num_pellets':     1000,
-    'num_viruses':     25,
-    'num_bots':        25,
-    'pellet_regen':    True,  # Whether pellets regenerate randomly when eaten
-    'grid_size':       128,   # Size of spatial dimensions of observations
-    'observe_cells':   True,  # Include an observation channel with agent's cells
-    'observe_others':  True,  # Include an observation channel with other players' cells
-    'observe_viruses': True,  # Include an observation channel with viruses
-    'observe_pellets': True   # Include an observation channel with pellets
-    }
-
-    env = gym.make("agario-grid-v0", **config)
-    ```
+env = gym.make("agario-grid-v0", **config)
+```
 <!-- 
 # Multi-Agent Environments
 

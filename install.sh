@@ -1,12 +1,13 @@
 os_name=$(uname -s)
 echo "Operating System: $os_name"
 
+current_dir=$(pwd)
+
 # Check if the OS is MacOS
 if [ "$os_name" == "Darwin" ]; then
     arch=$(uname -m)
     echo "Architecture: $arch"
 
-    current_dir=$(pwd)
     # Step 1: Install packages
     if ! command -v brew &> /dev/null; then
         echo "Homebrew is not installed. Installing Homebrew..."
@@ -63,7 +64,6 @@ if [ "$os_name" == "Darwin" ]; then
     fi
 
     source "$ZSHRC_PATH"
-
     # Step 3: Install pybind11
     if ! command -v pip3 &> /dev/null; then
         echo "pip3 is not installed. Installing pip3..."
@@ -77,7 +77,7 @@ if [ "$os_name" == "Darwin" ]; then
     # Check if the virtual environment exists
     if ! [ -d "$VENV_PATH" ]; then
         echo "Virtual environment not found at $VENV_PATH, making one..."
-        python3.10 -m venv venv
+        python -m venv venv
     fi
     
     source "$VENV_PATH/bin/activate"
@@ -94,10 +94,10 @@ if [ "$os_name" == "Darwin" ]; then
 
     # Step 4: Install GLAD
     cd ../..
-    mkdir -p "$current_dir/environment"
     glad_path="$current_dir/environment/glad"
     if [ ! -d "$glad_path" ]; then
         echo "No glad directory found. Please install glad first in environment directory."
+        exit 1
     else
         echo "Glad directory found."
 
@@ -121,18 +121,10 @@ if [ "$os_name" == "Darwin" ]; then
     pip install gym==0.26.2
     pip install numpy==1.24.4
 
-    python3 setup.py install
-    python3 "$current_dir/bench/agarle_bench.py"
-
-    # Step 6: Self-play setup
-    cd build
-    cmake -DCMAKE_BUILD_TYPE=Release ..
-    make -j 2 client agarle
+    python setup.py install
 
 # Check if the OS is Linux
 elif [ "$os_name" == "Linux" ]; then
-    current_dir=$(pwd)
-
     # Step 1: Install CMake
     sudo snap install cmake
 
@@ -149,8 +141,9 @@ elif [ "$os_name" == "Linux" ]; then
     cmake --build build -- install
 
     # Step 3: Install Cxxopts
-    mkdir -p "$current_dir/build/cxxopts"
-
+    git clone https://github.com/jarro2783/cxxopts.git
+    cmake ${current_dir}/build/cxxopts
+    make
 
     # Step 4: Install required OPENGL Packages
     sudo apt-get install libgl1-mesa-dev
@@ -162,7 +155,7 @@ elif [ "$os_name" == "Linux" ]; then
 
     glad_path="$current_dir/environment/glad"
     if [ ! -d "$glad_path" ]; then
-        echo "No glad directory found."
+        echo "No glad directory found. Please install glad first in environment directory."
         exit 1
     else
         echo "Glad directory found."
@@ -173,7 +166,6 @@ elif [ "$os_name" == "Linux" ]; then
             exit 1
         fi
 
-        # INCLUDE_TEXT="set(EXT_SOURCE_DIR "$current_dir/environment/glad/include")"
         SRC_TEXT="set(EXT_SOURCE_DIR \"$current_dir/environment/glad/src\")"
         INCLUDE_TEXT="set(EXT_INCLUDE_DIR \"$current_dir/environment/glad/include\")"
         
