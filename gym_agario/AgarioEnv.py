@@ -191,6 +191,8 @@ class AgarioEnv(gym.Env):
             observe_others = kwargs.get("observe_others",   True)
             observe_viruses = kwargs.get("observe_viruses", True)
             observe_pellets = kwargs.get("observe_pellets", True)
+            allow_respawn = kwargs.get("allow_respawn", True)
+            c_death = kwargs.get("c_death", -100)
             env = agarle.GridEnvironment(*args)
             env.configure_observation({
                 "num_frames": num_frames,
@@ -198,7 +200,9 @@ class AgarioEnv(gym.Env):
                 "observe_cells": observe_cells,
                 "observe_others": observe_others,
                 "observe_viruses": observe_viruses,
-                "observe_pellets": observe_pellets
+                "observe_pellets": observe_pellets,
+                "allow_respawn": allow_respawn,
+                "c_death": c_death
             })
 
             channels, width, height = env.observation_shape()
@@ -254,7 +258,8 @@ class AgarioEnv(gym.Env):
         num_viruses = 25
         num_bots = 25
         pellet_regen = True
-
+        allow_respawn = True
+        reward_type   = 1 #means diff 
         if difficulty == "normal":
             pass  # default
 
@@ -279,6 +284,8 @@ class AgarioEnv(gym.Env):
         self.num_viruses     = kwargs.get("num_viruses", num_viruses)
         self.num_bots        = kwargs.get("num_bot", num_bots)
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
+        self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
+        self.reward_type   = kwargs.get("reward_type", reward_type)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
 
@@ -288,7 +295,7 @@ class AgarioEnv(gym.Env):
 
         return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
-               self.num_viruses, self.num_bots
+               self.num_viruses, self.num_bots, self.reward_type
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility

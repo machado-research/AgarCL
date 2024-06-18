@@ -36,13 +36,14 @@ namespace agario {
     public:
 
       explicit BaseEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots) :
+                               int num_pellets, int num_viruses, int num_bots, bool reward_type) :
         num_agents_(num_agents),
         dones_(num_agents),
         engine_(arena_size, arena_size, num_pellets, num_viruses, pellet_regen),
         ticks_per_step_(ticks_per_step), num_bots_(num_bots),
+        reward_type_(reward_type),
         step_dt_(DEFAULT_DT) {
-
+          
         pids_.reserve(num_agents);
         reset();
       }
@@ -67,11 +68,13 @@ namespace agario {
               this->_partial_observation(agent, tick);
         }
 
-        // reward = mass after - mass before
+        // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
-        for (int i = 0; i < num_agents(); ++i)
-          rewards[i] -= before[i];
-
+        if(reward_type_){
+          for (int i = 0; i < num_agents(); ++i)
+            rewards[i] -= (before[i] - c_death_);
+        }
+        
         return rewards;
       }
 
@@ -130,7 +133,7 @@ namespace agario {
         engine_.reset();
 
         pids_.clear();
-
+        c_death_ = 0;
         // add players
         for (int i = 0; i < num_agents_; i++) {
           auto name = "agent" + std::to_string(i);
@@ -160,12 +163,12 @@ namespace agario {
       Engine <renderable> engine_;
       std::vector<agario::pid> pids_;
       std::vector<bool> dones_;
-
+      int c_death_;
       const int num_agents_;
       const int ticks_per_step_;
       const int num_bots_;
       const agario::time_delta step_dt_;
-
+      const bool reward_type_;
       /* allows subclass to do something special at the beginning of each step */
       virtual void _step_hook() {};
 
@@ -195,6 +198,9 @@ namespace agario {
               break;
             case 3:
               engine_.template add_player<AggressiveShyBot>();
+              break;
+            default:
+              engine_.template add_player<HungryBot>();
               break;
           }
         }

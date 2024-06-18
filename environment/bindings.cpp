@@ -86,7 +86,7 @@ PYBIND11_MODULE(agarle, module) {
   using GridEnvironment = agario::env::GridEnvironment<int, renderable>;
 
   py::class_<GridEnvironment>(module, "GridEnvironment")
-    .def(py::init<int, int, int, bool, int, int, int>())
+    .def(py::init<int, int, int, bool, int, int, int, bool>())
     .def("seed", &GridEnvironment::seed)
     .def("configure_observation", [](GridEnvironment &env, const py::dict &config) {
 
@@ -96,8 +96,10 @@ PYBIND11_MODULE(agarle, module) {
       bool others    = config.contains("observe_others")  ? config["observe_others"].cast<bool>()  : true;
       bool viruses   = config.contains("observe_viruses") ? config["observe_viruses"].cast<bool>() : true;
       bool pellets   = config.contains("observe_pellets") ? config["observe_pellets"].cast<bool>() : true;
-
-      env.configure_observation(num_frames, grid_size, cells, others, viruses, pellets);
+      bool respawn   = config.contains("allow_respawn")   ? config["allow_respawn"].cast<bool>()   : true;
+      int c_death    = config.contains("c_death")         ? config["c_death"].cast<int>()           : 0;
+    
+      env.configure_observation(num_frames, grid_size, cells, others, viruses, pellets, respawn, c_death);
     })
     .def("observation_shape", &GridEnvironment::observation_shape)
     .def("dones", &GridEnvironment::dones)

@@ -51,7 +51,7 @@ namespace {
             for (bool observe_viruses : { false, true })
               for (bool observe_pellets : { false, true })
               {
-                env.configure_observation(num_frames, grid_size, observe_cells, observe_others, observe_viruses, observe_pellets);
+                env.configure_observation(num_frames, grid_size, observe_cells, observe_others, observe_viruses, observe_pellets, false, 0);
 
                 int channels, width, height;
                 std::tie(channels, width, height) = env.observation_shape();
@@ -96,7 +96,7 @@ namespace {
                                 pellet_regen, num_pellets,
                                 num_viruses, num_bots);
 
-      env->configure_observation(2, 128, true, true, true, true);
+      env->configure_observation(2, 128, true, true, true, true, false, 0);
     }
 
     template <typename ...Config>
