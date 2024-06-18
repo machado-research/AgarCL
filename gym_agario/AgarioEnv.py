@@ -160,6 +160,7 @@ class AgarioEnv(gym.Env):
         :return: An observation object
         """
         states = self._env.get_state()
+        # print(f'len(states): {len(states)}, self.num_agents: {self.num_agents}')
         assert len(states) == self.num_agents
 
         if self.obs_type in ("grid", ):
@@ -220,12 +221,12 @@ class AgarioEnv(gym.Env):
             # introduce some ugly work-arounds and layers of indirection
             # in the underlying C++ code
 
-            screen_len = kwargs.get("screen_len", 256)
+            screen_len = kwargs.get("screen_len", 1024)
             args += (screen_len, screen_len)
             env = agarle.ScreenEnvironment(*args)
 
             # todo: use env.observation_shape() ?
-            shape = 4, screen_len, screen_len, 3
+            shape = 1, screen_len, screen_len, 3
             observation_space = spaces.Box(low=0, high=255, shape=shape, dtype=np.uint8)
 
         else:

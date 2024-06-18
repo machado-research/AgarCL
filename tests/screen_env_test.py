@@ -16,7 +16,7 @@ class ScreenGymTest(unittest.TestCase):
 
     env_name = "agario-screen-v0"
     env_config = {
-        'ticks_per_step': 4,
+        'ticks_per_step': 1,
         'arena_size': 1000,
         'pellet_regen': True,
         'num_pellets': 100,
