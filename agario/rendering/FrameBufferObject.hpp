@@ -1,28 +1,15 @@
 #pragma once
 
 #include "agario/rendering/platform.hpp"
-// #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 
 #include "agario/rendering/Canvas.hpp"
+#include "agario/rendering/utils.hpp"
 #include <iostream>
 
-class FBOException : public std::runtime_error {
-  // using runtime_error::runtime_error;
-  public:
-    using std::runtime_error::runtime_error;
-
-    FBOException(const std::string &message) : std::runtime_error(message) {
-        std::cout << "FBOException: " << message << std::endl;
-    }
-
-    FBOException(const char *message) : std::runtime_error(message) {
-        std::cout << "FBOException: " << message << std::endl;
-    }
-};
 
 void glfw_error_callback(int error, const char *description) {
   static_cast<void>(error);
@@ -39,19 +26,20 @@ public:
     fbo(0), rbo_depth(0), rbo_color(0),
     window(nullptr) {
 
+    // std::cout << "FrameBufferObject constructor " << std::endl;
 
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
       throw FBOException("GLFW initialization failed.");
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     // std::cout << "Creating off-screen window" << std::endl;
     window = glfwCreateWindow(_width, _height, "", nullptr, nullptr);
 
@@ -60,7 +48,7 @@ public:
       throw FBOException("Off-screen window creation failed");
     }
 
-    // glfwHideWindow(window);
+    glfwHideWindow(window);
     glfwMakeContextCurrent(window);
 
     if (!glfwGetCurrentContext()) {
@@ -100,11 +88,12 @@ public:
     if (fbo_status != GL_FRAMEBUFFER_COMPLETE)
       throw FBOException("Framebuffer not complete");
 
-    auto glstatus = glGetError();
-    if (glstatus != GL_NO_ERROR)
-      throw FBOException("GL Error: " + std::to_string(glstatus));
+    exception_on_gl_error("Before BindBuffer");
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+    exception_on_gl_error("After BindBuffer");
+
   }
 
   int width() const override { return _width; }
@@ -114,11 +103,16 @@ public:
   void hide() const { glfwHideWindow(window); }
 
   void copy(void *data) {
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glReadBuffer(GL_BACK_LEFT);
+
+    exception_on_gl_error("ReadBuffer");
+    
     // glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
-    // glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
-  }
+    glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    exception_on_gl_error("ReadPixels");
+    }
+  
 
   void swap_buffers() const { glfwSwapBuffers(window); }
 
