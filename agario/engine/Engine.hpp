@@ -359,18 +359,14 @@ namespace agario {
      */
     void check_player_self_collisions(Player &player, const agario::time_delta &elapsed_seconds) {
     
-    std::vector<int>idx_sorted(player.cells.size());
-    std::iota(idx_sorted.begin(), idx_sorted.end(), 0);
-
-
     bool overlap = false;
     for(int iter = 0 ; iter < 10 ;iter++){
       overlap = false;
       for (int idx_a = 0; idx_a < player.cells.size(); idx_a++) {
         for (int idx_b = idx_a + 1; idx_b < player.cells.size(); idx_b++) {
           
-          Cell &cell_a = player.cells[idx_sorted[idx_a]];
-          Cell &cell_b = player.cells[idx_sorted[idx_b]];
+          Cell &cell_a = player.cells[idx_a];
+          Cell &cell_b = player.cells[idx_b];
           // only allow collisions if both are eligible for recombining
           if (cell_a.can_recombine() && cell_b.can_recombine())
               continue;
@@ -392,8 +388,8 @@ namespace agario {
       for (int idx_a = 0; idx_a < player.cells.size(); idx_a++) {
         for (int idx_b = idx_a + 1; idx_b < player.cells.size(); idx_b++) {
           
-          Cell &cell_a = player.cells[idx_sorted[idx_a]];
-          Cell &cell_b = player.cells[idx_sorted[idx_b]];
+          Cell &cell_a = player.cells[idx_a];
+          Cell &cell_b = player.cells[idx_b];
           if (cell_a.touches(cell_b)) 
             avoid_static_overlap(cell_a, cell_b);
         }
@@ -407,32 +403,6 @@ namespace agario {
         return (T(0) < val) - (val < T(0));
     }
 
-
-    short define_player_direction(Cell & cell_a, Cell & cell_b, const Location &player_target)
-    {
-      auto diff_a_x = (player_target.x - cell_a.x);
-      auto diff_a_y = (player_target.y - cell_a.y);
-
-      auto diff_b_x = (player_target.x - cell_b.x);
-      auto diff_b_y = (player_target.y - cell_b.y);
-
-      // understanding the direction given the cells. Which cell is closer to player_target?
-      if(diff_a_x >= 0 && diff_a_y >= 0)
-        return 0;
-      else if(diff_a_x >= 0 && diff_a_y <= 0)
-        return 1;
-      else if(diff_a_x <= 0 && diff_a_y <= 0)
-        return 2;
-      else //if(diff_a_x < 0 && diff_a_y >= 0 && diff_b_x < 0 && diff_b_y >= 0)
-        return 3; 
-    }
-
-    /**
-     * moves `cell_a` and `cell_b` apart slightly
-     * such that they cannot be overlapping
-     * @param cell_a first cell to move apart
-     * @param cell_b second cell to move apart
-     */
     /**
      * Moves `cell_a` and `cell_b` apart slightly
      * such that they cannot be overlapping
@@ -494,7 +464,6 @@ namespace agario {
      * @param cell_a first cell to move apart
      * @param cell_b second cell to move apart
      */
-
     void prevent_overlap(Cell &cell_a, Cell &cell_b, const agario::time_delta &elapsed_seconds, const Location &player_target) {
       auto dx = cell_b.x - cell_a.x;
       auto dy = cell_b.y - cell_a.y;
@@ -516,7 +485,6 @@ namespace agario {
       cell_b.move(dt);
       if(cell_a.touches(cell_b))
         separate_cells(cell_a, cell_b, player_target);
-    
     }
 
     /**
