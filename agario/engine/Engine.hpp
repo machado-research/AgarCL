@@ -6,13 +6,15 @@
 #include <algorithm>
 #include <sstream>
 #include<set>
+#include <numeric> 
 
 #include "agario/core/Player.hpp"
 #include "agario/core/settings.hpp"
 #include "agario/core/types.hpp"
 #include "agario/core/Entities.hpp"
 #include "agario/engine/GameState.hpp"
-
+#include <thread>
+#include <chrono>
 namespace agario {
 
   class EngineException : public std::runtime_error {
@@ -225,9 +227,9 @@ namespace agario {
 
       player_elapsed_time[player.pid()] += elapsed_seconds.count();
 
-      std::cout << player_elapsed_time[player.pid()] << " " << std::endl;  
+
       for (Cell &cell : player.cells) {
-        
+
         eat_pellets(cell);
         eat_food(cell);
         check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
@@ -257,6 +259,9 @@ namespace agario {
      * @param elapsed_seconds time since the last game tick
      */
     void move_player(Player &player, const agario::time_delta &elapsed_seconds) {
+
+      //check whether the player target is out of arena or not 
+
       auto dt = elapsed_seconds.count();
       agario::mass best_mass_cell = 0; 
       int i = 0;
@@ -267,15 +272,13 @@ namespace agario {
         // clip speed
         auto speed_limit = max_speed(cell.mass());
         cell.velocity.clamp_speed(0, speed_limit);
-
         cell.move(dt);
         cell.splitting_velocity.decelerate(SPLIT_DECELERATION, dt);
-        std::cout << i++ << " " << cell.velocity.dx << " " << cell.velocity.dy << std::endl;
         check_boundary_collisions(cell);
       }
       player.set_max_mass_cell(best_mass_cell);
       // make sure not to move two of players own cells into one another
-      check_player_self_collisions(player);
+      check_player_self_collisions(player, elapsed_seconds);
     }
 
     void move_foods(const agario::time_delta &elapsed_seconds) {
@@ -297,8 +300,56 @@ namespace agario {
      * @param ball the ball to keep inside the arena
      */
     void check_boundary_collisions(Ball &ball) {
-      ball.x = clamp<agario::distance>(ball.x, 0, arena_width());
-      ball.y = clamp<agario::distance>(ball.y, 0, arena_height());
+      ball.x = clamp<agario::distance>(ball.x, ball.radius(), arena_width()-ball.radius());
+      ball.y = clamp<agario::distance>(ball.y, ball.radius(), arena_height()-ball.radius());
+    }
+
+
+    void avoid_static_overlap(Cell &cell_a, Cell& cell_b)
+    {
+      auto mass_a = cell_a.mass();
+      auto mass_b = cell_b.mass();
+
+      auto dx = cell_b.x - cell_a.x;
+      auto dy = cell_b.y - cell_a.y;
+
+      auto dist = sqrt(dx * dx + dy * dy);
+      auto target_dist = cell_a.radius() + cell_b.radius();
+
+      if (dist > target_dist) {
+        return; // cells are not overlapping
+      }
+
+      auto x_ratio = dx / (std::abs(dx) + std::abs(dy));
+      auto y_ratio = dy / (std::abs(dx) + std::abs(dy));
+
+      auto depth = target_dist - dist;
+      
+      std::pair<float,float> cell_a_ratio = {0.5, 0.5}, cell_b_ratio = {0.5, 0.5}; 
+      
+      auto check_border = [&](Cell &cell, std::pair<float,float> &cell_ratio)
+      {
+        if(cell.x == cell.radius() || cell.x == this->arena_width() - cell.radius())
+        {
+          cell_ratio.first = 1.0;
+          cell.velocity.dx = 0;
+        }
+        if(cell.y == cell.radius() || cell.y == this->arena_height() - cell.radius())
+        {
+          cell_ratio.second = 1.0;
+          cell.velocity.dy = 0;
+        }
+      };
+
+      check_border(cell_a,cell_a_ratio);
+      check_border(cell_b, cell_b_ratio);
+
+      cell_a.x -= x_ratio * depth*cell_a_ratio.first;
+      cell_a.y -= y_ratio * depth*cell_a_ratio.second;
+
+      cell_b.x += x_ratio * depth*cell_b_ratio.first;
+      cell_b.y += y_ratio * depth*cell_b_ratio.second;
+
     }
 
     /**
@@ -306,20 +357,74 @@ namespace agario {
      * cells which aren't eligible for recombining don't overlap
      * with other cells of the same player.
      */
-    void check_player_self_collisions(Player &player) {
-      for (auto it = player.cells.begin(); it != player.cells.end(); ++it) {
-        for (auto it2 = std::next(it); it2 != player.cells.end(); it2++) {
+    void check_player_self_collisions(Player &player, const agario::time_delta &elapsed_seconds) {
+    
+    std::vector<int>idx_sorted(player.cells.size());
+    std::iota(idx_sorted.begin(), idx_sorted.end(), 0);
 
+
+    bool overlap = false;
+    for(int iter = 0 ; iter < 10 ;iter++){
+      overlap = false;
+      for (int idx_a = 0; idx_a < player.cells.size(); idx_a++) {
+        for (int idx_b = idx_a + 1; idx_b < player.cells.size(); idx_b++) {
+          
+          Cell &cell_a = player.cells[idx_sorted[idx_a]];
+          Cell &cell_b = player.cells[idx_sorted[idx_b]];
           // only allow collisions if both are eligible for recombining
-          if (it->can_recombine() && it2->can_recombine())
-            continue;
+          if (cell_a.can_recombine() && cell_b.can_recombine())
+              continue;
 
-          Cell &cell_a = *it;
-          Cell &cell_b = *it2;
           if (cell_a.touches(cell_b))
-            prevent_overlap(cell_a, cell_b);
+          {
+            overlap = true; 
+            prevent_overlap(cell_a, cell_b, elapsed_seconds, player.target);
+          }
         }
       }
+      if(!overlap)
+        break;
+      
+    }
+
+    if(overlap)
+    {
+      for (int idx_a = 0; idx_a < player.cells.size(); idx_a++) {
+        for (int idx_b = idx_a + 1; idx_b < player.cells.size(); idx_b++) {
+          
+          Cell &cell_a = player.cells[idx_sorted[idx_a]];
+          Cell &cell_b = player.cells[idx_sorted[idx_b]];
+          if (cell_a.touches(cell_b)) 
+            avoid_static_overlap(cell_a, cell_b);
+        }
+      }
+    }
+  
+  }
+
+
+    template <typename T> int sgn(T val) {
+        return (T(0) < val) - (val < T(0));
+    }
+
+
+    short define_player_direction(Cell & cell_a, Cell & cell_b, const Location &player_target)
+    {
+      auto diff_a_x = (player_target.x - cell_a.x);
+      auto diff_a_y = (player_target.y - cell_a.y);
+
+      auto diff_b_x = (player_target.x - cell_b.x);
+      auto diff_b_y = (player_target.y - cell_b.y);
+
+      // understanding the direction given the cells. Which cell is closer to player_target?
+      if(diff_a_x >= 0 && diff_a_y >= 0)
+        return 0;
+      else if(diff_a_x >= 0 && diff_a_y <= 0)
+        return 1;
+      else if(diff_a_x <= 0 && diff_a_y <= 0)
+        return 2;
+      else //if(diff_a_x < 0 && diff_a_y >= 0 && diff_b_x < 0 && diff_b_y >= 0)
+        return 3; 
     }
 
     /**
@@ -328,7 +433,16 @@ namespace agario {
      * @param cell_a first cell to move apart
      * @param cell_b second cell to move apart
      */
-    void prevent_overlap(Cell &cell_a, Cell &cell_b) {
+    /**
+     * Moves `cell_a` and `cell_b` apart slightly
+     * such that they cannot be overlapping
+     * @param cell_a first cell to move apart
+     * @param cell_b second cell to move apart
+     * @param player_target the target location of the player
+     */
+    void separate_cells(Cell& cell_a, Cell& cell_b, const Location& player_target) {
+      auto mass_a = cell_a.mass();
+      auto mass_b = cell_b.mass();
 
       auto dx = cell_b.x - cell_a.x;
       auto dy = cell_b.y - cell_a.y;
@@ -336,16 +450,115 @@ namespace agario {
       auto dist = sqrt(dx * dx + dy * dy);
       auto target_dist = cell_a.radius() + cell_b.radius();
 
-      if (dist > target_dist) return; // aren't overlapping
+      if (dist > target_dist) {
+        return; // cells are not overlapping
+      }
 
       auto x_ratio = dx / (std::abs(dx) + std::abs(dy));
       auto y_ratio = dy / (std::abs(dx) + std::abs(dy));
 
-      cell_b.x += (target_dist - dist) * x_ratio / 2;
-      cell_b.y += (target_dist - dist) * y_ratio / 2;
+      auto diff_a = (player_target - cell_a.location()).norm_sqr();
+      auto diff_b = (player_target - cell_b.location()).norm_sqr();
 
-      cell_a.x -= (target_dist - dist) * x_ratio / 2;
-      cell_a.y -= (target_dist - dist) * y_ratio / 2;
+      auto depth = target_dist - dist;
+
+      short sign_direction_1 = (cell_a.mass() < cell_b.mass() ? 1 : -1);
+      short sign_direction_2 = (diff_a >= diff_b ? 1 : -1);
+
+      // If both directions have the same sign, apply the idea that less mass should move
+      short sign_direction = (sign_direction_1 == sign_direction_2 ? sign_direction_2 : 0);
+
+      Cell& temp_cell = (cell_a.mass() < cell_b.mass() ? cell_a : cell_b);
+
+      if (dx >= 0) {
+        temp_cell.x -= x_ratio * depth * sign_direction;
+        if (dy >= 0) {
+          temp_cell.y -= y_ratio * depth * sign_direction;
+        } else {
+          temp_cell.y += y_ratio * depth * sign_direction;
+        }
+      } else {
+        temp_cell.x += x_ratio * depth * sign_direction;
+        if (dy >= 0) {
+          temp_cell.y -= y_ratio * depth * sign_direction;
+        } else {
+          temp_cell.y += y_ratio * depth * sign_direction;
+        }
+      }
+    }
+
+
+    /**
+     * change the dx and dy of both `cell_a` and `cell_b` apart slightly
+     * such that they cannot be overlapping
+     * @param cell_a first cell to move apart
+     * @param cell_b second cell to move apart
+     */
+
+    void prevent_overlap(Cell &cell_a, Cell &cell_b, const agario::time_delta &elapsed_seconds, const Location &player_target) {
+      auto dx = cell_b.x - cell_a.x;
+      auto dy = cell_b.y - cell_a.y;
+      auto dist = sqrt(dx * dx + dy * dy);
+      auto target_dist = cell_a.radius() + cell_b.radius();
+      auto dt = elapsed_seconds.count();
+
+      if (dist > target_dist) return; // aren't overlapping
+
+      cell_a.x -= (cell_a.velocity.dx+cell_a.splitting_velocity.dx) * dt;
+      cell_a.y -= (cell_a.velocity.dy+cell_a.splitting_velocity.dy) * dt;
+
+      cell_b.x -= (cell_b.velocity.dx+cell_b.splitting_velocity.dx) * dt;
+      cell_b.y -= (cell_b.velocity.dy+cell_b.splitting_velocity.dy) * dt;
+      
+      bool is_solved = elastic_collision_between_balls(cell_a, cell_b, dx, dy, dist);
+      
+      cell_a.move(dt);
+      cell_b.move(dt);
+      if(cell_a.touches(cell_b))
+        separate_cells(cell_a, cell_b, player_target);
+    
+    }
+
+    /**
+     * moves `cell_a` and `cell_b` apart slightly. Preserving the Kinetic Energy and the momentum
+     */
+    bool elastic_collision_between_balls(Cell &cell_a, Cell &cell_b, const float &dx, const float &dy, const float &dist)
+    {
+      
+      //Calculate the norm vector
+      auto nx = dx / dist;
+      auto ny = dy / dist;
+
+      //Calculate the tangent vector
+      auto tx = -ny;
+      auto ty = nx;
+
+
+      //Calculate the dot product of the velocity vector and the normal vector
+      auto dpNorm1 = cell_a.velocity.dx * nx + cell_a.velocity.dy * ny;
+      auto dpNorm2 = cell_b.velocity.dx * nx + cell_b.velocity.dy * ny;
+
+      //Calculate the dot product of the velocity vector and the tangent vector
+      auto dpTan1 = cell_a.velocity.dx * tx + cell_a.velocity.dy * ty;
+      auto dpTan2 = cell_b.velocity.dx * tx + cell_b.velocity.dy * ty;
+
+        
+      //Calculate the mass
+      int m1 = cell_a.mass();
+      int m2 = cell_b.mass();
+
+      //Calculate the velocity of the 1st and 2nd object in the normal direction
+      auto v1 = (dpNorm1 * (m1 - m2) + 2.0f * m2 * dpNorm2) / (m1 + m2);
+      auto v2 = (dpNorm2 * (m2 - m1) + 2.0f * m1 * dpNorm1) / (m1 + m2);
+      // float factor_a = 1.0 , factor_b = 1.0;
+
+      cell_a.velocity.dx = (tx * dpTan1 + nx * v1);
+      cell_a.velocity.dy = (ty * dpTan1 + ny * v1);
+
+      cell_b.velocity.dx = (tx * dpTan2 + nx * v2);
+      cell_b.velocity.dy = (ty * dpTan2 + ny * v2);
+
+      return true; 
     }
 
     /**

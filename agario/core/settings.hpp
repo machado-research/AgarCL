@@ -2,8 +2,8 @@
 
 #define SEED 42
 
-#define CELL_MIN_SIZE 1500
-#define CELL_MAX_SPEED 400
+#define CELL_MIN_SIZE 25
+#define CELL_MAX_SPEED 300
 #define CELL_SPLIT_MINIMUM 35
 #define SPLIT_DECELERATION 80
 
@@ -36,6 +36,6 @@
 
 //MASS DECAY 
 #define PLAYER_RATE 0.002
-#define GAME_RATE_MODIFIER 0.0
+#define GAME_RATE_MODIFIER 1.0
 #define DECAY_FOR_NUM_SECONDS 1  //nearly a second
 

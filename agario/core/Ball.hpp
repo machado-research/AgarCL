@@ -34,6 +34,11 @@ namespace agario {
       return sqr_rads >= sqr_distance_to(other);
     }
 
+    bool touches_with_margin(const Ball& other, const float margin) const {
+      auto sqr_rads = pow(radius() + other.radius(), 2);
+      return sqr_rads >= sqr_distance_to(other) + margin;
+    }
+
     bool can_eat(const Ball &other) const {
       return mass() > other.mass() * CELL_EAT_MARGIN;
     }
