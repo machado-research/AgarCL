@@ -22,7 +22,8 @@ class ScreenGymTest(unittest.TestCase):
         'num_pellets': 100,
         'num_viruses': 25,
         'num_bots': 25,
-        'screen_len': 1024
+        'screen_len': 1024,
+        "c_death": 0
     }
     
     def gen_random_actions(self):

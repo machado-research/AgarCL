@@ -99,9 +99,9 @@ namespace agario::env {
       using dtype = std::uint8_t; 
 
       explicit ScreenEnvironment(int num_agents, int frames_per_step, int arena_size, bool pellet_regen,
-                                 int num_pellets, int num_viruses, int num_bots,
-                                 screen_len screen_width, screen_len screen_height) :
-        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots),
+                                 int num_pellets, int num_viruses, int num_bots, bool respawn,
+                                 screen_len screen_width, screen_len screen_height, bool reward_type=0) :
+        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type),
         _observation(frames_per_step, screen_width, screen_height),
         frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height)),
         renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height()) {
@@ -129,7 +129,7 @@ namespace agario::env {
         void *data = _observation.frame_data(frame_index);
         frame_buffer->copy(data);
       }
-      
+
 
       void _partial_observation(int agent_index, int tick_index) override{
         auto &player = this->engine_.player(this->pids_[agent_index]);

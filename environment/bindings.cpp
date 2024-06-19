@@ -140,7 +140,7 @@ PYBIND11_MODULE(agarle, module) {
 
  py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
 
-   .def(pybind11::init<int, int, int, bool, int, int, int, screen_len, screen_len>())
+   .def(pybind11::init<int, int, int, bool, int, int, int, bool, screen_len, screen_len, bool>())
    .def("seed", &ScreenEnvironment::seed)
   //  .def("observation_shape", &ScreenEnvironment::observation_shape)
    .def("dones", &ScreenEnvironment::dones)

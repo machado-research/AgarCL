@@ -226,7 +226,9 @@ class AgarioEnv(gym.Env):
             # in the underlying C++ code
 
             screen_len = kwargs.get("screen_len", 1024)
+            c_death = kwargs.get("c_death", 0)
             args += (screen_len, screen_len)
+            args += (c_death,)
             env = agarle.ScreenEnvironment(*args)
 
             # todo: use env.observation_shape() ?
