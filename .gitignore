@@ -792,3 +792,7 @@ cmake-build-debug/
 .history 
 .DS_store
 test_opengl*
+#screen observations visualisations
+plotted_observations/
+glad/
+plot_obs.py
