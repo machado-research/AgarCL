@@ -45,7 +45,6 @@ namespace agario::env {
 
 
       std::uint8_t *frame_data(int frame_index) const {
-        std::cout << "frame_data(" << frame_index << ") called" << std::endl;
         if (frame_index >= _num_frames)
           throw FBOException("Frame index " + std::to_string(frame_index) + " out of bounds");
 
@@ -124,7 +123,6 @@ namespace agario::env {
 
       // stores current frame into buffer containing the next observation
       void _partial_observation(Player &player, int frame_index) override {
-        // std::cout << "_partial_observation() called for frame_index: " << frame_index << std::endl;
         renderer.render_screen(player, this->engine_.game_state());
         void *data = _observation.frame_data(frame_index);
         frame_buffer->copy(data);

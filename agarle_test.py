@@ -14,12 +14,9 @@ def gen_random_actions():
 
 def dump_next_states(filename, next_state):
   with open(filename, 'wb') as f:
-      # print(f'Next state max & min values before tofile: {np.max(next_state), np.min(next_state)} ')
       next_state.tofile(f)
-      # print(f'Next state max & min values after tofile: {np.max(next_state), np.min(next_state)} ')
   
 
-  
 def main(config):
   env = gym.make("agario-screen-v0", **config)
   state = env.reset()
@@ -31,7 +28,7 @@ def main(config):
   for i in range(10):
     null_action = gen_random_actions()
     next_state, reward, done, info = env.step([(1, 1), 0])
-    print(f'Action: {null_action}')
+    # print(f'Action: {null_action}')
     print(f'Next state shape: {next_state.shape} ')
     print(f'Next state max & min values: {np.max(next_state), np.min(next_state)} ')
     # print(f'Done: {done}')
@@ -46,7 +43,7 @@ if __name__ == "__main__":
     'ticks_per_step': 1,
     'arena_size': 1000,
     'pellet_regen': True,
-    'num_pellets': 100,
+    'num_pellets': 1000,
     'num_viruses': 25,
     'num_bots': 25,
     'screen_len': 1024, # for screen world
