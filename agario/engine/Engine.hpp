@@ -479,7 +479,7 @@ namespace agario {
       cell_b.x -= (cell_b.velocity.dx+cell_b.splitting_velocity.dx) * dt;
       cell_b.y -= (cell_b.velocity.dy+cell_b.splitting_velocity.dy) * dt;
       
-      bool is_solved = elastic_collision_between_balls(cell_a, cell_b, dx, dy, dist);
+      elastic_collision_between_balls(cell_a, cell_b, dx, dy, dist);
       
       cell_a.move(dt);
       cell_b.move(dt);
@@ -490,7 +490,7 @@ namespace agario {
     /**
      * moves `cell_a` and `cell_b` apart slightly. Preserving the Kinetic Energy and the momentum
      */
-    bool elastic_collision_between_balls(Cell &cell_a, Cell &cell_b, const float &dx, const float &dy, const float &dist)
+    void elastic_collision_between_balls(Cell &cell_a, Cell &cell_b, const float &dx, const float &dy, const float &dist)
     {
       
       //Calculate the norm vector
@@ -526,7 +526,6 @@ namespace agario {
       cell_b.velocity.dx = (tx * dpTan2 + nx * v2);
       cell_b.velocity.dy = (ty * dpTan2 + ny * v2);
 
-      return true; 
     }
 
     /**
