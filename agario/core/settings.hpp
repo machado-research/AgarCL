@@ -28,14 +28,14 @@
 
 #define DEFAULT_NUM_PELLETS 1024
 #define DEFAULT_NUM_VIRUSES 25
-#define PLAYER_CELL_LIMIT 25
+#define PLAYER_CELL_LIMIT 20
 
 //split condition 
 #define NUM_CELLS_TO_SPLIT 10
 #define MIN_CELL_SPLIT_MASS 160
 
 //MASS DECAY 
-#define PLAYER_RATE 0.002
+#define PLAYER_RATE 0.02
 #define GAME_RATE_MODIFIER 1.0
 #define DECAY_FOR_NUM_SECONDS 1  //nearly a second
 

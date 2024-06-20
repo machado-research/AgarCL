@@ -223,7 +223,7 @@ namespace agario {
       std::vector<Cell> created_cells; // list of new cells that will be created
       int create_limit = PLAYER_CELL_LIMIT - player.cells.size();
 
-      bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT) & (player.get_max_mass_cell() >= MIN_CELL_SPLIT_MASS));
+      bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT) & (player.get_min_mass_cell() >= MIN_CELL_SPLIT_MASS));
 
       player_elapsed_time[player.pid()] += elapsed_seconds.count();
 
@@ -263,12 +263,12 @@ namespace agario {
       //check whether the player target is out of arena or not 
 
       auto dt = elapsed_seconds.count();
-      agario::mass best_mass_cell = 0; 
-      int i = 0;
+      agario::mass smallest_mass_cell = std::numeric_limits<agario::mass>::max(); 
+
       for (auto &cell : player.cells) {
         cell.velocity.dx = 3 * (player.target.x - cell.x);
         cell.velocity.dy = 3 * (player.target.y - cell.y);
-        best_mass_cell = std::max(best_mass_cell, cell.mass());
+        smallest_mass_cell = std::min(smallest_mass_cell, cell.mass());
         // clip speed
         auto speed_limit = max_speed(cell.mass());
         cell.velocity.clamp_speed(0, speed_limit);
@@ -276,7 +276,7 @@ namespace agario {
         cell.splitting_velocity.decelerate(SPLIT_DECELERATION, dt);
         check_boundary_collisions(cell);
       }
-      player.set_max_mass_cell(best_mass_cell);
+      player.set_min_mass_cell(smallest_mass_cell);
       // make sure not to move two of players own cells into one another
       check_player_self_collisions(player, elapsed_seconds);
     }
