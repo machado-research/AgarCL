@@ -521,20 +521,20 @@ namespace agario {
       float factor_a = 1.0 , factor_b = 1.0;
       
       if(cell_a.mass() < cell_b.mass()) {
-        factor_a = 1.15;
-        factor_b = 0.85;
+        cell_a.velocity.dx = (tx * dpTan1 + nx * v1);
+        cell_a.velocity.dy = (ty * dpTan1 + ny * v1);
       }
       else if(cell_a.mass() > cell_b.mass()) {
-        factor_a = 0.85;
-        factor_b = 1.15;
+        cell_b.velocity.dx = (tx * dpTan2 + nx * v2);
+        cell_b.velocity.dy = (ty * dpTan2 + ny * v2);
       }
+      else{
+        cell_a.velocity.dx = (tx * dpTan1 + nx * v1);
+        cell_a.velocity.dy = (ty * dpTan1 + ny * v1);
 
-      cell_a.velocity.dx = (tx * dpTan1 + nx * v1) * factor_a;
-      cell_a.velocity.dy = (ty * dpTan1 + ny * v1) * factor_a;
-
-      cell_b.velocity.dx = (tx * dpTan2 + nx * v2) * factor_b;
-      cell_b.velocity.dy = (ty * dpTan2 + ny * v2) * factor_b;
-
+        cell_b.velocity.dx = (tx * dpTan2 + nx * v2);
+        cell_b.velocity.dy = (ty * dpTan2 + ny * v2);
+      }
     }
 
     /**
