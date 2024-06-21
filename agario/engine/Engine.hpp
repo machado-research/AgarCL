@@ -776,7 +776,7 @@ namespace agario {
     }
 
     float max_speed(agario::mass mass) {
-      return CELL_MAX_SPEED / pow(mass, 0.4);
+      return CELL_MAX_SPEED / std::pow(mass, 0.439);
     }
 
     template<typename T>
