@@ -518,13 +518,22 @@ namespace agario {
       //Calculate the velocity of the 1st and 2nd object in the normal direction
       auto v1 = (dpNorm1 * (m1 - m2) + 2.0f * m2 * dpNorm2) / (m1 + m2);
       auto v2 = (dpNorm2 * (m2 - m1) + 2.0f * m1 * dpNorm1) / (m1 + m2);
-      // float factor_a = 1.0 , factor_b = 1.0;
+      float factor_a = 1.0 , factor_b = 1.0;
+      
+      if(cell_a.mass() < cell_b.mass()) {
+        factor_a = 1.15;
+        factor_b = 0.85;
+      }
+      else if(cell_a.mass() > cell_b.mass()) {
+        factor_a = 0.85;
+        factor_b = 1.15;
+      }
 
-      cell_a.velocity.dx = (tx * dpTan1 + nx * v1);
-      cell_a.velocity.dy = (ty * dpTan1 + ny * v1);
+      cell_a.velocity.dx = (tx * dpTan1 + nx * v1) * factor_a;
+      cell_a.velocity.dy = (ty * dpTan1 + ny * v1) * factor_a;
 
-      cell_b.velocity.dx = (tx * dpTan2 + nx * v2);
-      cell_b.velocity.dy = (ty * dpTan2 + ny * v2);
+      cell_b.velocity.dx = (tx * dpTan2 + nx * v2) * factor_b;
+      cell_b.velocity.dy = (ty * dpTan2 + ny * v2) * factor_b;
 
     }
 
@@ -767,7 +776,7 @@ namespace agario {
     }
 
     float max_speed(agario::mass mass) {
-      return CELL_MAX_SPEED / std::sqrt((float) mass);
+      return CELL_MAX_SPEED / pow(mass, 0.4);
     }
 
     template<typename T>
