@@ -118,12 +118,7 @@ if [ "$os_name" == "Darwin" ]; then
     fi
 
     # Step 5: Running the code
-    # pip install gym==0.26.2
-    pip install gymnasium==0.29.1
-    pip install numpy==1.24.4
-
     python3 setup.py install
-    python3 bench/agarle_bench.py 
 
 # Check if the OS is Linux
 elif [ "$os_name" == "Linux" ]; then
