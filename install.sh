@@ -77,7 +77,7 @@ if [ "$os_name" == "Darwin" ]; then
     # Check if the virtual environment exists
     if ! [ -d "$VENV_PATH" ]; then
         echo "Virtual environment not found at $VENV_PATH, making one..."
-        python -m venv venv
+        python3 -m venv venv
     fi
     
     source "$VENV_PATH/bin/activate"
@@ -118,10 +118,12 @@ if [ "$os_name" == "Darwin" ]; then
     fi
 
     # Step 5: Running the code
-    pip install gym==0.26.2
+    # pip install gym==0.26.2
+    pip install gymnasium==0.29.1
     pip install numpy==1.24.4
 
-    python setup.py install
+    python3 setup.py install
+    python3 bench/agarle_bench.py 
 
 # Check if the OS is Linux
 elif [ "$os_name" == "Linux" ]; then

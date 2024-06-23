@@ -4,7 +4,7 @@ Date: 5/18/19
 Author: Jon Deaton (jdeaton@stanford.edu)
 """
 
-import gym
+import gymnasium as gym
 import gym_agario
 
 import numpy as np

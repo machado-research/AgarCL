@@ -1,5 +1,4 @@
-import gym
-from gym import error, spaces, utils
+import gymnasium as gym
 import gym_agario
 import argparse
 import numpy as np

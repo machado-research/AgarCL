@@ -11,7 +11,8 @@ python -m cProfile bench/agarle_bench.py \
 """
 
 import argparse
-import gym, gym_agario
+import gymnasium as gym
+import gym_agario
 import numpy as np
 import cProfile
 
