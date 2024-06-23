@@ -483,8 +483,14 @@ namespace agario {
       
       cell_a.move(dt);
       cell_b.move(dt);
+
       if(cell_a.touches(cell_b))
-        separate_cells(cell_a, cell_b, player_target);
+      {
+        if(std::abs(static_cast<int>(cell_a.mass() - cell_b.mass())) <= 15)
+          avoid_static_overlap(cell_a, cell_b);
+        else
+          separate_cells(cell_a, cell_b, player_target);
+      }
     }
 
     /**
