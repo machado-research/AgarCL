@@ -2,7 +2,7 @@
 
 #define SEED 42
 
-#define CELL_MIN_SIZE 25
+#define CELL_MIN_SIZE 500
 #define CELL_MAX_SPEED 250
 #define CELL_SPLIT_MINIMUM 35
 #define SPLIT_DECELERATION 80
@@ -28,7 +28,7 @@
 
 #define DEFAULT_NUM_PELLETS 1024
 #define DEFAULT_NUM_VIRUSES 25
-#define PLAYER_CELL_LIMIT 20
+#define PLAYER_CELL_LIMIT 16
 
 //split condition 
 #define NUM_CELLS_TO_SPLIT 16
