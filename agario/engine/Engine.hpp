@@ -486,7 +486,7 @@ namespace agario {
 
       if(cell_a.touches(cell_b))
       {
-        if(std::abs(static_cast<int>(cell_a.mass() - cell_b.mass())) <= 15)
+        if(std::abs(static_cast<int>(cell_a.mass() - cell_b.mass())) <= 10)
           avoid_static_overlap(cell_a, cell_b);
         else
           separate_cells(cell_a, cell_b, player_target);
