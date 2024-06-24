@@ -225,15 +225,12 @@ class AgarioEnv(gym.Env):
             # introduce some ugly work-arounds and layers of indirection
             # in the underlying C++ code
 
-            screen_len = kwargs.get("screen_len", 1024)
+            screen_len = kwargs.get("screen_len", 84)
             c_death = kwargs.get("c_death", 0)
             args += (screen_len, screen_len)
             args += (c_death,)
             env = agarle.ScreenEnvironment(*args)
-
-            # todo: use env.observation_shape() ?
-            shape = 1, screen_len, screen_len, 3
-            observation_space = spaces.Box(low=0, high=255, shape=shape, dtype=np.uint8)
+            observation_space = spaces.Box(low=0, high=255, shape=env.observation_shape(), dtype=np.uint8)
 
         else:
             raise ValueError(obs_type)

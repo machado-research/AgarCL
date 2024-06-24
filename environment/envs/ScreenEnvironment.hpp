@@ -116,6 +116,11 @@ namespace agario::env {
       [[nodiscard]] screen_len screen_width() const { return frame_buffer->width(); }
       [[nodiscard]] screen_len screen_height() const { return frame_buffer->height(); }
 
+      std::tuple<int, int, int, int> observation_shape() const {
+        std::vector<int> shape_vec = _observation.shape();
+        return std::make_tuple(shape_vec[0], shape_vec[1], shape_vec[2], shape_vec[3]);
+    }
+
     private:
       ScreenObservation _observation;
       std::shared_ptr<FrameBufferObject> frame_buffer;

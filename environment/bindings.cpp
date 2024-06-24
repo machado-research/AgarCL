@@ -133,7 +133,7 @@ PYBIND11_MODULE(agarle, module) {
 
    .def(pybind11::init<int, int, int, bool, int, int, int, bool, screen_len, screen_len, bool>())
    .def("seed", &ScreenEnvironment::seed)
-  //  .def("observation_shape", &ScreenEnvironment::observation_shape)
+   .def("observation_shape", &ScreenEnvironment::observation_shape)
    .def("dones", &ScreenEnvironment::dones)
    .def("take_actions", [](ScreenEnvironment &env, const py::list &actions) {
      env.take_actions(to_action_vector(actions));
