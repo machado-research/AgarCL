@@ -16,7 +16,6 @@
 
 namespace py = pybind11;
 
-
 template <class Tuple,
   class T = std::decay_t<std::tuple_element_t<0, std::decay_t<Tuple>>>>
 std::vector<T> to_vector(Tuple&& tuple) {
@@ -24,14 +23,6 @@ std::vector<T> to_vector(Tuple&& tuple) {
     return std::vector<T>{std::forward<decltype(elems)>(elems)...};
   }, std::forward<Tuple>(tuple));
 }
-
-// update to_vector function to handle different types:
-template <typename T>
-std::vector<T> to_vector(const std::vector<T> &vec) {
-  // std::cout << "To vector" << std::endl;
-  return std::vector<T>(vec.begin(), vec.end());
-}
-
 
 /* converts a python list of actions to the C++ action wrapper */
 std::vector<agario::env::Action> to_action_vector(const py::list &actions) {

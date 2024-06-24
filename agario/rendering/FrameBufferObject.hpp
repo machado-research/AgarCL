@@ -26,8 +26,6 @@ public:
     fbo(0), rbo_depth(0), rbo_color(0),
     window(nullptr) {
 
-    // std::cout << "FrameBufferObject constructor " << std::endl;
-
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
       throw FBOException("GLFW initialization failed.");
@@ -40,7 +38,6 @@ public:
 #endif
 
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    // std::cout << "Creating off-screen window" << std::endl;
     window = glfwCreateWindow(_width, _height, "", nullptr, nullptr);
 
     if (window == nullptr) {
@@ -52,18 +49,17 @@ public:
     glfwMakeContextCurrent(window);
 
     if (!glfwGetCurrentContext()) {
-            throw FBOException("Failed to make context current");
-        }else{
-          std::cout << "glfwGetCurrentContext ok " << std::endl;
-        }
+      throw FBOException("Failed to make context current");
+    }else{
+      std::cout << "glfwGetCurrentContext ok " << std::endl;
+    }
     
-
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        throw FBOException("Failed to initialize GLAD" );
+      throw FBOException("Failed to initialize GLAD" );
     }else{
       std::cout << "GLAD ok " << std::endl;
-
     }
+    
     // Frame Buffer Object
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
@@ -103,7 +99,7 @@ public:
   void hide() const { glfwHideWindow(window); }
 
   void copy(void *data) {
-    glReadBuffer(GL_BACK_LEFT);
+    glReadBuffer(GL_BACK);
 
     exception_on_gl_error("ReadBuffer");
     
@@ -117,7 +113,6 @@ public:
   void swap_buffers() const { glfwSwapBuffers(window); }
 
   ~FrameBufferObject() override {
-    // std::cout << "FrameBufferObject destructor called" << std::endl;
     glDeleteFramebuffers(1, &fbo);
     glDeleteRenderbuffers(1, &rbo_color);
     glDeleteRenderbuffers(1, &rbo_depth);
