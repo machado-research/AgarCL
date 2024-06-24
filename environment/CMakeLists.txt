@@ -37,7 +37,7 @@ set(AGARIO_SCREEN_ENV_SOURCE
         envs/ScreenEnvironment.hpp)
 
 # make including the screen environment an option
-option(INCLUDE_SCREEN_ENV "Compile Screen Environment" OFF)
+option(INCLUDE_SCREEN_ENV "Compile Screen Environment" ON)
 if (INCLUDE_SCREEN_ENV)
 
     set(OpenGL_GL_PREFERENCE GLVND)
@@ -52,7 +52,7 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
     add_definitions(-DINCLUDE_SCREEN_ENV)
 
     # find_library(GLFW REQUIRED)
-    find_package(glfw3)
+    find_package(glfw3 3.3 REQUIRED)
     find_package(glm REQUIRED)
     #NEW
     # find_package(GLEW REQUIRED)
