@@ -170,6 +170,14 @@ namespace agario {
       _can_recombine = false;
     }
     
+    /*
+      From observing my mass count I've seen that the bigger a cell is, the faster that cell loses its mass. 
+      However, when you have multiple cells, each of the cells loses mass concurrently.
+     */
+    void mass_decay() {
+      agario::mass new_decayed_mass = mass() * (1 - PLAYER_RATE * GAME_RATE_MODIFIER);
+      set_mass(new_decayed_mass); // if new_decayed_mass is less than CELL_MIN_SIZE, set_mass will set it as CELL_MIN_SIZE
+    }
 
     agario::Velocity splitting_velocity;
     agario::real_time _recombine_timer;
