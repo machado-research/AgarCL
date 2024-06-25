@@ -88,21 +88,30 @@ namespace agario {
     // renderable constructor
     template <typename Loc, typename Vel, bool r = renderable>
     Virus(Loc &&loc, Vel &&vel, typename std::enable_if<r>::type* = 0) :
-      Ball(loc), RenderableMovingBall(loc, vel) { this->color = agario::color::green; }
+      Ball(loc), RenderableMovingBall(loc, vel) { this->color = agario::color::green;}
 
     // non-renderable constructor
     template <typename Loc, typename Vel, bool r = renderable>
     Virus(Loc &&loc, Vel &&vel, typename std::enable_if<!r>::type* = 0) :
-      Ball(loc), MovingBall(loc, vel) { }
+      Ball(loc), MovingBall(loc, vel) {}
 
     template <typename Loc>
     explicit Virus(Loc &&loc) : Virus(loc, Velocity()) {}
 
     distance radius() const override { return radius_conversion(mass()); }
 
-    agario::mass mass() const override { return VIRUS_MASS; }
+    agario::mass mass() const override { return _virus_mass;}
+
+    void set_mass(agario::mass new_mass) { _virus_mass = new_mass; }
+
+
+    // set and get the number of times the virus has been hit by food
+    void set_num_food_hits(int num_food_hits) { _num_food_hits = num_food_hits; }
+    int get_num_food_hits() const { return _num_food_hits; }
 
   private:
+    int _num_food_hits = 0;
+    int _virus_mass = VIRUS_MASS;
   };
 
   template<bool renderable, unsigned NumSides = CELL_SIDES>

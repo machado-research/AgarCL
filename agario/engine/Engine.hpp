@@ -283,16 +283,66 @@ namespace agario {
 
     void move_foods(const agario::time_delta &elapsed_seconds) {
       auto dt = elapsed_seconds.count();
+     
+      for (auto it = state.foods.begin() ; it != state.foods.end(); ) {
+        if (it->velocity.magnitude() == 0) {
+          it++;
+          continue;
+        }
+        Velocity food_vel = it->velocity;
+        it->decelerate(FOOD_DECEL, dt);
+        it->move(dt);
 
-      for (auto &food : state.foods) {
-        if (food.velocity.magnitude() == 0) continue;
+        check_boundary_collisions(*it);
+        
+        bool hit_virus = maybe_hit_virus(*it, food_vel);
 
-        food.decelerate(FOOD_DECEL, dt);
-        food.move(dt);
-
-        check_boundary_collisions(food);
+        if(hit_virus)
+          {
+            if(state.foods.size() > 1)
+              std::swap(*it, state.foods.back());
+            state.foods.pop_back();
+          }
+        else 
+          ++it; 
       }
     }
+
+    /*
+    * Check for collisions between the foods and viruses in the game
+    */
+    bool maybe_hit_virus(const Food &food, const Velocity &food_vel) {
+
+      for (auto it = state.viruses.begin(); it != state.viruses.end(); it++) {
+        
+        if (food.collides_with(*it)) {
+            if(it->get_num_food_hits() >= NUMBER_OF_FOOD_HITS)
+            {
+              // Return the virus to its original mass.
+              it->set_num_food_hits(0);
+              it->set_mass(VIRUS_MASS);
+
+              // For the new virus take the food direction and location with VIRUSS NORMAL MASS.
+              Velocity vel = food_vel;
+              // vel.accelerate(20, 1);
+
+              Virus new_virus(Location(it->x,it->y), vel);
+              new_virus.move(10); // move the virus to the next location (to avoid the collision with the food)
+              new_virus.set_mass(VIRUS_MASS);
+              state.viruses.emplace_back(std::move(new_virus));
+            }
+            else {
+              
+              it->set_num_food_hits(it->get_num_food_hits() + 1);
+              it->set_mass(it->mass() + FOOD_MASS);
+            }
+            return true;
+            
+        } 
+      }
+      return false; 
+    }
+
 
     /**
      * Constrains the location of `ball` to be inside the boundaries
@@ -564,7 +614,7 @@ namespace agario {
     }
 
     void eat_food(Cell &cell) {
-      if (cell.mass() < FOOD_MASS) return;
+      if (cell.mass() < FOOD_MASS || state.foods.size() == 0) return;
       auto prev_size = food_count();
 
       state.foods.erase(
