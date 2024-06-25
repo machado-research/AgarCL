@@ -23,7 +23,6 @@ namespace agario {
 
   template<bool renderable>
   class Engine {
-  std::set<std::pair<agario::distance, agario::distance>> viruses_loc;
   public:
     using Player = Player<renderable>;
     using Cell = Cell<renderable>;
@@ -109,35 +108,6 @@ namespace agario {
       auto x = random<agario::distance>(arena_width() - 2*radius) + radius; //if it is 0, it will be 0 + radius. 
       auto y = random<agario::distance>(arena_height() - 2*radius) + radius;
       
-      return Location(x, y);
-    }
-
-    bool is_location_free(agario::distance x, agario::distance y, agario::distance radius) {
-
-      for (auto &virus_loc : viruses_loc) {
-        auto entity_x = virus_loc.first;
-        auto entity_y = virus_loc.second;
-
-        agario::distance dx = x - entity_x;
-        agario::distance dy = y - entity_y;
-        agario::distance dis = std::sqrt(dx * dx + dy * dy);
-        if(dis <= 2*radius)
-          return false;
-      }
-      viruses_loc.insert(std::make_pair(x, y));
-      return true;
-    }
-    agario::Location random_non_overlapped_location(agario::distance radius) {
-     
-      Location m_value = random_location(radius); 
-      auto mx_value = m_value.x;
-      auto my_value = m_value.y;
-      agario::distance x, y;
-    do{
-      x = random<agario::distance>(mx_value) + radius; //if it is 0, it will be 0 + radius. 
-      y = random<agario::distance>(my_value) + radius;
-    }while(!is_location_free(x, y,radius));
-
       return Location(x, y);
     }
 
@@ -783,7 +753,6 @@ namespace agario {
             disrupt(cell, virus, created_cells, create_limit);
 
           std::swap(*it, state.viruses.back()); // O(1) removal
-          viruses_loc.erase(std::make_pair(it->x, it->y));
           state.viruses.pop_back();
           return; // only collide once
         } else ++it;
