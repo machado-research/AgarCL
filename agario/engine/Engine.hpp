@@ -259,6 +259,7 @@ namespace agario {
           it++;
           continue;
         }
+
         Velocity food_vel = it->velocity;
         it->decelerate(FOOD_DECEL, dt);
         it->move(dt);
@@ -267,14 +268,12 @@ namespace agario {
         
         bool hit_virus = maybe_hit_virus(*it, food_vel, elapsed_seconds);
 
-        if(hit_virus)
-          {
+        if(hit_virus) {
             if(state.foods.size() > 1)
               std::swap(*it, state.foods.back());
             state.foods.pop_back();
-          }
-        else 
-          ++it; 
+          } else 
+              ++it; 
       }
     }
 
