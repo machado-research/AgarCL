@@ -168,7 +168,7 @@ namespace agario {
     }
 
     void add_viruses(int n) {
-      agario::distance virus_radius = agario::radius_conversion(VIRUS_MASS);
+      agario::distance virus_radius = agario::radius_conversion(VIRUS_INITIAL_MASS);
       int mx_num_viruses = std::min(arena_height(), arena_width())/virus_radius;
         for (int v = 0; v < n; v++)
           state.viruses.emplace_back(random_location(virus_radius));
@@ -288,14 +288,14 @@ namespace agario {
             if(virus.get_num_food_hits() >= NUMBER_OF_FOOD_HITS) {
               // Return the virus to its original mass.
               virus.set_num_food_hits(0);
-              virus.set_mass(VIRUS_MASS);
+              virus.set_mass(VIRUS_INITIAL_MASS);
 
               // For the new virus take the food direction and location with VIRUSS NORMAL MASS.
               Velocity vel = food_vel;
               Virus new_virus(Location(virus.x,virus.y), vel);
               new_virus.move(dt*10); 
               check_boundary_collisions(new_virus);
-              new_virus.set_mass(VIRUS_MASS);
+              new_virus.set_mass(VIRUS_INITIAL_MASS);
               state.viruses.emplace_back(std::move(new_virus));
             } else {
               
