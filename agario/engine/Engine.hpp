@@ -204,11 +204,7 @@ namespace agario {
         eat_pellets(cell);
         eat_food(cell);
         check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
-        if(player_elapsed_time[player.pid()] >= DECAY_FOR_NUM_SECONDS)
-          {
-            cell.mass_decay(); // each cell should decay its mass concurrently after number of seconds 
-            player_elapsed_time[player.pid()] = 0;
-          }
+        mass_cell_decay(cell, player.pid());
       }
 
       create_limit -= created_cells.size();
@@ -221,6 +217,20 @@ namespace agario {
       created_cells.erase(created_cells.begin(), created_cells.end());
 
       recombine_cells(player);
+    }
+    
+    /**
+     * Reducing the mass of the cell of a player after a couple of seconds (DECAY_FOR_NUM_SECONDS)
+     * @param cell the cell to check for decay
+     * @param player_pid the player id of the player
+     */
+    void mass_cell_decay(Cell &cell, const agario::pid & player_pid)
+    {
+      if(player_elapsed_time[player_pid] >= DECAY_FOR_NUM_SECONDS)
+      {
+        cell.mass_decay();// each cell should decay its mass concurrently after number of seconds 
+        player_elapsed_time[player_pid] = 0;
+      }
     }
 
     /**
