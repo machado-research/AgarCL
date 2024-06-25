@@ -283,14 +283,13 @@ namespace agario {
     */
     bool maybe_hit_virus(const Food &food, const Velocity &food_vel, const agario::time_delta &elapsed_seconds) {
       auto dt = elapsed_seconds.count();
-      for (auto it = state.viruses.begin(); it != state.viruses.end(); it++) {
+      for (auto &virus : state.viruses) {
         
-        if (food.collides_with(*it)) {
-            if(it->get_num_food_hits() >= NUMBER_OF_FOOD_HITS)
-            {
+        if (food.collides_with(virus)) {
+            if(virus.get_num_food_hits() >= NUMBER_OF_FOOD_HITS) {
               // Return the virus to its original mass.
-              it->set_num_food_hits(0);
-              it->set_mass(VIRUS_MASS);
+              virus.set_num_food_hits(0);
+              virus.set_mass(VIRUS_MASS);
 
               // For the new virus take the food direction and location with VIRUSS NORMAL MASS.
               Velocity vel = food_vel;
@@ -299,8 +298,7 @@ namespace agario {
               check_boundary_collisions(new_virus);
               new_virus.set_mass(VIRUS_MASS);
               state.viruses.emplace_back(std::move(new_virus));
-            }
-            else {
+            } else {
               
               it->set_num_food_hits(it->get_num_food_hits() + 1);
               it->set_mass(it->mass() + FOOD_MASS);
