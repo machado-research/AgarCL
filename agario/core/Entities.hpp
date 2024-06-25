@@ -88,12 +88,12 @@ namespace agario {
     // renderable constructor
     template <typename Loc, typename Vel, bool r = renderable>
     Virus(Loc &&loc, Vel &&vel, typename std::enable_if<r>::type* = 0) :
-      Ball(loc), RenderableMovingBall(loc, vel) { this->color = agario::color::green;}
+      Ball(loc), RenderableMovingBall(loc, vel) { this->color = agario::color::green; }
 
     // non-renderable constructor
     template <typename Loc, typename Vel, bool r = renderable>
     Virus(Loc &&loc, Vel &&vel, typename std::enable_if<!r>::type* = 0) :
-      Ball(loc), MovingBall(loc, vel) {}
+      Ball(loc), MovingBall(loc, vel) { }
 
     template <typename Loc>
     explicit Virus(Loc &&loc) : Virus(loc, Velocity()) {}
