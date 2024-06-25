@@ -200,7 +200,7 @@ namespace agario {
 
       for (Cell &cell : player.cells) {
 
-        may_be_auto_split(cell, created_cells, create_limit, player.cells.size());
+        may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
         eat_pellets(cell);
         eat_food(cell);
         check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
@@ -229,14 +229,15 @@ namespace agario {
      * @param created_cells the list of cells that will be created
      * @param create_limit the maximum number of cells that can be created
      */
-    void may_be_auto_split(Cell &cell, vector<int>&created_cells, int create_limit, int num_cells) {
+    void may_be_auto_split(Cell &cell, std::vector<Cell>&created_cells, int create_limit, int num_cells, Location player_target) {
 
       if(cell.mass() >= MAX_MASS_IN_THE_GAME)
       {
         if(num_cells < PLAYER_CELL_LIMIT)
-          player_split(cell, created_cells, create_limit);
+          cell_split(cell, created_cells, create_limit, player_target);
         else 
           cell.set_mass(NEW_MASS_IF_NO_SPLIT); // if the player has reached the limit, the cell will be set to the new mass
+      }
     }
 
     /**
@@ -651,6 +652,32 @@ namespace agario {
         player.split_cooldown = 30;
       }
     }
+    
+
+    bool cell_split(Cell &cell, std::vector<Cell> &created_cells, int create_limit, Location &player_target)
+    {
+      if (cell.mass() < CELL_SPLIT_MINIMUM)
+        return false;
+
+      agario::mass split_mass = cell.mass() / 2;
+      auto remaining_mass = cell.mass() - split_mass;
+
+      cell.set_mass(remaining_mass);
+
+      auto dir = (player_target - cell.location()).normed();
+      auto loc = cell.location() + dir * cell.radius();
+      Velocity vel(dir * split_speed(split_mass));
+
+      // todo: add constructor that takes splitting velocity (and color)
+      Cell new_cell(loc, vel, split_mass);
+      new_cell.splitting_velocity = vel;
+
+      cell.reset_recombine_timer();
+      new_cell.reset_recombine_timer();
+
+      created_cells.emplace_back(std::move(new_cell));
+      return true; 
+    }
 
     void player_split(Player &player, std::vector<Cell> &created_cells, int create_limit) {
       if (create_limit == 0)
@@ -658,33 +685,17 @@ namespace agario {
 
       int num_splits = 0;
       for (Cell &cell : player.cells) {
-
-        if (cell.mass() < CELL_SPLIT_MINIMUM)
-          continue;
-
-        agario::mass split_mass = cell.mass() / 2;
-        auto remaining_mass = cell.mass() - split_mass;
-
-        cell.set_mass(remaining_mass);
-
-        auto dir = (player.target - cell.location()).normed();
-        auto loc = cell.location() + dir * cell.radius();
-        Velocity vel(dir * split_speed(split_mass));
-
-        // todo: add constructor that takes splitting velocity (and color)
-        Cell new_cell(loc, vel, split_mass);
-        new_cell.splitting_velocity = vel;
-
-        cell.reset_recombine_timer();
-        new_cell.reset_recombine_timer();
-
-        created_cells.emplace_back(std::move(new_cell));
-
-        // stop splitting when we've created enough cells
-        if (++num_splits == create_limit)
-          return;
+        bool is_splitted = cell_split(cell, created_cells, create_limit, player.target); 
+        if(is_splitted) {
+            if (++num_splits == create_limit)
+              return;
+        }
       }
     }
+
+
+
+
 
     /**
      * Checks all pairs of players for collisions that result
