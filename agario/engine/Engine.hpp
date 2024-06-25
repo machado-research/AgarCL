@@ -254,26 +254,26 @@ namespace agario {
     void move_foods(const agario::time_delta &elapsed_seconds) {
       auto dt = elapsed_seconds.count();
      
-      for (auto it = state.foods.begin() ; it != state.foods.end(); ) {
-        if (it->velocity.magnitude() == 0) {
-          it++;
+      for (auto food_it = state.foods.begin() ; food_it != state.foods.end(); ) {
+        if (food_it->velocity.magnitude() == 0) {
+          food_it++;
           continue;
         }
 
-        Velocity food_vel = it->velocity;
-        it->decelerate(FOOD_DECEL, dt);
-        it->move(dt);
+        Velocity food_vel = food_it->velocity;
+        food_it->decelerate(FOOD_DECEL, dt);
+        food_it->move(dt);
 
-        check_boundary_collisions(*it);
+        check_boundary_collisions(*food_it);
         
-        bool hit_virus = maybe_hit_virus(*it, food_vel, elapsed_seconds);
+        bool hit_virus = maybe_hit_virus(*food_it, food_vel, elapsed_seconds);
 
         if(hit_virus) {
             if(state.foods.size() > 1)
-              std::swap(*it, state.foods.back());
+              std::swap(*food_it, state.foods.back());
             state.foods.pop_back();
           } else 
-              ++it; 
+              ++food_it; 
       }
     }
 
@@ -292,15 +292,15 @@ namespace agario {
 
               // For the new virus take the food direction and location with VIRUSS NORMAL MASS.
               Velocity vel = food_vel;
-              Virus new_virus(Location(it->x,it->y), vel);
+              Virus new_virus(Location(virus.x,virus.y), vel);
               new_virus.move(dt*10); 
               check_boundary_collisions(new_virus);
               new_virus.set_mass(VIRUS_MASS);
               state.viruses.emplace_back(std::move(new_virus));
             } else {
               
-              it->set_num_food_hits(it->get_num_food_hits() + 1);
-              it->set_mass(it->mass() + FOOD_MASS);
+              virus.set_num_food_hits(virus.get_num_food_hits() + 1);
+              virus.set_mass(virus.mass() + FOOD_MASS);
             }
             return true;
             
