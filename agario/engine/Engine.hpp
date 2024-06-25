@@ -295,7 +295,7 @@ namespace agario {
 
         check_boundary_collisions(*it);
         
-        bool hit_virus = maybe_hit_virus(*it, food_vel);
+        bool hit_virus = maybe_hit_virus(*it, food_vel, elapsed_seconds);
 
         if(hit_virus)
           {
@@ -311,8 +311,8 @@ namespace agario {
     /*
     * Check for collisions between the foods and viruses in the game
     */
-    bool maybe_hit_virus(const Food &food, const Velocity &food_vel) {
-
+    bool maybe_hit_virus(const Food &food, const Velocity &food_vel, const agario::time_delta &elapsed_seconds) {
+      auto dt = elapsed_seconds.count();
       for (auto it = state.viruses.begin(); it != state.viruses.end(); it++) {
         
         if (food.collides_with(*it)) {
@@ -324,10 +324,9 @@ namespace agario {
 
               // For the new virus take the food direction and location with VIRUSS NORMAL MASS.
               Velocity vel = food_vel;
-              // vel.accelerate(20, 1);
-
               Virus new_virus(Location(it->x,it->y), vel);
-              new_virus.move(10); // move the virus to the next location (to avoid the collision with the food)
+              new_virus.move(dt*10); 
+              check_boundary_collisions(new_virus);
               new_virus.set_mass(VIRUS_MASS);
               state.viruses.emplace_back(std::move(new_virus));
             }
