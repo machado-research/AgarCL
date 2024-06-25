@@ -200,6 +200,7 @@ namespace agario {
 
       for (Cell &cell : player.cells) {
 
+        may_be_auto_split(cell, created_cells, create_limit, player.cells.size());
         eat_pellets(cell);
         eat_food(cell);
         check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
@@ -220,6 +221,22 @@ namespace agario {
       created_cells.erase(created_cells.begin(), created_cells.end());
 
       recombine_cells(player);
+    }
+
+    /**
+     * Enforce the cell of a player to be splitted if it exceeds the maximum mass in the game. 
+     * @param cell the cell to check for splitting
+     * @param created_cells the list of cells that will be created
+     * @param create_limit the maximum number of cells that can be created
+     */
+    void may_be_auto_split(Cell &cell, vector<int>&created_cells, int create_limit, int num_cells) {
+
+      if(cell.mass() >= MAX_MASS_IN_THE_GAME)
+      {
+        if(num_cells < PLAYER_CELL_LIMIT)
+          player_split(cell, created_cells, create_limit);
+        else 
+          cell.set_mass(NEW_MASS_IF_NO_SPLIT); // if the player has reached the limit, the cell will be set to the new mass
     }
 
     /**

@@ -41,3 +41,7 @@
 
 // Virus Feeding
 #define NUMBER_OF_FOOD_HITS 7
+
+// Auto-Split
+#define MAX_MASS_IN_THE_GAME 22500
+#define NEW_MASS_IF_NO_SPLIT 22000
