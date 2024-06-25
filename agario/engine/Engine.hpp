@@ -583,7 +583,7 @@ namespace agario {
     }
 
     void eat_food(Cell &cell) {
-      if (cell.mass() < FOOD_MASS || state.foods.size() == 0) return;
+      if (cell.mass() < FOOD_MASS) return;
       auto prev_size = food_count();
 
       state.foods.erase(
