@@ -145,10 +145,11 @@ namespace agario {
   private:
     std::unordered_map<agario::pid, float> player_elapsed_time; // time since the first tick
     agario::GameState<renderable> state;
-
     agario::pid next_pid;
     int _num_pellets, _num_virus, _pellet_regen;
-
+    float anti_team_acceleration; 
+    int num_seconds_passed;
+    int prev_num_viruses_eaten;
     /**
      * Resets a player to the starting position
      * @param pid player ID of the player to reset
@@ -157,6 +158,9 @@ namespace agario {
       player.kill();
       player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), CELL_MIN_SIZE);
       player_elapsed_time[player.pid()] = 0;
+      num_seconds_passed = 1.0;
+      anti_team_acceleration = 1.0;
+      prev_num_viruses_eaten = NUM_VIRUSES_TO_EAT - 1;
     }
     
 
@@ -197,13 +201,13 @@ namespace agario {
 
       player_elapsed_time[player.pid()] += elapsed_seconds.count();
 
-
       for (Cell &cell : player.cells) {
 
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
         eat_pellets(cell);
         eat_food(cell);
-        check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
+        player.num_viruses_eaten += static_cast<int>(check_virus_collisions(cell, created_cells, create_limit, can_eat_virus));
+        may_be_activate_anti_team(cell, player);
         mass_cell_decay(cell, player.pid());
       }
 
@@ -220,16 +224,35 @@ namespace agario {
     }
     
     /**
+     * Anti-team is triggered by hitting 3 viruses or more in a row in 1 minute. Mass will start to decay slightly faster than usual after hitting 2 viruses. 
+     * The more subsequent viruses hit, the faster the rate of mass decay.
+     * @param cell the cell to check for anti-team activation
+     * @param player the player to check for anti-team activation
+     */
+
+    void may_be_activate_anti_team(Cell &cell, Player &player)
+    {
+      float num_minutes_passed = num_seconds_passed / 60.0;
+      if(player_elapsed_time[player.pid()] <= num_minutes_passed * ANTI_TEAM_ACTIVATION_TIME) {
+        if(player.num_viruses_eaten > prev_num_viruses_eaten) {
+          anti_team_acceleration *= 1.1;
+          prev_num_viruses_eaten = player.num_viruses_eaten;
+          std::cout <<"Anti-Team activated: Doomed!" << std::endl;
+        }
+      }
+    }
+    /**
      * Reducing the mass of the cell of a player after a couple of seconds (DECAY_FOR_NUM_SECONDS)
      * @param cell the cell to check for decay
      * @param player_pid the player id of the player
      */
     void mass_cell_decay(Cell &cell, const agario::pid & player_pid)
     {
-      if(player_elapsed_time[player_pid] >= DECAY_FOR_NUM_SECONDS)
-      {
-        cell.mass_decay();// each cell should decay its mass concurrently after number of seconds 
-        player_elapsed_time[player_pid] = 0;
+
+      if(player_elapsed_time[player_pid] >= num_seconds_passed * DECAY_FOR_NUM_SECONDS) {
+        // each cell should decay its mass concurrently after number of seconds 
+        cell.mass_decay(anti_team_acceleration);
+        num_seconds_passed++; 
       }
     }
 
@@ -772,7 +795,7 @@ namespace agario {
       }
     }
 
-    void check_virus_collisions(Cell &cell, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus) {
+    bool check_virus_collisions(Cell &cell, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus) {
       for (auto it = state.viruses.begin(); it != state.viruses.end();) {
         Virus &virus = *it;
 
@@ -792,9 +815,10 @@ namespace agario {
 
           std::swap(*it, state.viruses.back()); // O(1) removal
           state.viruses.pop_back();
-          return; // only collide once
+          return true; // only collide once
         } else ++it;
       }
+      return false; 
     }
 
     /* called when `cell` collides with `virus` and is popped/disrupted.
