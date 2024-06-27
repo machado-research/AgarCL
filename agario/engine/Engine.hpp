@@ -172,7 +172,7 @@ namespace agario {
     }
 
     void add_viruses(int n) {
-      agario::distance virus_radius = agario::radius_conversion(VIRUS_MASS);
+      agario::distance virus_radius = agario::radius_conversion(VIRUS_INITIAL_MASS);
       int mx_num_viruses = std::min(arena_height(), arena_width())/virus_radius;
         for (int v = 0; v < n; v++)
           state.viruses.emplace_back(random_location(virus_radius));
@@ -305,27 +305,26 @@ namespace agario {
     void move_foods(const agario::time_delta &elapsed_seconds) {
       auto dt = elapsed_seconds.count();
      
-      for (auto it = state.foods.begin() ; it != state.foods.end(); ) {
-        if (it->velocity.magnitude() == 0) {
-          it++;
+      for (auto food_it = state.foods.begin() ; food_it != state.foods.end(); ) {
+        if (food_it->velocity.magnitude() == 0) {
+          food_it++;
           continue;
         }
-        Velocity food_vel = it->velocity;
-        it->decelerate(FOOD_DECEL, dt);
-        it->move(dt);
 
-        check_boundary_collisions(*it);
+        Velocity food_vel = food_it->velocity;
+        food_it->decelerate(FOOD_DECEL, dt);
+        food_it->move(dt);
+
+        check_boundary_collisions(*food_it);
         
-        bool hit_virus = maybe_hit_virus(*it, food_vel, elapsed_seconds);
+        bool hit_virus = maybe_hit_virus(*food_it, food_vel, elapsed_seconds);
 
-        if(hit_virus)
-          {
+        if(hit_virus) {
             if(state.foods.size() > 1)
-              std::swap(*it, state.foods.back());
+              std::swap(*food_it, state.foods.back());
             state.foods.pop_back();
-          }
-        else 
-          ++it; 
+          } else 
+              ++food_it; 
       }
     }
 
@@ -334,27 +333,25 @@ namespace agario {
     */
     bool maybe_hit_virus(const Food &food, const Velocity &food_vel, const agario::time_delta &elapsed_seconds) {
       auto dt = elapsed_seconds.count();
-      for (auto it = state.viruses.begin(); it != state.viruses.end(); it++) {
+      for (auto &virus : state.viruses) {
         
-        if (food.collides_with(*it)) {
-            if(it->get_num_food_hits() >= NUMBER_OF_FOOD_HITS)
-            {
+        if (food.collides_with(virus)) {
+            if(virus.get_num_food_hits() >= NUMBER_OF_FOOD_HITS) {
               // Return the virus to its original mass.
-              it->set_num_food_hits(0);
-              it->set_mass(VIRUS_MASS);
+              virus.set_num_food_hits(0);
+              virus.set_mass(VIRUS_INITIAL_MASS);
 
               // For the new virus take the food direction and location with VIRUSS NORMAL MASS.
               Velocity vel = food_vel;
-              Virus new_virus(Location(it->x,it->y), vel);
+              Virus new_virus(Location(virus.x,virus.y), vel);
               new_virus.move(dt*10); 
               check_boundary_collisions(new_virus);
-              new_virus.set_mass(VIRUS_MASS);
+              new_virus.set_mass(VIRUS_INITIAL_MASS);
               state.viruses.emplace_back(std::move(new_virus));
-            }
-            else {
+            } else {
               
-              it->set_num_food_hits(it->get_num_food_hits() + 1);
-              it->set_mass(it->mass() + FOOD_MASS);
+              virus.set_num_food_hits(virus.get_num_food_hits() + 1);
+              virus.set_mass(virus.mass() + FOOD_MASS);
             }
             return true;
             
