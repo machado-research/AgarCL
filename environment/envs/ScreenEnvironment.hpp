@@ -13,6 +13,8 @@
 
 #include "environment/envs/BaseEnvironment.hpp"
 
+#include <iostream>
+
 #define PIXEL_LEN 3
 
 // todo: needs to be converted over to multi-environment
@@ -21,25 +23,28 @@ namespace agario::env {
 
     class ScreenObservation {
     public:
-
-
       explicit ScreenObservation(int num_frames, screen_len width, screen_len height) :
         _num_frames(num_frames), _width(width), _height(height) {
+        std::cout << "ScreenObservation constructor called with num_frames: " << num_frames
+                  << ", width: " << width << ", height: " << height << std::endl;
         _frame_data = new std::uint8_t[length()];
         clear();
       }
 
-      [[nodiscard]] const std::uint8_t *frame_data() const { return _frame_data; }
+      [[nodiscard]] const std::uint8_t *frame_data() const { 
+        return _frame_data; }
+
 
       [[nodiscard]] std::size_t length() const {
-        return _num_frames * _width * _height * PIXEL_LEN;
+        return  _num_frames * _width * _height * PIXEL_LEN;
       }
 
       void clear() {
         std::fill(_frame_data, _frame_data + length(), 0);
       }
 
-      std::uint8_t *frame_data(int frame_index) {
+
+      std::uint8_t *frame_data(int frame_index) const {
         if (frame_index >= _num_frames)
           throw FBOException("Frame index " + std::to_string(frame_index) + " out of bounds");
 
@@ -47,7 +52,9 @@ namespace agario::env {
         return &_frame_data[data_index];
       }
 
+
       [[nodiscard]] int num_frames() const { return _num_frames; }
+
 
       [[nodiscard]] std::vector<int> shape() const {
         return {_num_frames, _width, _height, PIXEL_LEN};
@@ -59,10 +66,16 @@ namespace agario::env {
                    _height * PIXEL_LEN * dtype_size,
                              PIXEL_LEN * dtype_size,
                                          dtype_size
-        };
+        };                       
       }
 
-      ~ScreenObservation() { delete[] _frame_data; }
+      ~ScreenObservation() {
+            if (_frame_data) {
+                delete[] _frame_data;
+            } else {
+                std::cout << "Error: _frame_data is null in destructor" << std::endl;
+            }
+        }
 
     private:
       int _num_frames;
@@ -80,48 +93,30 @@ namespace agario::env {
       using Pellet = Pellet<renderable>;
       using Virus = Virus<renderable>;
       using Food = Food<renderable>;
-      std::vector<ScreenObservation> observations;
     public:
       using Super = BaseEnvironment<renderable>;
       using dtype = std::uint8_t; 
-      using Observation = ScreenObservation;
-
 
       explicit ScreenEnvironment(int num_agents, int frames_per_step, int arena_size, bool pellet_regen,
-                                 int num_pellets, int num_viruses, int num_bots,
-                                 screen_len screen_width, screen_len screen_height) :
-        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots),
+                                 int num_pellets, int num_viruses, int num_bots, bool respawn,
+                                 screen_len screen_width, screen_len screen_height, bool reward_type=0) :
+        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type),
         _observation(frames_per_step, screen_width, screen_height),
         frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height)),
-        renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height()) {}
+        renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height()) {
 
-      [[nodiscard]] const ScreenObservation &get_state() const { return _observation; }
+          if (!frame_buffer) {
+              std::cerr << "Error: frame_buffer is null in ScreenEnvironment constructor" << std::endl;
+          }
+        }
+
+      [[nodiscard]] const ScreenObservation &get_state() {
+        return _observation; }
+      // [[nodiscard]] const ScreenObservation &get_observations() const { return _observation; }
       [[nodiscard]] screen_len screen_width() const { return frame_buffer->width(); }
       [[nodiscard]] screen_len screen_height() const { return frame_buffer->height(); }
-    
-
-    /**
-     * In this setting, the observation is a screen capture of the game world. We do not need more than one agent information.
-    */
-
-      template <typename ...Config>
-      void configure_observation(Config&&... config) {
-        observations.clear();
-        for (int i = 0; i < this->num_agents(); i++)
-          observations.emplace_back(config...);
-      }
-
-
-      /**
-       * Returns the current state of the world without advancing through time
-       * @return An Observation object containing all of the
-       * locations of every entity in the current state of the game world
-       */
-      const std::vector<Observation> &get_observations() const { return observations; }
-      
 
     private:
-
       ScreenObservation _observation;
       std::shared_ptr<FrameBufferObject> frame_buffer;
       agario::Renderer renderer;
@@ -131,6 +126,12 @@ namespace agario::env {
         renderer.render_screen(player, this->engine_.game_state());
         void *data = _observation.frame_data(frame_index);
         frame_buffer->copy(data);
+      }
+
+
+      void _partial_observation(int agent_index, int tick_index) override{
+        auto &player = this->engine_.player(this->pids_[agent_index]);
+        _partial_observation(player, tick_index);
       }
 
     };
