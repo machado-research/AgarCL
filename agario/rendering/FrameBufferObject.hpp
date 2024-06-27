@@ -103,8 +103,8 @@ public:
 
     exception_on_gl_error("ReadBuffer");
     
-    // glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    // glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
 
     exception_on_gl_error("ReadPixels");
     }
