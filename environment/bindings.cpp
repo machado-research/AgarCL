@@ -131,7 +131,7 @@ PYBIND11_MODULE(agarle, module) {
 
  py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
 
-   .def(pybind11::init<int, int, int, bool, int, int, int, bool, screen_len, screen_len, bool>())
+   .def(pybind11::init<int, int, int, bool, int, int, int, screen_len, screen_len, int, bool, bool>())
    .def("seed", &ScreenEnvironment::seed)
    .def("observation_shape", &ScreenEnvironment::observation_shape)
    .def("dones", &ScreenEnvironment::dones)
@@ -153,7 +153,8 @@ PYBIND11_MODULE(agarle, module) {
       auto arr = py::array_t<std::uint8_t>(buffer);
       obs.append(arr);
       return obs;
-    });
+    })
+    .def("close", &ScreenEnvironment::close);
   module.attr("has_screen_env") = py::bool_(true);
 
 #else
