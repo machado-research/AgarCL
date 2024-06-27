@@ -35,7 +35,9 @@
 #define MIN_CELL_SPLIT_MASS 130
 
 //MASS DECAY 
-#define PLAYER_RATE 0.005
+#define PLAYER_RATE 0.002
 #define GAME_RATE_MODIFIER 1.0
 #define DECAY_FOR_NUM_SECONDS 1  //nearly a second
 
+// Virus Feeding
+#define NUMBER_OF_FOOD_HITS 7

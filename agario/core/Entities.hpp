@@ -8,7 +8,7 @@
 
 #define PELLET_MASS 1
 #define FOOD_MASS 10
-#define VIRUS_MASS 100
+#define VIRUS_INITIAL_MASS 100
 
 #define PELLET_SIDES 5
 #define VIRUS_SIDES 150
@@ -100,9 +100,18 @@ namespace agario {
 
     distance radius() const override { return radius_conversion(mass()); }
 
-    agario::mass mass() const override { return VIRUS_MASS; }
+    agario::mass mass() const override { return _virus_mass; }
+
+    void set_mass(agario::mass new_mass) { _virus_mass = new_mass; }
+
+
+    // set and get the number of times the virus has been hit by food
+    void set_num_food_hits(int num_food_hits) { _num_food_hits = num_food_hits; }
+    int get_num_food_hits() const { return _num_food_hits; }
 
   private:
+    int _num_food_hits = 0;
+    int _virus_mass = VIRUS_INITIAL_MASS;
   };
 
   template<bool renderable, unsigned NumSides = CELL_SIDES>
@@ -148,7 +157,7 @@ namespace agario {
 
     void set_mass(agario::mass new_mass) {
 
-      if(CELL_MIN_SIZE >= VIRUS_MASS)
+      if(CELL_MIN_SIZE >= VIRUS_INITIAL_MASS)
         _mass = new_mass;
       else
         _mass = std::max<agario::mass>(new_mass, CELL_MIN_SIZE);

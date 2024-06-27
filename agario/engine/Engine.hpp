@@ -23,7 +23,6 @@ namespace agario {
 
   template<bool renderable>
   class Engine {
-  std::set<std::pair<agario::distance, agario::distance>> viruses_loc;
   public:
     using Player = Player<renderable>;
     using Cell = Cell<renderable>;
@@ -112,35 +111,6 @@ namespace agario {
       return Location(x, y);
     }
 
-    bool is_location_free(agario::distance x, agario::distance y, agario::distance radius) {
-
-      for (auto &virus_loc : viruses_loc) {
-        auto entity_x = virus_loc.first;
-        auto entity_y = virus_loc.second;
-
-        agario::distance dx = x - entity_x;
-        agario::distance dy = y - entity_y;
-        agario::distance dis = std::sqrt(dx * dx + dy * dy);
-        if(dis <= 2*radius)
-          return false;
-      }
-      viruses_loc.insert(std::make_pair(x, y));
-      return true;
-    }
-    agario::Location random_non_overlapped_location(agario::distance radius) {
-     
-      Location m_value = random_location(radius); 
-      auto mx_value = m_value.x;
-      auto my_value = m_value.y;
-      agario::distance x, y;
-    do{
-      x = random<agario::distance>(mx_value) + radius; //if it is 0, it will be 0 + radius. 
-      y = random<agario::distance>(my_value) + radius;
-    }while(!is_location_free(x, y,radius));
-
-      return Location(x, y);
-    }
-
     /**
      * Performs a single game tick, moving all entities, performing
      * collision detection and updating the game state accordingly
@@ -198,7 +168,7 @@ namespace agario {
     }
 
     void add_viruses(int n) {
-      agario::distance virus_radius = agario::radius_conversion(VIRUS_MASS);
+      agario::distance virus_radius = agario::radius_conversion(VIRUS_INITIAL_MASS);
       int mx_num_viruses = std::min(arena_height(), arena_width())/virus_radius;
         for (int v = 0; v < n; v++)
           state.viruses.emplace_back(random_location(virus_radius));
@@ -283,16 +253,62 @@ namespace agario {
 
     void move_foods(const agario::time_delta &elapsed_seconds) {
       auto dt = elapsed_seconds.count();
+     
+      for (auto food_it = state.foods.begin() ; food_it != state.foods.end(); ) {
+        if (food_it->velocity.magnitude() == 0) {
+          food_it++;
+          continue;
+        }
 
-      for (auto &food : state.foods) {
-        if (food.velocity.magnitude() == 0) continue;
+        Velocity food_vel = food_it->velocity;
+        food_it->decelerate(FOOD_DECEL, dt);
+        food_it->move(dt);
 
-        food.decelerate(FOOD_DECEL, dt);
-        food.move(dt);
+        check_boundary_collisions(*food_it);
+        
+        bool hit_virus = maybe_hit_virus(*food_it, food_vel, elapsed_seconds);
 
-        check_boundary_collisions(food);
+        if(hit_virus) {
+            if(state.foods.size() > 1)
+              std::swap(*food_it, state.foods.back());
+            state.foods.pop_back();
+          } else 
+              ++food_it; 
       }
     }
+
+    /*
+    * Check for collisions between the foods and viruses in the game
+    */
+    bool maybe_hit_virus(const Food &food, const Velocity &food_vel, const agario::time_delta &elapsed_seconds) {
+      auto dt = elapsed_seconds.count();
+      for (auto &virus : state.viruses) {
+        
+        if (food.collides_with(virus)) {
+            if(virus.get_num_food_hits() >= NUMBER_OF_FOOD_HITS) {
+              // Return the virus to its original mass.
+              virus.set_num_food_hits(0);
+              virus.set_mass(VIRUS_INITIAL_MASS);
+
+              // For the new virus take the food direction and location with VIRUSS NORMAL MASS.
+              Velocity vel = food_vel;
+              Virus new_virus(Location(virus.x,virus.y), vel);
+              new_virus.move(dt*10); 
+              check_boundary_collisions(new_virus);
+              new_virus.set_mass(VIRUS_INITIAL_MASS);
+              state.viruses.emplace_back(std::move(new_virus));
+            } else {
+              
+              virus.set_num_food_hits(virus.get_num_food_hits() + 1);
+              virus.set_mass(virus.mass() + FOOD_MASS);
+            }
+            return true;
+            
+        } 
+      }
+      return false; 
+    }
+
 
     /**
      * Constrains the location of `ball` to be inside the boundaries
@@ -734,7 +750,6 @@ namespace agario {
             disrupt(cell, virus, created_cells, create_limit);
 
           std::swap(*it, state.viruses.back()); // O(1) removal
-          viruses_loc.erase(std::make_pair(it->x, it->y));
           state.viruses.pop_back();
           return; // only collide once
         } else ++it;
