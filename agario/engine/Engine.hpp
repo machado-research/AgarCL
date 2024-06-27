@@ -145,10 +145,11 @@ namespace agario {
   private:
     std::unordered_map<agario::pid, float> player_elapsed_time; // time since the first tick
     agario::GameState<renderable> state;
-
     agario::pid next_pid;
     int _num_pellets, _num_virus, _pellet_regen;
-
+    float anti_team_acceleration; 
+    int num_seconds_passed;
+    int prev_num_viruses_eaten;
     /**
      * Resets a player to the starting position
      * @param pid player ID of the player to reset
@@ -157,6 +158,9 @@ namespace agario {
       player.kill();
       player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), CELL_MIN_SIZE);
       player_elapsed_time[player.pid()] = 0;
+      num_seconds_passed = 1.0;
+      anti_team_acceleration = 1.0;
+      prev_num_viruses_eaten = NUM_VIRUSES_TO_EAT - 1;
     }
     
 
@@ -197,17 +201,14 @@ namespace agario {
 
       player_elapsed_time[player.pid()] += elapsed_seconds.count();
 
-
       for (Cell &cell : player.cells) {
 
+        may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
         eat_pellets(cell);
         eat_food(cell);
-        check_virus_collisions(cell, created_cells, create_limit, can_eat_virus);
-        if(player_elapsed_time[player.pid()] >= DECAY_FOR_NUM_SECONDS)
-          {
-            cell.mass_decay(); // each cell should decay its mass concurrently after number of seconds 
-            player_elapsed_time[player.pid()] = 0;
-          }
+        player.num_viruses_eaten += static_cast<int>(check_virus_collisions(cell, created_cells, create_limit, can_eat_virus));
+        may_be_activate_anti_team(cell, player);
+        mass_cell_decay(cell, player.pid());
       }
 
       create_limit -= created_cells.size();
@@ -220,6 +221,56 @@ namespace agario {
       created_cells.erase(created_cells.begin(), created_cells.end());
 
       recombine_cells(player);
+    }
+    
+    /**
+     * Anti-team is triggered by hitting 3 viruses or more in a row in 1 minute. Mass will start to decay slightly faster than usual after hitting 2 viruses. 
+     * The more subsequent viruses hit, the faster the rate of mass decay.
+     * @param cell the cell to check for anti-team activation
+     * @param player the player to check for anti-team activation
+     */
+
+    void may_be_activate_anti_team(Cell &cell, Player &player)
+    {
+      float num_minutes_passed = num_seconds_passed / 60.0;
+      if(player_elapsed_time[player.pid()] <= num_minutes_passed * ANTI_TEAM_ACTIVATION_TIME) {
+        if(player.num_viruses_eaten > prev_num_viruses_eaten) {
+          anti_team_acceleration *= 1.1;
+          prev_num_viruses_eaten = player.num_viruses_eaten;
+          std::cout <<"Anti-Team activated: Doomed!" << std::endl;
+        }
+      }
+    }
+    /**
+     * Reducing the mass of the cell of a player after a couple of seconds (DECAY_FOR_NUM_SECONDS)
+     * @param cell the cell to check for decay
+     * @param player_pid the player id of the player
+     */
+    void mass_cell_decay(Cell &cell, const agario::pid & player_pid)
+    {
+
+      if(player_elapsed_time[player_pid] >= num_seconds_passed * DECAY_FOR_NUM_SECONDS) {
+        // each cell should decay its mass concurrently after number of seconds 
+        cell.mass_decay(anti_team_acceleration);
+        num_seconds_passed++; 
+      }
+    }
+
+    /**
+     * Enforce the cell of a player to be splitted if it exceeds the maximum mass in the game. 
+     * @param cell the cell to check for splitting
+     * @param created_cells the list of cells that will be created
+     * @param create_limit the maximum number of cells that can be created
+     */
+    void may_be_auto_split(Cell &cell, std::vector<Cell>&created_cells, int create_limit, int num_cells, Location player_target) {
+
+      if(cell.mass() >= MAX_MASS_IN_THE_GAME)
+      {
+        if(num_cells < PLAYER_CELL_LIMIT)
+          cell_split(cell, created_cells, create_limit, player_target);
+        else 
+          cell.set_mass(NEW_MASS_IF_NO_SPLIT); // if the player has reached the limit, the cell will be set to the new mass
+      }
     }
 
     /**
@@ -631,6 +682,32 @@ namespace agario {
         player.split_cooldown = 30;
       }
     }
+    
+
+    bool cell_split(Cell &cell, std::vector<Cell> &created_cells, int create_limit, Location &player_target)
+    {
+      if (cell.mass() < CELL_SPLIT_MINIMUM)
+        return false;
+
+      agario::mass split_mass = cell.mass() / 2;
+      auto remaining_mass = cell.mass() - split_mass;
+
+      cell.set_mass(remaining_mass);
+
+      auto dir = (player_target - cell.location()).normed();
+      auto loc = cell.location() + dir * cell.radius();
+      Velocity vel(dir * split_speed(split_mass));
+
+      // todo: add constructor that takes splitting velocity (and color)
+      Cell new_cell(loc, vel, split_mass);
+      new_cell.splitting_velocity = vel;
+
+      cell.reset_recombine_timer();
+      new_cell.reset_recombine_timer();
+
+      created_cells.emplace_back(std::move(new_cell));
+      return true; 
+    }
 
     void player_split(Player &player, std::vector<Cell> &created_cells, int create_limit) {
       if (create_limit == 0)
@@ -638,33 +715,17 @@ namespace agario {
 
       int num_splits = 0;
       for (Cell &cell : player.cells) {
-
-        if (cell.mass() < CELL_SPLIT_MINIMUM)
-          continue;
-
-        agario::mass split_mass = cell.mass() / 2;
-        auto remaining_mass = cell.mass() - split_mass;
-
-        cell.set_mass(remaining_mass);
-
-        auto dir = (player.target - cell.location()).normed();
-        auto loc = cell.location() + dir * cell.radius();
-        Velocity vel(dir * split_speed(split_mass));
-
-        // todo: add constructor that takes splitting velocity (and color)
-        Cell new_cell(loc, vel, split_mass);
-        new_cell.splitting_velocity = vel;
-
-        cell.reset_recombine_timer();
-        new_cell.reset_recombine_timer();
-
-        created_cells.emplace_back(std::move(new_cell));
-
-        // stop splitting when we've created enough cells
-        if (++num_splits == create_limit)
-          return;
+        bool is_splitted = cell_split(cell, created_cells, create_limit, player.target); 
+        if(is_splitted) {
+            if (++num_splits == create_limit)
+              return;
+        }
       }
     }
+
+
+
+
 
     /**
      * Checks all pairs of players for collisions that result
@@ -731,7 +792,7 @@ namespace agario {
       }
     }
 
-    void check_virus_collisions(Cell &cell, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus) {
+    bool check_virus_collisions(Cell &cell, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus) {
       for (auto it = state.viruses.begin(); it != state.viruses.end();) {
         Virus &virus = *it;
 
@@ -751,9 +812,10 @@ namespace agario {
 
           std::swap(*it, state.viruses.back()); // O(1) removal
           state.viruses.pop_back();
-          return; // only collide once
+          return true; // only collide once
         } else ++it;
       }
+      return false; 
     }
 
     /* called when `cell` collides with `virus` and is popped/disrupted.
