@@ -162,6 +162,7 @@ namespace agario {
     protected:
       Engine <renderable> engine_;
       std::vector<agario::pid> pids_;
+      std::vector<agario::pid> bot_pids_;
       std::vector<bool> dones_;
       int c_death_;
       const int num_agents_;
@@ -184,23 +185,22 @@ namespace agario {
         using HungryShyBot = agario::bot::HungryShyBot<renderable>;
         using AggressiveBot = agario::bot::AggressiveBot<renderable>;
         using AggressiveShyBot = agario::bot::AggressiveShyBot<renderable>;
-
         for (int i = 0; i < num_bots_; i++) {
           switch (i % num_bots_) {
             case 0:
-              engine_.template add_player<HungryBot>();
+              bot_pids_.emplace_back(engine_.template add_player<HungryBot>());
               break;
             case 1:
-              engine_.template add_player<HungryShyBot>();
+              bot_pids_.emplace_back(engine_.template add_player<HungryShyBot>());
               break;
             case 2:
-              engine_.template add_player<AggressiveBot>();
+              bot_pids_.emplace_back(engine_.template add_player<AggressiveBot>());
               break;
             case 3:
-              engine_.template add_player<AggressiveShyBot>();
+              bot_pids_.emplace_back(engine_.template add_player<AggressiveShyBot>());
               break;
             default:
-              engine_.template add_player<HungryBot>();
+              bot_pids_.emplace_back(engine_.template add_player<HungryBot>());
               break;
           }
         }

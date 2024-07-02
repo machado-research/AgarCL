@@ -91,6 +91,7 @@ namespace agario {
     void reset() {
       state.clear();
       initialize_game();
+      next_pid = 0;
     }
 
     void initialize_game() {
@@ -237,7 +238,8 @@ namespace agario {
         if(player.num_viruses_eaten > prev_num_viruses_eaten) {
           anti_team_acceleration *= 1.1;
           prev_num_viruses_eaten = player.num_viruses_eaten;
-          std::cout <<"Anti-Team activated: Doomed!" << std::endl;
+          if(anti_team_acceleration == 1.1) 
+            std::cout << "Anti-Team activated for Player Pid: " << player.pid() << std::endl;
         }
       }
     }
