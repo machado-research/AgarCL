@@ -35,7 +35,17 @@
 #define MIN_CELL_SPLIT_MASS 130
 
 //MASS DECAY 
-#define PLAYER_RATE 0.005
-#define GAME_RATE_MODIFIER 1.0
+#define PLAYER_RATE 0.002
+// #define GAME_RATE_MODIFIER 1.0
 #define DECAY_FOR_NUM_SECONDS 1  //nearly a second
 
+// Virus Feeding
+#define NUMBER_OF_FOOD_HITS 7
+
+// Auto-Split
+#define MAX_MASS_IN_THE_GAME 22500
+#define NEW_MASS_IF_NO_SPLIT 22000
+
+// Anti-Teaming
+#define ANTI_TEAM_ACTIVATION_TIME 60  //  one minute 
+#define NUM_VIRUSES_TO_EAT        3

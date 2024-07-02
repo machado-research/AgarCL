@@ -30,6 +30,7 @@ namespace agario {
       action(none), target(0, 0), split_cooldown(0), feed_cooldown(0),
       _pid(pid), _name(std::move(name)), _score(0), _color(color) {
       _minMassCell = 0;
+      num_viruses_eaten = 0;
     }
 
     Player(agario::pid pid, const std::string &name) : Player(pid, name, random_color()) {}
@@ -41,6 +42,7 @@ namespace agario {
     Location target;
     agario::tick split_cooldown;
     agario::tick feed_cooldown;
+    int num_viruses_eaten;
 
     agario::color color() const { return _color; }
 
