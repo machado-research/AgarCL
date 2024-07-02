@@ -33,7 +33,7 @@ After modifying the code, you will need to install the GLAD specification. Follo
    - Ignore other options
 3. Download the generated files and add them to the folder ```environment```
 
-### Step 2: Install AgarLE
+### Step 2: Install AgarLE (supports MacOS and Debian-based Linux distros)
 Run the following line in the terminal:
 ```sh
 ./install.sh
