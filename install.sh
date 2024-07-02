@@ -72,15 +72,6 @@ if [ "$os_name" == "Darwin" ]; then
         echo "pip3 is already installed."
     fi
 
-    VENV_PATH="$current_dir/venv"
-
-    # Check if the virtual environment exists
-    if ! [ -d "$VENV_PATH" ]; then
-        echo "Virtual environment not found at $VENV_PATH, making one..."
-        python3 -m venv venv
-    fi
-    
-    source "$VENV_PATH/bin/activate"
     pybind11_path="$current_dir/environment/pybind11"
     if [ ! -d "$pybind11_path" ]; then
         echo "No pybind11 directory found. Cloning pybind11..."
@@ -123,8 +114,11 @@ if [ "$os_name" == "Darwin" ]; then
 # Check if the OS is Linux
 elif [ "$os_name" == "Linux" ]; then
     # Step 1: Install CMake
-    sudo snap install cmake
-
+    sudo apt-get install libglm-dev 
+    sudo apt-get install libglobjects-dev
+    sudo apt-get install cmake
+    sudo apt-get install libgtest-dev
+    
     # Step 2: Install GLM
     mkdir -p "$current_dir/build"
     cd "$current_dir/build"
@@ -142,11 +136,13 @@ elif [ "$os_name" == "Linux" ]; then
     cmake ${current_dir}/build/cxxopts
     make
 
-    # Step 4: Install required OPENGL Packages
+    # Step 4: Install required packages
     sudo apt-get install libgl1-mesa-dev
     sudo apt-get install libglu1-mesa-dev
     sudo apt-get install libglfw3-dev
-
+    sudo apt-get install freeglut3-dev
+    sudo apt install libstdc++-12-dev
+    
     # Step 5: Install GLAD
     cd ..
 
@@ -169,8 +165,8 @@ elif [ "$os_name" == "Linux" ]; then
         ESCAPED_INCLUDE_TEXT=$(printf '%s\n' "$INCLUDE_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
         ESCAPED_SRC_TEXT=$(printf '%s\n' "$SRC_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
         
-        sed -i '' "111s/.*/${ESCAPED_SRC_TEXT}/" "$cmake_file_path"
-        sed -i '' "112s/.*/${ESCAPED_INCLUDE_TEXT}/" "$cmake_file_path"
+        sed -i "111s/.*/${ESCAPED_SRC_TEXT}/" "$cmake_file_path"
+        sed -i "112s/.*/${ESCAPED_INCLUDE_TEXT}/" "$cmake_file_path"
     fi
 
     # Step 6: USE CLANG Compiler
@@ -183,8 +179,27 @@ elif [ "$os_name" == "Linux" ]; then
     fi
     CXX=`which clang++`
 
-    # export CPLUS_INCLUDE_PATH=environment variables path :$CPLUS_INCLUDE_PATH
+    # Step 7: Exporting right paths to bashrc
+    if ! grep -q "CPLUS_INCLUDE_PATH" "$HOME/.bashrc"; then
+        echo "Updating include paths in $HOME/.bashrc"
 
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
+    fi
+
+    # Step 8: Benchmarking
+    cd build
+    git clone https://github.com/google/benchmark.git
+    cd benchmark
+    cmake -E make_directory "build"
+    cmake -E chdir "build" cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../
+    cmake --build "build" --config Release
+    sudo cmake --build "build" --config Release --target install
+    
+    # Step 9: Running the code
+    python3 setup.py install
+    
 else
     echo "Unsupported Operating System: $os_name"
     exit 1
