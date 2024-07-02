@@ -67,7 +67,7 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=10000, type=int, help="Number of steps")
 
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")
