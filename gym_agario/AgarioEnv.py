@@ -76,7 +76,7 @@ class AgarioEnv(gym.Env):
         self.steps = None
         self.obs_type = obs_type
 
-        target_space = spaces.Box(low=-np.inf, high=np.inf, shape=(2,))
+        target_space = spaces.Box(low=-1, high=1, shape=(2,))
         self.action_space = spaces.Tuple((target_space, spaces.Discrete(3)))
 
         self._seed = None
