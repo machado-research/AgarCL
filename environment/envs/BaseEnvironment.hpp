@@ -43,7 +43,7 @@ namespace agario {
         ticks_per_step_(ticks_per_step), num_bots_(num_bots),
         reward_type_(reward_type),
         step_dt_(DEFAULT_DT) {
-          
+        
         pids_.reserve(num_agents);
         reset();
       }
@@ -51,6 +51,24 @@ namespace agario {
       ~BaseEnvironment()=default; 
       [[nodiscard]] int num_agents() const { return num_agents_; }
 
+      void repsawn_bots(){
+
+        for(auto &bot_pid: bot_pids_){
+          auto &player = this->engine_.player(bot_pid);
+          if(player.dead()){
+            std::cout << "Bot \"" << player.name() << "\" (pid ";
+            std::cout << player.pid() << ") died." << std::endl;
+            this->engine_.respawn(bot_pid);
+          }
+        }
+      }
+
+      /* returns the current state of the environment */
+      void respawn_player(agario::pid pid, Player &player) {
+        std::cout << "Player \"" << player.name() << "\" (pid ";
+        std::cout << player.pid() << ") died." << std::endl;
+        this->engine_.respawn(pid);
+      }
       /**
        * Steps the environment forward by several game frames
        * @return the reward accumulated by the player during those
@@ -64,10 +82,10 @@ namespace agario {
 
         for (int tick = 0; tick < ticks_per_step(); tick++) {
           engine_.tick(step_dt_);
+          repsawn_bots();
           for (int agent = 0; agent < num_agents(); agent++)
               this->_partial_observation(agent, tick);
         }
-
         // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
         if(reward_type_){
@@ -131,7 +149,7 @@ namespace agario {
       /* resets the environment by resetting the game engine. */
       void reset() {
         engine_.reset();
-
+        bot_pids_.clear();
         pids_.clear();
         c_death_ = 0;
         // add players
@@ -185,6 +203,7 @@ namespace agario {
         using HungryShyBot = agario::bot::HungryShyBot<renderable>;
         using AggressiveBot = agario::bot::AggressiveBot<renderable>;
         using AggressiveShyBot = agario::bot::AggressiveShyBot<renderable>;
+
         for (int i = 0; i < num_bots_; i++) {
           switch (i % num_bots_) {
             case 0:

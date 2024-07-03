@@ -354,17 +354,6 @@ namespace agario::env {
           observation.clear_data();
       }
 
-      void respawn_bots() {
-        for (auto &pid : this->bot_pids_) {
-          auto &player = this->engine_.player(pid);
-          if (player.dead()){
-            std::cout<< "Bot \"" << player.name() << "\" (pid ";
-            std::cout << player.pid() << ") died." << std::endl;
-            this->engine_.respawn(pid);
-          }
-        }
-      }
-
       /* allows for intermediate grid frames to be stored in the GridObservation */
       void _partial_observation(int agent_index, int tick_index) override {
         assert(agent_index < this->num_agents());
@@ -374,23 +363,15 @@ namespace agario::env {
 
         Observation &observation = observations[agent_index];
 
-        respawn_bots();
         
-        if (player.dead())
-        {
+        if (player.dead()){
           if(observation.respawn()){
-            std::cout << "Player \"" << player.name() << "\" (pid ";
-              std::cout << player.pid() << ") died." << std::endl;
-            this->engine_.respawn(this->pids_[agent_index]);
-            this-> c_death_ = observation.c_death();
-          }
-          else 
-            {
-              this->dones_[agent_index] = true;
-              return;
+              this-> c_death_ = observation.c_death();
+              this->respawn_player(this->pids_[agent_index], player);
             }
+          else 
+            return void(this->dones_[agent_index] = true);
         }
-
        
         auto &state = this->engine_.game_state();
         // we store in the observation the last `num_frames` frames between each step
