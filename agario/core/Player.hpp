@@ -25,23 +25,17 @@ class Player {
     std::vector<Cell> cells;
     agario::action action;
     Location target;
-    agario::tick split_cooldown;
-    agario::tick feed_cooldown;
-    int num_viruses_eaten;
+    agario::tick split_cooldown = 0;
+    agario::tick feed_cooldown = 0;
+    int num_viruses_eaten = 0;
 
     Player() = delete;
-
     Player(agario::pid pid, std::string name, agario::color color):
       action(none),
       target(0, 0),
-      split_cooldown(0),
-      feed_cooldown(0),
       _pid(pid),
       _name(std::move(name)),
-      _score(0),
-      _color(color),
-      _minMassCell(0),
-      num_viruses_eaten(0)
+      _color(color)
     {}
 
     Player(agario::pid pid, const std::string &name) : Player(pid, name, random_color()) {}
@@ -170,9 +164,9 @@ class Player {
   private:
     agario::pid _pid;
     std::string _name;
-    agario::score _score;
     agario::color _color;
-    agario::mass _minMassCell;
+    agario::score _score = 0;
+    agario::mass _minMassCell = 0;
 
   };
 
