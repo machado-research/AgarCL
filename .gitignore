@@ -1,4 +1,9 @@
 # Created by .ignore support plugin (hsz.mobi)
+
+# project specific rules
+environment/glad
+
+
 ### SublimeText template
 # Cache files for Sublime Text
 *.tmlanguage.cache
@@ -788,5 +793,5 @@ venv.bak/
 
 cmake-build-debug/
 
-.history 
+.history
 .DS_store
