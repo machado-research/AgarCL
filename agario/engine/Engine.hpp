@@ -13,6 +13,7 @@
 #include "agario/core/types.hpp"
 #include "agario/core/Entities.hpp"
 #include "agario/engine/GameState.hpp"
+#include "agario/utils/random.hpp"
 #include <thread>
 #include <chrono>
 namespace agario {
@@ -135,7 +136,10 @@ namespace agario {
       state.ticks++;
     }
 
-    void seed(unsigned s) { std::srand(s); }
+    void seed(unsigned s) {
+      this->state.rng.seed(s);
+      std::srand(s);
+    }
 
     Engine(const Engine &) = delete; // no copy constructor
     Engine &operator=(const Engine &) = delete; // no copy assignments
@@ -864,7 +868,8 @@ namespace agario {
 
     template<typename T>
     T random(T min, T max) {
-      return (max - min) * (static_cast<T>(rand()) / static_cast<T>(RAND_MAX)) + min;
+      uniform_distribution<T> dist(min, max);
+      return dist(this->state.rng);
     }
 
     template<typename T>
