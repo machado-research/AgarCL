@@ -27,7 +27,10 @@ class Player {
     Location target;
     agario::tick split_cooldown = 0;
     agario::tick feed_cooldown = 0;
-    int num_viruses_eaten = 0;
+    std::vector<int> virus_eaten_ticks = {};
+    float anti_team_decay = 1.0;
+    int elapsed_ticks = 0;
+    int last_decay_tick = 0;
 
     Player() = delete;
     Player(agario::pid pid, std::string name, agario::color color):
@@ -67,6 +70,10 @@ class Player {
 
       split_cooldown = 0;
       feed_cooldown = 0;
+      anti_team_decay = 1.0;
+      elapsed_ticks = 0;
+      last_decay_tick = 0;
+      virus_eaten_ticks = {};
     }
 
     bool dead() const { return cells.empty(); }
