@@ -63,6 +63,10 @@ class Player {
     void kill() {
       cells.clear();
       _minMassCell = CELL_MIN_SIZE;
+      _score = 0;
+
+      split_cooldown = 0;
+      feed_cooldown = 0;
     }
 
     bool dead() const { return cells.empty(); }
