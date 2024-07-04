@@ -63,7 +63,7 @@ def main():
         state, reward, done, step_num = env.step(null_action) 
         env.render()
     env.close()
-# 
+#
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")

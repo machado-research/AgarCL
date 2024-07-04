@@ -2,12 +2,14 @@
 
 #include "agario/rendering/platform.hpp"
 #include <GLFW/glfw3.h>
+#include <GL/glut.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 #include "agario/rendering/Canvas.hpp"
+#include "agario/rendering/utils.hpp"
+#include <iostream>
 
-class FBOException : public std::runtime_error {
-  using runtime_error::runtime_error;
-};
 
 void glfw_error_callback(int error, const char *description) {
   static_cast<void>(error);
@@ -25,12 +27,11 @@ public:
     window(nullptr) {
 
     glfwSetErrorCallback(glfw_error_callback);
-
     if (!glfwInit())
       throw FBOException("GLFW initialization failed.");
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -47,6 +48,18 @@ public:
     glfwHideWindow(window);
     glfwMakeContextCurrent(window);
 
+    if (!glfwGetCurrentContext()) {
+      throw FBOException("Failed to make context current");
+    }else{
+      std::cout << "glfwGetCurrentContext ok " << std::endl;
+    }
+    
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+      throw FBOException("Failed to initialize GLAD" );
+    }else{
+      std::cout << "GLAD ok " << std::endl;
+    }
+    
     // Frame Buffer Object
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
@@ -62,6 +75,7 @@ public:
     glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, _height);
     glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth);
+    
 
     auto fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (fbo_status == GL_FRAMEBUFFER_UNSUPPORTED)
@@ -70,11 +84,12 @@ public:
     if (fbo_status != GL_FRAMEBUFFER_COMPLETE)
       throw FBOException("Framebuffer not complete");
 
-    auto glstatus = glGetError();
-    if (glstatus != GL_NO_ERROR)
-      throw FBOException("GL Error: " + std::to_string(glstatus));
+    exception_on_gl_error("Before BindBuffer");
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+    exception_on_gl_error("After BindBuffer");
+
   }
 
   int width() const override { return _width; }
@@ -84,9 +99,16 @@ public:
   void hide() const { glfwHideWindow(window); }
 
   void copy(void *data) {
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
-    glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
-  }
+    glReadBuffer(GL_BACK);
+
+    exception_on_gl_error("ReadBuffer");
+    
+    // glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    exception_on_gl_error("ReadPixels");
+    }
+  
 
   void swap_buffers() const { glfwSwapBuffers(window); }
 
@@ -94,6 +116,8 @@ public:
     glDeleteFramebuffers(1, &fbo);
     glDeleteRenderbuffers(1, &rbo_color);
     glDeleteRenderbuffers(1, &rbo_depth);
+    glfwDestroyWindow(window);
+    glfwTerminate();
   }
 
 private:
