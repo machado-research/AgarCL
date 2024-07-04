@@ -93,7 +93,6 @@ link_directories(${GLM_LIBRARY_DIRS})
 
 add_definitions(${GLM_DEFINITIONS})
 
-
 include_directories(client engine ${OPENGL_INCLUDE_DIR})
 
 set(AGARIO_CLIENT_SRC
@@ -115,8 +114,6 @@ add_library(glad "${EXT_INCLUDE_DIR}/glad/glad.h" "${EXT_SOURCE_DIR}/glad.c")
 # Add the -fPIC flag to ensure position-independent code
 set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(glad PUBLIC ${EXT_INCLUDE_DIR})
-
-
 
 add_executable(client ${AGARIO_CLIENT_SRC} ${AGARIO_BOT_SRC}  client/main.cpp)
 target_link_libraries(client ${OPENGL_LIBRARIES} glad glfw glm)

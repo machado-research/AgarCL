@@ -16,7 +16,6 @@
 
 namespace py = pybind11;
 
-
 template <class Tuple,
   class T = std::decay_t<std::tuple_element_t<0, std::decay_t<Tuple>>>>
 std::vector<T> to_vector(Tuple&& tuple) {
@@ -65,8 +64,10 @@ py::list get_state(const Environment &environment) {
     // add the numpy array to the list of observations
     obs.append(py::array_t<dtype>(to_vector(shape), to_vector(strides), data, cleanup));
   }
+
   return obs; // list of numpy arrays
 }
+
 
 PYBIND11_MODULE(agarle, module) {
   using namespace py::literals;
@@ -80,7 +81,7 @@ PYBIND11_MODULE(agarle, module) {
     .def("seed", &GridEnvironment::seed)
     .def("configure_observation", [](GridEnvironment &env, const py::dict &config) {
 
-      int num_frames = config.contains("num_frames")      ? config["num_frames"].cast<int>() : 2;
+      int num_frames = config.contains("num_frames")      ? config["num_frames"].cast<int>() : 1;
       int grid_size  = config.contains("grid_size")       ? config["grid_size"].cast<int>() : DEFAULT_GRID_SIZE;
       bool cells     = config.contains("observe_cells")   ? config["observe_cells"].cast<bool>()   : true;
       bool others    = config.contains("observe_others")  ? config["observe_others"].cast<bool>()  : true;
@@ -122,31 +123,43 @@ PYBIND11_MODULE(agarle, module) {
   /* ================ Screen Environment ================ */
   /* we only include this conditionally if OpenGL was found available for linking */
 
-// #ifdef INCLUDE_SCREEN_ENV
+#ifdef INCLUDE_SCREEN_ENV
 
-//   // todo: convert ScreenEnvironment to multi-environment
+  // todo: convert ScreenEnvironment to multi-environment
 
-//  using ScreenEnvironment = agario::env::ScreenEnvironment<renderable>;
+ using ScreenEnvironment = agario::env::ScreenEnvironment<renderable>;
 
-//  py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
-//    .def(py::init<int, int, int, bool, int, int, int, int, int>())
-//    .def("seed", &ScreenEnvironment::seed)
-//   //  .def("observation_shape", &ScreenEnvironment::observation_shape)
-//    .def("dones", &ScreenEnvironment::dones)
-//    .def("take_actions", [](ScreenEnvironment &env, const py::list &actions) {
-//      env.take_actions(to_action_vector(actions));
-//    })
-//    .def("reset", &ScreenEnvironment::reset)
-//    .def("render", &ScreenEnvironment::render)
-//    .def("step", &ScreenEnvironment::step)
-//    .def("get_state", &get_state<ScreenEnvironment>);
+ py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
 
-//   module.attr("has_screen_env") = py::bool_(true);
+   .def(pybind11::init<int, int, int, bool, int, int, int, bool, screen_len, screen_len, bool>())
+   .def("seed", &ScreenEnvironment::seed)
+  //  .def("observation_shape", &ScreenEnvironment::observation_shape)
+   .def("dones", &ScreenEnvironment::dones)
+   .def("take_actions", [](ScreenEnvironment &env, const py::list &actions) {
+     env.take_actions(to_action_vector(actions));
+   })
+   .def("reset", &ScreenEnvironment::reset)
+   .def("render", &ScreenEnvironment::render)
+   .def("step", &ScreenEnvironment::step)
+    // .def("get_state", &get_state<ScreenEnvironment>);
+    .def("get_state", []( ScreenEnvironment &env) {
+      py::list obs;
+      auto &observation = env.get_state();
+      auto data = (void *) observation.frame_data();
+      auto shape = observation.shape();
+      auto strides = observation.strides();
+      auto format = py::format_descriptor<std::uint8_t>::format();
+      auto buffer = py::buffer_info(data, sizeof(std::uint8_t), format, shape.size(), shape, strides);
+      auto arr = py::array_t<std::uint8_t>(buffer);
+      obs.append(arr);
+      return obs;
+    });
+  module.attr("has_screen_env") = py::bool_(true);
 
-// #else
+#else
 
-//   module.attr("has_screen_env") = py::bool_(false);
+  module.attr("has_screen_env") = py::bool_(false);
 
-// #endif
+#endif
 
 }
