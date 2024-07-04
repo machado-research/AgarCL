@@ -16,9 +16,8 @@
 
 namespace agario {
 
-  template<bool renderable>
-
-  class Player {
+template<bool renderable>
+class Player {
 
   public:
 
@@ -26,9 +25,15 @@ namespace agario {
 
     Player() = delete;
 
-    Player(agario::pid pid, std::string name, agario::color color) :
-      action(none), target(0, 0), split_cooldown(0), feed_cooldown(0),
-      _pid(pid), _name(std::move(name)), _score(0), _color(color) {
+    Player(agario::pid pid, std::string name, agario::color color):
+      action(none),
+      target(0, 0),
+      split_cooldown(0),
+      feed_cooldown(0),
+      _pid(pid),
+      _name(std::move(name)),
+      _score(0),
+      _color(color) {
       _minMassCell = 0;
       num_viruses_eaten = 0;
     }
@@ -58,19 +63,21 @@ namespace agario {
     // non-renderable version of add_cell
     template<bool enable = renderable, typename... Args>
     typename std::enable_if<!enable, void>::type
-     add_cell(Args &&... args) {
+    add_cell(Args &&... args) {
       cells.emplace_back(std::forward<Args>(args)...);
     }
 
-    void kill(){ 
-      cells.clear(); 
-      _minMassCell =CELL_MIN_SIZE; 
+    void kill() {
+      cells.clear();
+      _minMassCell = CELL_MIN_SIZE;
     }
+
     bool dead() const { return cells.empty(); }
 
-    void set_min_mass_cell(agario::mass maxMassCell){
+    void set_min_mass_cell(agario::mass maxMassCell) {
       _minMassCell = maxMassCell;
     }
+
     agario::mass get_min_mass_cell(){
       return _minMassCell;
     }
