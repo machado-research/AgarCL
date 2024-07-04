@@ -5,7 +5,7 @@ Runs all the tests for every type of gym environment.
 Tests for the screen environment will only be run if
 the screen environment was registered in the gym registry
 """
-from gym import envs
+from gymnasium import envs
 import unittest
 
 from tests.grid_env_test import GridGymTest
