@@ -33,10 +33,10 @@ class Player {
       _pid(pid),
       _name(std::move(name)),
       _score(0),
-      _color(color) {
-      _minMassCell = 0;
-      num_viruses_eaten = 0;
-    }
+      _color(color),
+      _minMassCell(0),
+      num_viruses_eaten(0)
+    {}
 
     Player(agario::pid pid, const std::string &name) : Player(pid, name, random_color()) {}
     explicit Player(const std::string &name) : Player(-1, name) {}
