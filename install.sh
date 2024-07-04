@@ -37,8 +37,8 @@ if [ "$os_name" == "Darwin" ]; then
         echo "Updating include paths in $ZSHRC_PATH"
 
         echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
     fi
     
     if grep -q "CPATH" "$ZSHRC_PATH"; then
@@ -97,15 +97,6 @@ if [ "$os_name" == "Darwin" ]; then
             echo "CMakeLists.txt not found."
             exit 1
         fi
-
-        SRC_TEXT="set(EXT_SOURCE_DIR \"$current_dir/environment/glad/src\")"
-        INCLUDE_TEXT="set(EXT_INCLUDE_DIR \"$current_dir/environment/glad/include\")"
-        
-        ESCAPED_INCLUDE_TEXT=$(printf '%s\n' "$INCLUDE_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
-        ESCAPED_SRC_TEXT=$(printf '%s\n' "$SRC_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
-        
-        sed -i '' "111s/.*/${ESCAPED_SRC_TEXT}/" "$cmake_file_path"
-        sed -i '' "112s/.*/${ESCAPED_INCLUDE_TEXT}/" "$cmake_file_path"
     fi
 
     # Step 5: Running the code
@@ -158,15 +149,6 @@ elif [ "$os_name" == "Linux" ]; then
             echo "CMakeLists.txt not found."
             exit 1
         fi
-
-        SRC_TEXT="set(EXT_SOURCE_DIR \"$current_dir/environment/glad/src\")"
-        INCLUDE_TEXT="set(EXT_INCLUDE_DIR \"$current_dir/environment/glad/include\")"
-        
-        ESCAPED_INCLUDE_TEXT=$(printf '%s\n' "$INCLUDE_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
-        ESCAPED_SRC_TEXT=$(printf '%s\n' "$SRC_TEXT" | sed 's/[\/&]/\\&/g; s/\$/\\$/g')
-        
-        sed -i "111s/.*/${ESCAPED_SRC_TEXT}/" "$cmake_file_path"
-        sed -i "112s/.*/${ESCAPED_INCLUDE_TEXT}/" "$cmake_file_path"
     fi
 
     # Step 6: USE CLANG Compiler
@@ -184,8 +166,8 @@ elif [ "$os_name" == "Linux" ]; then
         echo "Updating include paths in $HOME/.bashrc"
 
         echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
     fi
 
     # Step 8: Benchmarking
