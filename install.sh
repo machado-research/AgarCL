@@ -37,8 +37,8 @@ if [ "$os_name" == "Darwin" ]; then
         echo "Updating include paths in $ZSHRC_PATH"
 
         echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
     fi
     
     if grep -q "CPATH" "$ZSHRC_PATH"; then
@@ -184,8 +184,8 @@ elif [ "$os_name" == "Linux" ]; then
         echo "Updating include paths in $HOME/.bashrc"
 
         echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
+        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
     fi
 
     # Step 8: Benchmarking
