@@ -20,8 +20,14 @@ template<bool renderable>
 class Player {
 
   public:
-
     typedef Cell<renderable> Cell;
+
+    std::vector<Cell> cells;
+    agario::action action;
+    Location target;
+    agario::tick split_cooldown;
+    agario::tick feed_cooldown;
+    int num_viruses_eaten;
 
     Player() = delete;
 
@@ -41,13 +47,6 @@ class Player {
     Player(agario::pid pid, const std::string &name) : Player(pid, name, random_color()) {}
     explicit Player(const std::string &name) : Player(-1, name) {}
     explicit Player(agario::pid pid) : Player(pid, "unnamed") {}
-
-    std::vector<Cell> cells;
-    agario::action action;
-    Location target;
-    agario::tick split_cooldown;
-    agario::tick feed_cooldown;
-    int num_viruses_eaten;
 
     agario::color color() const { return _color; }
 
