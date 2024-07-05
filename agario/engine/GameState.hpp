@@ -23,11 +23,12 @@ namespace agario {
     std::vector<agario::Virus<renderable>> viruses;
 
     agario::distance arena_width, arena_height;
-    agario::tick ticks;
     std::mt19937_64 rng;
+    agario::tick ticks = 0;
+    agario::pid next_pid = 0;
 
     explicit GameState (agario::distance arena_width, agario::distance arena_height) :
-      arena_width(arena_width), arena_height(arena_height), ticks(0),
+      arena_width(arena_width), arena_height(arena_height),
       rng(std::random_device{}()) { }
 
     void clear() {

@@ -38,8 +38,7 @@ namespace agario {
            bool pellet_regen = true) :
       state(arena_width, arena_height),
       _num_pellets(num_pellets), _num_virus(num_viruses),
-      _pellet_regen(pellet_regen),
-      next_pid(0) {
+      _pellet_regen(pellet_regen) {
       std::srand(std::chrono::system_clock::now().time_since_epoch().count());
     }
     Engine() : Engine(DEFAULT_ARENA_WIDTH, DEFAULT_ARENA_HEIGHT) {}
@@ -62,7 +61,7 @@ namespace agario {
    
     template<typename P>
     agario::pid add_player(const std::string &name = std::string()) {
-      auto pid = next_pid++;
+      auto pid = state.next_pid++;
 
       std::shared_ptr<P> player = nullptr;
       if (name.empty()) {
@@ -97,7 +96,6 @@ namespace agario {
     void reset() {
       state.clear();
       initialize_game();
-      next_pid = 0;
     }
 
     void initialize_game() {
@@ -154,7 +152,6 @@ namespace agario {
 
   private:
     agario::GameState<renderable> state;
-    agario::pid next_pid;
     int _num_pellets, _num_virus, _pellet_regen;
     std::vector<std::shared_ptr<Player>> players_info;
     /**
