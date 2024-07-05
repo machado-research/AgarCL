@@ -189,8 +189,6 @@ namespace agario::env {
         // Pellets: one says if there is a pellet in the cell, the other says the total pellets in the cell.
         // Viruses: one says if there is a virus in the cell, the other says the total viruses in the cell.
         // Observing others: one says if there is a cell in the cell, the other says the maximum in the cell.
-        // return static_cast<int>(1 + config_.observe_cells + config_.observe_others
-        //                         + config_.observe_viruses + config_.observe_pellets);
         return static_cast<int>(1 + config_.observe_cells + 2*config_.observe_others
                                 + 2*config_.observe_viruses + 2*config_.observe_pellets);
       }
@@ -318,11 +316,6 @@ namespace agario::env {
         renderer = std::make_unique<agario::Renderer>(window,
                                                       this->engine_.arena_width(),
                                                       this->engine_.arena_height());
-        // //make the renderer as normal pointer 
-        // renderer  = new agario::Renderer(window,
-        //           this->engine_.arena_width(),
-        //           this->engine_.arena_height());
-
 
 #endif
       }
@@ -397,8 +390,6 @@ namespace agario::env {
     virtual ~GridEnvironment() {
 #ifdef RENDERABLE
 
-
-    // delete renderer;
 #endif
     }
 
@@ -406,7 +397,6 @@ namespace agario::env {
       std::vector<Observation> observations;
 
 #ifdef RENDERABLE
-      // agario::Renderer renderer;
       std::unique_ptr<agario::Renderer> renderer;
       std::shared_ptr<Window> window;
 #endif
