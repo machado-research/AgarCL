@@ -120,7 +120,7 @@ namespace agario {
           if (player.dead()) {
             std::cout << "Player \"" << player.name() << "\" (pid ";
             std::cout << player.pid() << ") died." << std::endl;
-            engine.respawn(i);
+            engine.respawn(player);
           }
         }
 

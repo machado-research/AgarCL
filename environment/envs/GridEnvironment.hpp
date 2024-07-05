@@ -29,7 +29,7 @@ namespace agario::env {
       using Pellet = Pellet<renderable>;
       using Virus = Virus<renderable>;
       using Food = Food<renderable>;
-      
+
       enum calc_type {
         at_least_ = 0,
         total_mass_ = 1,
@@ -92,7 +92,7 @@ namespace agario::env {
           throw EnvironmentException("GridObservation was not configured.");
 
         int channel = channels_per_frame() * frame_index;
-        _mark_out_of_bounds(player, channel, game_state.arena_width, game_state.arena_height);
+        _mark_out_of_bounds(player, channel, game_state.config.arena_width, game_state.config.arena_height);
         if (config_.observe_pellets) {
           channel++;
           _store_entities<Pellet>(game_state.pellets, player, channel, calc_type::at_least_); //at least one_pellet
@@ -138,7 +138,7 @@ namespace agario::env {
       // you're probably not using it correctly
       GridObservation(const GridObservation &) = delete; // no copy constructor
       GridObservation &operator=(const GridObservation &) = delete; // no copy assignments
-      
+
       /* move constructor */
       GridObservation(GridObservation &&obs) noexcept :
         data_(std::move(obs.data_)),
@@ -196,7 +196,7 @@ namespace agario::env {
       /* creates the shape and strides to represent the multi-dimensional array */
       void _make_shapes() {
         int num_channels = config_.num_frames * channels_per_frame();
-        
+
         shape_ = {num_channels, config_.grid_size, config_.grid_size};
 
         auto dtype_size = static_cast<long>(sizeof(dtype));
@@ -206,7 +206,7 @@ namespace agario::env {
           dtype_size
         };
       }
-      
+
       /* stores the given entities in the data array at the given `channel` */
       template<typename U>
       void _store_entities(const std::vector<U> &entities, const Player &player, int channel, calc_type calc = calc_type::total_mass_) {
@@ -308,7 +308,7 @@ namespace agario::env {
 
       explicit GridEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
                                int num_pellets, int num_viruses, int num_bots, bool reward_type=0) :
-        Super(num_agents, ticks_per_step, arena_size, pellet_regen, 
+        Super(num_agents, ticks_per_step, arena_size, pellet_regen,
               num_pellets, num_viruses, num_bots,reward_type) {
 
 #ifdef RENDERABLE
@@ -358,13 +358,13 @@ namespace agario::env {
 
         Observation &observation = observations[agent_index];
 
-       
+
         auto &state = this->engine_.game_state();
         // we store in the observation the last `num_frames` frames between each step
         int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
         if (frame_index >= 0)
           observation.add_frame(player, state, frame_index);
-      
+
       }
 
       void render() override {
@@ -381,7 +381,7 @@ namespace agario::env {
 
        void close() override {
 #ifdef RENDERABLE
-      renderer->close_program(); 
+      renderer->close_program();
       window->destroy();
       // glfwTerminate();
       // glDeleteProgram(renderer->shader.program);
