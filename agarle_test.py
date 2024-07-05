@@ -1,8 +1,8 @@
-import gym
+import gymnasium as gym
+import gym_agario
+import argparse
 import time
 
-import numpy as np
-import gym_agario
 
 def gen_random_actions():
   max_val, min_val = 1, -1

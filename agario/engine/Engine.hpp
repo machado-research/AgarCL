@@ -13,6 +13,7 @@
 #include "agario/core/types.hpp"
 #include "agario/core/Entities.hpp"
 #include "agario/engine/GameState.hpp"
+#include "agario/utils/random.hpp"
 #include <thread>
 #include <chrono>
 namespace agario {
@@ -144,7 +145,10 @@ namespace agario {
       state.ticks++;
     }
 
-    void seed(unsigned s) { std::srand(s); }
+    void seed(unsigned s) {
+      this->state.rng.seed(s);
+      std::srand(s);
+    }
 
     Engine(const Engine &) = delete; // no copy constructor
     Engine &operator=(const Engine &) = delete; // no copy assignments
@@ -152,13 +156,9 @@ namespace agario {
     Engine &operator=(Engine &&) = delete; // no move assignment
 
   private:
-    std::unordered_map<agario::pid, float> player_elapsed_time; // time since the first tick
     agario::GameState<renderable> state;
     agario::pid next_pid;
     int _num_pellets, _num_virus, _pellet_regen;
-    float anti_team_acceleration; 
-    int num_seconds_passed;
-    int prev_num_viruses_eaten;
     /**
      * Resets a player to the starting position
      * @param pid player ID of the player to reset
@@ -166,12 +166,8 @@ namespace agario {
     void _respawn(Player &player) {
       player.kill();
       player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), CELL_MIN_SIZE);
-      player_elapsed_time[player.pid()] = 0;
-      num_seconds_passed = 1.0;
-      anti_team_acceleration = 1.0;
-      prev_num_viruses_eaten = NUM_VIRUSES_TO_EAT - 1;
     }
-    
+
 
 
     void add_pellets(int n) {
@@ -197,6 +193,7 @@ namespace agario {
      * @param elapsed_seconds the amount of (game) time since the last game tick
      */
     void tick_player(Player &player, const agario::time_delta &elapsed_seconds) {
+      player.elapsed_ticks += 1;
 
       if (ticks() % 10 == 0)
         player.take_action(state);
@@ -208,16 +205,16 @@ namespace agario {
 
       bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT) & (player.get_min_mass_cell() >= MIN_CELL_SPLIT_MASS));
 
-      player_elapsed_time[player.pid()] += elapsed_seconds.count();
 
       for (Cell &cell : player.cells) {
-
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
         eat_pellets(cell);
         eat_food(cell);
-        player.num_viruses_eaten += static_cast<int>(check_virus_collisions(cell, created_cells, create_limit, can_eat_virus));
-        may_be_activate_anti_team(cell, player);
-        mass_cell_decay(cell, player.pid());
+
+        if (check_virus_collisions(cell, created_cells, create_limit, can_eat_virus)) {
+          player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
+        }
+
       }
 
       create_limit -= created_cells.size();
@@ -230,39 +227,58 @@ namespace agario {
       created_cells.erase(created_cells.begin(), created_cells.end());
 
       recombine_cells(player);
+
+      // some actions do not need to happen every tick
+      // these will be executed once per second
+      if (player.elapsed_ticks % 60 == 0) {
+        maybe_activate_anti_team(player);
+        mass_decay(player);
+      }
     }
-    
+
     /**
-     * Anti-team is triggered by hitting 3 viruses or more in a row in 1 minute. Mass will start to decay slightly faster than usual after hitting 2 viruses. 
+     * Anti-team is triggered by hitting 3 viruses or more in a row in 1 minute. Mass will start to decay slightly faster than usual after hitting 2 viruses.
      * The more subsequent viruses hit, the faster the rate of mass decay.
      * @param cell the cell to check for anti-team activation
      * @param player the player to check for anti-team activation
      */
 
-    void may_be_activate_anti_team(Cell &cell, Player &player)
-    {
-      float num_minutes_passed = num_seconds_passed / 60.0;
-      if(player_elapsed_time[player.pid()] <= num_minutes_passed * ANTI_TEAM_ACTIVATION_TIME) {
-        if(player.num_viruses_eaten > prev_num_viruses_eaten) {
-          anti_team_acceleration *= 1.1;
-          prev_num_viruses_eaten = player.num_viruses_eaten;
-          if(anti_team_acceleration == 1.1) 
-            std::cout << "Anti-Team activated for Player Pid: " << player.pid() << std::endl;
-        }
+
+    void maybe_activate_anti_team(Player &player) {
+      auto fall_off_time = player.elapsed_ticks - (60 * ANTI_TEAM_ACTIVATION_TIME);
+
+      // in-place delete ticks that are older than ANTI_TEAM_ACTIVATION_TIME
+      player.virus_eaten_ticks.erase(
+        std::remove_if(
+          player.virus_eaten_ticks.begin(),
+          player.virus_eaten_ticks.end(),
+          [fall_off_time](int tick) { return tick < fall_off_time; }
+        ),
+        player.virus_eaten_ticks.end()
+      );
+
+
+      auto n_eaten = player.virus_eaten_ticks.size();
+      if (n_eaten == 0) {
+        return;
       }
+
+      player.anti_team_decay = std::pow(1.1, n_eaten - 1);
     }
+
     /**
      * Reducing the mass of the cell of a player after a couple of seconds (DECAY_FOR_NUM_SECONDS)
      * @param cell the cell to check for decay
-     * @param player_pid the player id of the player
+     * @param player the player
      */
-    void mass_cell_decay(Cell &cell, const agario::pid & player_pid)
-    {
+    void mass_decay(Player &player) {
+      auto ticks_since_decay = player.elapsed_ticks - player.last_decay_tick;
+      if(ticks_since_decay >= 60 * DECAY_FOR_NUM_SECONDS) {
+        for (auto &cell : player.cells) {
+          cell.mass_decay(player.anti_team_decay);
+        }
 
-      if(player_elapsed_time[player_pid] >= num_seconds_passed * DECAY_FOR_NUM_SECONDS) {
-        // each cell should decay its mass concurrently after number of seconds 
-        cell.mass_decay(anti_team_acceleration);
-        num_seconds_passed++; 
+        player.last_decay_tick = player.elapsed_ticks;
       }
     }
 
@@ -874,7 +890,8 @@ namespace agario {
 
     template<typename T>
     T random(T min, T max) {
-      return (max - min) * (static_cast<T>(rand()) / static_cast<T>(RAND_MAX)) + min;
+      uniform_distribution<T> dist(min, max);
+      return dist(this->state.rng);
     }
 
     template<typename T>
