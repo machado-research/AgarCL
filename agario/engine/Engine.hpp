@@ -90,6 +90,7 @@ namespace agario {
 
      std::vector<std::shared_ptr<Player>> get_all_players() const {
       return players_info;
+      
     }
 
     void reset() {
