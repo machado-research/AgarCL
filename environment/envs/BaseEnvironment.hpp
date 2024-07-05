@@ -53,11 +53,13 @@ namespace agario {
       [[nodiscard]] int num_agents() const { return num_agents_; }
 
       void repsawn_all_players(){
-        for(auto& player: this->engine_.get_all_players()){
+        for(auto &pair : this->engine_.state.players){
+          auto pid = pair.first;
+          auto player = pair.second;
           if(player->dead()){
             std::cout << "Player \"" << player->name() << "\" (pid ";
-            std::cout << player->pid() << ") died." << std::endl;
-            this->engine_.respawn(player->pid());
+            std::cout << pid << ") died." << std::endl;
+            this->engine_.respawn(*player);
           }
         }
       }

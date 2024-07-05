@@ -32,6 +32,8 @@ namespace agario {
     using Virus = Virus<renderable>;
     using GameState = GameState<renderable>;
 
+    agario::GameState<renderable> state;
+
     Engine(distance arena_width, distance arena_height,
            int num_pellets = DEFAULT_NUM_PELLETS,
            int num_viruses = DEFAULT_NUM_VIRUSES,
@@ -68,7 +70,6 @@ namespace agario {
       } else {
         player = std::make_shared<P>(pid, name);
       }
-      players_info.push_back(player);
       auto p = state.players.insert(std::make_pair(pid, player));
       respawn(*player);
       return pid;
@@ -85,11 +86,6 @@ namespace agario {
         throw EngineException(ss.str());
       }
       return *state.players.at(pid);
-    }
-
-     std::vector<std::shared_ptr<Player>> get_all_players() const {
-      return players_info;
-
     }
 
     void reset() {
@@ -153,9 +149,6 @@ namespace agario {
     Engine &operator=(Engine &&) = delete; // no move assignment
 
   private:
-    agario::GameState<renderable> state;
-    std::vector<std::shared_ptr<Player>> players_info;
-
     void add_pellets(int n) {
       agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
         for (int p = 0; p < n; p++)
