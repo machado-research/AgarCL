@@ -69,7 +69,7 @@ namespace agario {
       } else {
         player = std::make_shared<P>(pid, name);
       }
-
+      players_info.push_back(player);
       auto p = state.players.insert(std::make_pair(pid, player));
       _respawn(*player);
       return pid;
@@ -89,11 +89,7 @@ namespace agario {
     }
 
      std::vector<std::shared_ptr<Player>> get_all_players() const {
-      std::vector<std::shared_ptr<Player>> players;
-      for (auto &pair : state.players) {
-        players.push_back(pair.second);
-      }
-      return players;
+      return players_info;
     }
 
     void reset() {
@@ -159,6 +155,7 @@ namespace agario {
     float anti_team_acceleration; 
     int num_seconds_passed;
     int prev_num_viruses_eaten;
+    std::vector<std::shared_ptr<Player>> players_info;
     /**
      * Resets a player to the starting position
      * @param pid player ID of the player to reset
