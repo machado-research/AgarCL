@@ -6,7 +6,7 @@ Author: Jon Deaton (jdeaton@stanford.edu)
 """
 
 import agarle
-from gym.envs.registration import register
+from gymnasium.envs.registration import register
 
 register(id='agario-ram-v0',
          entry_point='gym_agario.AgarioEnv:AgarioEnv',

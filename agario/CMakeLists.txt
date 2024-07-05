@@ -105,10 +105,11 @@ set(AGARIO_CLIENT_SRC
         # /usr/include/glad/include/glad/glad.h
         )
 
-set(EXT_SOURCE_DIR "glad/src")
-set(EXT_INCLUDE_DIR "glad/include")
-include_directories("${EXT_INCLUDE_DIR}/glad/glad.h")
-add_library(glad "${EXT_SOURCE_DIR}/glad.c")
+
+
+set(EXT_SOURCE_DIR "../environment/glad/src")
+set(EXT_INCLUDE_DIR "../environment/glad/include")
+add_library(glad "${EXT_INCLUDE_DIR}/glad/glad.h" "${EXT_SOURCE_DIR}/glad.c")
 
 # Add the -fPIC flag to ensure position-independent code
 set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)

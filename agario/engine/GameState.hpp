@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <iomanip>
 #include <memory>
+#include <random>
 
 namespace agario {
 
@@ -23,9 +24,11 @@ namespace agario {
 
     agario::distance arena_width, arena_height;
     agario::tick ticks;
+    std::mt19937_64 rng;
 
     explicit GameState (agario::distance arena_width, agario::distance arena_height) :
-      arena_width(arena_width), arena_height(arena_height), ticks(0) { }
+      arena_width(arena_width), arena_height(arena_height), ticks(0),
+      rng(std::random_device{}()) { }
 
     void clear() {
       players.clear();

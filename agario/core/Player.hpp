@@ -16,33 +16,34 @@
 
 namespace agario {
 
-  template<bool renderable>
-
-  class Player {
+template<bool renderable>
+class Player {
 
   public:
-
     typedef Cell<renderable> Cell;
-
-    Player() = delete;
-
-    Player(agario::pid pid, std::string name, agario::color color) :
-      action(none), target(0, 0), split_cooldown(0), feed_cooldown(0),
-      _pid(pid), _name(std::move(name)), _score(0), _color(color) {
-      _minMassCell = 0;
-      num_viruses_eaten = 0;
-    }
-
-    Player(agario::pid pid, const std::string &name) : Player(pid, name, random_color()) {}
-    explicit Player(const std::string &name) : Player(-1, name) {}
-    explicit Player(agario::pid pid) : Player(pid, "unnamed") {}
 
     std::vector<Cell> cells;
     agario::action action;
     Location target;
-    agario::tick split_cooldown;
-    agario::tick feed_cooldown;
-    int num_viruses_eaten;
+    agario::tick split_cooldown = 0;
+    agario::tick feed_cooldown = 0;
+    std::vector<int> virus_eaten_ticks = {};
+    float anti_team_decay = 1.0;
+    int elapsed_ticks = 0;
+    int last_decay_tick = 0;
+
+    Player() = delete;
+    Player(agario::pid pid, std::string name, agario::color color):
+      action(none),
+      target(0, 0),
+      _pid(pid),
+      _name(std::move(name)),
+      _color(color)
+    {}
+
+    Player(agario::pid pid, const std::string &name) : Player(pid, name, random_color()) {}
+    explicit Player(const std::string &name) : Player(-1, name) {}
+    explicit Player(agario::pid pid) : Player(pid, "unnamed") {}
 
     agario::color color() const { return _color; }
 
@@ -58,19 +59,29 @@ namespace agario {
     // non-renderable version of add_cell
     template<bool enable = renderable, typename... Args>
     typename std::enable_if<!enable, void>::type
-     add_cell(Args &&... args) {
+    add_cell(Args &&... args) {
       cells.emplace_back(std::forward<Args>(args)...);
     }
 
-    void kill(){ 
-      cells.clear(); 
-      _minMassCell =CELL_MIN_SIZE; 
+    void kill() {
+      cells.clear();
+      _minMassCell = CELL_MIN_SIZE;
+      _score = 0;
+
+      split_cooldown = 0;
+      feed_cooldown = 0;
+      anti_team_decay = 1.0;
+      elapsed_ticks = 0;
+      last_decay_tick = 0;
+      virus_eaten_ticks = {};
     }
+
     bool dead() const { return cells.empty(); }
 
-    void set_min_mass_cell(agario::mass maxMassCell){
+    void set_min_mass_cell(agario::mass maxMassCell) {
       _minMassCell = maxMassCell;
     }
+
     agario::mass get_min_mass_cell(){
       return _minMassCell;
     }
@@ -164,9 +175,9 @@ namespace agario {
   private:
     agario::pid _pid;
     std::string _name;
-    agario::score _score;
     agario::color _color;
-    agario::mass _minMassCell;
+    agario::score _score = 0;
+    agario::mass _minMassCell = 0;
 
   };
 
