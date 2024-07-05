@@ -85,9 +85,9 @@ if [ "$os_name" == "Darwin" ]; then
 
     # Step 4: Install GLAD
     cd ../..
-    glad_path="$current_dir/environment/glad"
+    glad_path="$current_dir/dependencies/glad"
     if [ ! -d "$glad_path" ]; then
-        echo "No glad directory found. Please install glad first in environment directory."
+        echo "No glad directory found. Please install glad first in dependencies directory."
         exit 1
     else
         echo "Glad directory found."
@@ -137,9 +137,9 @@ elif [ "$os_name" == "Linux" ]; then
     # Step 5: Install GLAD
     cd ..
 
-    glad_path="$current_dir/environment/glad"
+    glad_path="$current_dir/dependencies/glad"
     if [ ! -d "$glad_path" ]; then
-        echo "No glad directory found. Please install glad first in environment directory."
+        echo "No glad directory found. Please install glad first in dependencies directory."
         exit 1
     else
         echo "Glad directory found."

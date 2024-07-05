@@ -10,7 +10,7 @@
 #include <sstream>
 #include <map>
 
-#include <dep/cxxopts.hpp>
+#include <dependencies/cxxopts.hpp>
 
 #define RENDERABLE false
 
