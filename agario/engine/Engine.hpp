@@ -156,9 +156,6 @@ namespace agario {
     agario::GameState<renderable> state;
     agario::pid next_pid;
     int _num_pellets, _num_virus, _pellet_regen;
-    float anti_team_acceleration; 
-    int num_seconds_passed;
-    int prev_num_viruses_eaten;
     std::vector<std::shared_ptr<Player>> players_info;
     /**
      * Resets a player to the starting position
