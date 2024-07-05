@@ -92,7 +92,7 @@ namespace agario::env {
           throw EnvironmentException("GridObservation was not configured.");
 
         int channel = channels_per_frame() * frame_index;
-        _mark_out_of_bounds(player, channel, game_state.arena_width, game_state.arena_height);
+        _mark_out_of_bounds(player, channel, game_state.config.arena_width, game_state.config.arena_height);
         if (config_.observe_pellets) {
           channel++;
           _store_entities<Pellet>(game_state.pellets, player, channel, calc_type::at_least_); //at least one_pellet

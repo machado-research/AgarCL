@@ -36,9 +36,8 @@ namespace agario {
            int num_pellets = DEFAULT_NUM_PELLETS,
            int num_viruses = DEFAULT_NUM_VIRUSES,
            bool pellet_regen = true) :
-      state(arena_width, arena_height),
-      _num_pellets(num_pellets), _num_virus(num_viruses),
-      _pellet_regen(pellet_regen) {
+      state(agario::GameConfig(arena_width, arena_height, num_pellets, num_viruses, pellet_regen))
+    {
       std::srand(std::chrono::system_clock::now().time_since_epoch().count());
     }
     Engine() : Engine(DEFAULT_ARENA_WIDTH, DEFAULT_ARENA_HEIGHT) {}
@@ -51,13 +50,13 @@ namespace agario {
     const std::vector<Virus> &viruses() const { return state.viruses; }
     agario::GameState<renderable> &game_state() { return state; }
     const agario::GameState<renderable> &get_game_state() const { return state; }
-    agario::distance arena_width() const { return state.arena_width; }
-    agario::distance arena_height() const { return state.arena_height; }
+    agario::distance arena_width() const { return state.config.arena_width; }
+    agario::distance arena_height() const { return state.config.arena_height; }
     int player_count() const { return state.players.size(); }
     int pellet_count() const { return state.pellets.size(); }
     int virus_count() const { return state.viruses.size(); }
     int food_count() const { return state.foods.size(); }
-    bool pellet_regen() const { return _pellet_regen; };
+    bool pellet_regen() const { return state.config.pellet_regen; };
 
     template<typename P>
     agario::pid add_player(const std::string &name = std::string()) {
@@ -99,8 +98,8 @@ namespace agario {
     }
 
     void initialize_game() {
-      add_pellets(_num_pellets);
-      add_viruses(_num_virus);
+      add_pellets(state.config.target_num_pellets);
+      add_viruses(state.config.target_num_viruses);
     }
 
     void respawn(Player &player) {
@@ -136,10 +135,10 @@ namespace agario {
       check_player_collisions();
 
       move_foods(elapsed_seconds);
-      if (_pellet_regen) {
-        add_pellets(_num_pellets - state.pellets.size());
+      if (state.config.pellet_regen) {
+        add_pellets(state.config.target_num_pellets - state.pellets.size());
       }
-      add_viruses(_num_virus - state.viruses.size());
+      add_viruses(state.config.target_num_viruses - state.viruses.size());
       state.ticks++;
     }
 
@@ -155,7 +154,6 @@ namespace agario {
 
   private:
     agario::GameState<renderable> state;
-    int _num_pellets, _num_virus, _pellet_regen;
     std::vector<std::shared_ptr<Player>> players_info;
 
     void add_pellets(int n) {
