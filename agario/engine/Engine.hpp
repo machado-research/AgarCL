@@ -58,7 +58,7 @@ namespace agario {
     int virus_count() const { return state.viruses.size(); }
     int food_count() const { return state.foods.size(); }
     bool pellet_regen() const { return _pellet_regen; };
-
+   
     template<typename P>
     agario::pid add_player(const std::string &name = std::string()) {
       auto pid = next_pid++;
@@ -86,6 +86,14 @@ namespace agario {
         throw EngineException(ss.str());
       }
       return *state.players.at(pid);
+    }
+
+     std::vector<std::shared_ptr<Player>> get_all_players() const {
+      std::vector<std::shared_ptr<Player>> players;
+      for (auto &pair : state.players) {
+        players.push_back(pair.second);
+      }
+      return players;
     }
 
     void reset() {
