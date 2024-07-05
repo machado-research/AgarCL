@@ -38,7 +38,6 @@ default_config = {
     'observe_viruses': True,
     'observe_pellets': True,
     'obs_type'       : "grid",   #Two options: screen, grid
-    'allow_respawn'  : True, # If False, the game will end when the player is eaten
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
 }
@@ -68,7 +67,7 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=10000, type=int, help="Number of steps")
 
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")

@@ -76,7 +76,8 @@ class AgarioEnv(gym.Env):
         self.steps = None
         self.obs_type = obs_type
 
-        target_space = spaces.Box(low=-np.inf, high=np.inf, shape=(2,))
+        # the action space has continous action between [-1, 1] and a discrete action [0, 1, 2]
+        target_space = spaces.Box(low=-1, high=1, shape=(2,))
         self.action_space = spaces.Tuple((target_space, spaces.Discrete(3)))
 
         self._seed = None
@@ -191,8 +192,7 @@ class AgarioEnv(gym.Env):
             observe_others = kwargs.get("observe_others",   True)
             observe_viruses = kwargs.get("observe_viruses", True)
             observe_pellets = kwargs.get("observe_pellets", True)
-            allow_respawn = kwargs.get("allow_respawn", True)
-            c_death = kwargs.get("c_death", -100)
+            c_death = kwargs.get("c_death", 0)
             env = agarle.GridEnvironment(*args)
             env.configure_observation({
                 "num_frames": num_frames,
@@ -201,8 +201,6 @@ class AgarioEnv(gym.Env):
                 "observe_others": observe_others,
                 "observe_viruses": observe_viruses,
                 "observe_pellets": observe_pellets,
-                "allow_respawn": allow_respawn,
-                "c_death": c_death
             })
 
             channels, width, height = env.observation_shape()
@@ -288,6 +286,7 @@ class AgarioEnv(gym.Env):
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
         self.reward_type   = kwargs.get("reward_type", reward_type)
+        self.c_death         = kwargs.get("c_death", -100)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
 
@@ -297,7 +296,8 @@ class AgarioEnv(gym.Env):
 
         return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
-               self.num_viruses, self.num_bots, self.reward_type
+               self.num_viruses, self.num_bots, self.reward_type, \
+                self.allow_respawn, self.c_death
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility

@@ -59,7 +59,7 @@ namespace agario {
     int virus_count() const { return state.viruses.size(); }
     int food_count() const { return state.foods.size(); }
     bool pellet_regen() const { return _pellet_regen; };
-
+   
     template<typename P>
     agario::pid add_player(const std::string &name = std::string()) {
       auto pid = next_pid++;
@@ -70,7 +70,7 @@ namespace agario {
       } else {
         player = std::make_shared<P>(pid, name);
       }
-
+      players_info.push_back(player);
       auto p = state.players.insert(std::make_pair(pid, player));
       _respawn(*player);
       return pid;
@@ -89,9 +89,15 @@ namespace agario {
       return *state.players.at(pid);
     }
 
+     std::vector<std::shared_ptr<Player>> get_all_players() const {
+      return players_info;
+      
+    }
+
     void reset() {
       state.clear();
       initialize_game();
+      next_pid = 0;
     }
 
     void initialize_game() {
@@ -150,6 +156,10 @@ namespace agario {
     agario::GameState<renderable> state;
     agario::pid next_pid;
     int _num_pellets, _num_virus, _pellet_regen;
+    float anti_team_acceleration; 
+    int num_seconds_passed;
+    int prev_num_viruses_eaten;
+    std::vector<std::shared_ptr<Player>> players_info;
     /**
      * Resets a player to the starting position
      * @param pid player ID of the player to reset
@@ -233,6 +243,7 @@ namespace agario {
      * @param cell the cell to check for anti-team activation
      * @param player the player to check for anti-team activation
      */
+
 
     void maybe_activate_anti_team(Player &player) {
       auto fall_off_time = player.elapsed_ticks - (60 * ANTI_TEAM_ACTIVATION_TIME);

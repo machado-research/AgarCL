@@ -2,7 +2,7 @@
 
 # project specific rules
 environment/glad
-
+agario/glad
 
 ### SublimeText template
 # Cache files for Sublime Text

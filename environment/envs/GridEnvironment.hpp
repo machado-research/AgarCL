@@ -133,11 +133,7 @@ namespace agario::env {
       /* the number of frames captured by the observation */
       [[nodiscard]] int num_frames() const { return config_.num_frames; }
 
-      /* Give me whether the agents [my agent and other bots] should respawn or not*/
-      [[nodiscard]] bool respawn() const { return config_.respawn; }
 
-      /* Give more negative reward for the agent if it getting eaten*/  
-      [[nodiscard]] int c_death() const { return config_.c_death; }
       // no copy operations because if you're copying this object then
       // you're probably not using it correctly
       GridObservation(const GridObservation &) = delete; // no copy constructor
@@ -173,18 +169,16 @@ namespace agario::env {
       public:
         Configuration(int num_frames, int grid_size,
                       bool observe_cells, bool observe_others,
-                      bool observe_viruses, bool observe_pellets, bool respawn, int c_death = 0) :
+                      bool observe_viruses, bool observe_pellets) :
           num_frames(num_frames), grid_size(grid_size),
           observe_cells(observe_cells), observe_others(observe_others),
-          observe_pellets(observe_pellets), observe_viruses(observe_viruses), respawn(respawn), c_death(c_death) {}
+          observe_pellets(observe_pellets), observe_viruses(observe_viruses) {}
         int num_frames;
         int grid_size;
         bool observe_pellets;
         bool observe_cells;
         bool observe_viruses;
         bool observe_others;
-        bool respawn; // allow respawn
-        int c_death; // more negative reward for the agent if it getting eaten
       };
 
       Configuration config_;
@@ -195,8 +189,6 @@ namespace agario::env {
         // Pellets: one says if there is a pellet in the cell, the other says the total pellets in the cell.
         // Viruses: one says if there is a virus in the cell, the other says the total viruses in the cell.
         // Observing others: one says if there is a cell in the cell, the other says the maximum in the cell.
-        // return static_cast<int>(1 + config_.observe_cells + config_.observe_others
-        //                         + config_.observe_viruses + config_.observe_pellets);
         return static_cast<int>(1 + config_.observe_cells + 2*config_.observe_others
                                 + 2*config_.observe_viruses + 2*config_.observe_pellets);
       }
@@ -324,11 +316,6 @@ namespace agario::env {
         renderer = std::make_unique<agario::Renderer>(window,
                                                       this->engine_.arena_width(),
                                                       this->engine_.arena_height());
-        // //make the renderer as normal pointer 
-        // renderer  = new agario::Renderer(window,
-        //           this->engine_.arena_width(),
-        //           this->engine_.arena_height());
-
 
 #endif
       }
@@ -371,21 +358,6 @@ namespace agario::env {
 
         Observation &observation = observations[agent_index];
 
-        if (player.dead())
-        {
-          if(observation.respawn()){
-            std::cout << "Player \"" << player.name() << "\" (pid ";
-              std::cout << player.pid() << ") died." << std::endl;
-            this->engine_.respawn(this->pids_[agent_index]);
-            this-> c_death_ = observation.c_death();
-          }
-          else 
-            {
-              this->dones_[agent_index] = true;
-              return;
-            }
-        }
-
        
         auto &state = this->engine_.game_state();
         // we store in the observation the last `num_frames` frames between each step
@@ -418,8 +390,6 @@ namespace agario::env {
     virtual ~GridEnvironment() {
 #ifdef RENDERABLE
 
-
-    // delete renderer;
 #endif
     }
 
@@ -427,7 +397,6 @@ namespace agario::env {
       std::vector<Observation> observations;
 
 #ifdef RENDERABLE
-      // agario::Renderer renderer;
       std::unique_ptr<agario::Renderer> renderer;
       std::shared_ptr<Window> window;
 #endif
