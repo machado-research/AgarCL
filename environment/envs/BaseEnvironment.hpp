@@ -52,9 +52,8 @@ namespace agario {
       [[nodiscard]] int num_agents() const { return num_agents_; }
 
       void repsawn_bots(){
-
-        for(auto &bot_pid: bot_pids_){
-          auto &player = this->engine_.player(bot_pid);
+        int pid_idx = 0;  
+        for(auto &player: this->engine_.player(bot_pids_[pid_idx++])){
           if(player.dead()){
             std::cout << "Bot \"" << player.name() << "\" (pid ";
             std::cout << player.pid() << ") died." << std::endl;

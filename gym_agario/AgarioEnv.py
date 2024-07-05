@@ -76,6 +76,7 @@ class AgarioEnv(gym.Env):
         self.steps = None
         self.obs_type = obs_type
 
+        # the action space has continous action between [-1, 1] and a discrete action [0, 1, 2]
         target_space = spaces.Box(low=-1, high=1, shape=(2,))
         self.action_space = spaces.Tuple((target_space, spaces.Discrete(3)))
 
