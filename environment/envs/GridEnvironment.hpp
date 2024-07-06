@@ -353,7 +353,7 @@ namespace agario::env {
         assert(agent_index < this->num_agents());
         assert(tick_index < this->ticks_per_step());
 
-        auto &player = this->engine_.player(this->pids_[agent_index]);
+        auto &player = this->engine_.get_player(this->pids_[agent_index]);
         this-> c_death_ = 0;
 
         Observation &observation = observations[agent_index];
@@ -371,7 +371,7 @@ namespace agario::env {
 #ifdef RENDERABLE
 
       for (auto &pid: this->pids_) {
-        auto &player = this->engine_.player(pid);
+        auto &player = this->engine_.get_player(pid);
         renderer->render_screen(player, this->engine_.game_state());
       }
         glfwPollEvents();

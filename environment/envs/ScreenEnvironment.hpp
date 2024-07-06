@@ -122,7 +122,7 @@ namespace agario::env {
       agario::Renderer renderer;
 
       // stores current frame into buffer containing the next observation
-      void _partial_observation(Player &player, int frame_index) override {
+      void _partial_observation(const Player &player, int frame_index) override {
         renderer.render_screen(player, this->engine_.game_state());
         void *data = _observation.frame_data(frame_index);
         frame_buffer->copy(data);
@@ -130,7 +130,7 @@ namespace agario::env {
 
 
       void _partial_observation(int agent_index, int tick_index) override{
-        auto &player = this->engine_.player(this->pids_[agent_index]);
+        auto &player = this->engine_.get_player(this->pids_[agent_index]);
         _partial_observation(player, tick_index);
       }
 

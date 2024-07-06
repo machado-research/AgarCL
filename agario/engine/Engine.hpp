@@ -75,11 +75,7 @@ namespace agario {
       return pid;
     }
 
-    Player &player(agario::pid pid) {
-      return const_cast<Player &>(get_player(pid));
-    }
-
-    const Player &get_player(agario::pid pid) const {
+    Player &get_player(agario::pid pid) const {
       if (state.players.find(pid) == state.players.end()) {
         std::stringstream ss;
         ss << "Player ID: " << pid << " does not exist.";

@@ -125,7 +125,7 @@ namespace agario {
      * @param player player to reneder the game for
      * @param state current state of the game
      */
-    void render_screen(Player &player, agario::GameState<true> &state) {
+    void render_screen(const Player &player, agario::GameState<true> &state) {
       shader.use();
 
       make_projections(player);
