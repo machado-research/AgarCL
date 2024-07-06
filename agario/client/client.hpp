@@ -103,16 +103,17 @@ namespace agario {
     }
 
     void game_loop() {
-      long _tick_time = 1000 / MAX_FPS;
-      auto target_tick_time = std::chrono::milliseconds(_tick_time);
+      const long _tick_time = 1000 / MAX_FPS;
+      const auto target_tick_time = std::chrono::milliseconds(_tick_time);
+
       auto before = std::chrono::system_clock::now();
       while (!window->should_close()) {
 
-        auto tick_start = std::chrono::system_clock::now();
-        auto dt = tick_start - before;
+        const auto tick_start = std::chrono::system_clock::now();
+        const auto dt = tick_start - before;
         before = tick_start;
 
-        for (auto &[pid, player] : engine.state.players) {
+        for (const auto &[pid, player] : engine.state.players) {
           if (player->dead()) {
             std::cout << "Player \"" << player->name() << "\" (pid ";
             std::cout << player->pid() << ") died." << std::endl;
@@ -120,7 +121,7 @@ namespace agario {
           }
         }
 
-        auto &player = engine.get_player(player_pid);
+        const auto &player = engine.get_player(player_pid);
         process_input();
         renderer->render_screen(player, engine.game_state());
 
@@ -128,9 +129,9 @@ namespace agario {
         window->swap_buffers();
 
         engine.tick(dt);
-        auto tick_end = std::chrono::system_clock::now();
-        auto tick_time = tick_end - tick_start;
-        auto sleep_time = std::chrono::duration_cast<std::chrono::milliseconds>(target_tick_time - tick_time);
+        const auto tick_end = std::chrono::system_clock::now();
+        const auto tick_time = tick_end - tick_start;
+        const auto sleep_time = std::chrono::duration_cast<std::chrono::milliseconds>(target_tick_time - tick_time);
         if (sleep_time > std::chrono::milliseconds(0)) {
           std::this_thread::sleep_for(sleep_time);
         }
