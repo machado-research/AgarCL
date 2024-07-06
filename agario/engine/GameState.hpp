@@ -11,7 +11,6 @@
 #include <random>
 
 namespace agario {
-
   class GameConfig {
     public:
       const agario::distance arena_width, arena_height;
@@ -68,22 +67,25 @@ namespace agario {
   /* prints out a list of players sorted by mass (i.e. the leaderboard) */
   template<bool r>
   std::ostream &operator<<(std::ostream &os, const GameState<r> &state) {
+    std::vector<std::shared_ptr<agario::Player<r>>> players(state.players.size());
+    transform(
+      // pull data from state.players
+      state.players.begin(), state.players.end(),
+      // stick it in players
+      players.begin(),
+      // transform it by grabbing second item
+      [](auto &pair){ return pair.second; }
+    );
 
-    // make a sorted list of (pointers to) players
-    std::vector<std::shared_ptr<agario::Player<r>>> leaderboard;
-    using pp = std::shared_ptr<Player<r>>;
-    for (auto &pair : state.players) {
-      auto it = std::lower_bound(leaderboard.begin(), leaderboard.end(), pair.second,
-                              [&](const pp &p1, const pp &p2) {
-                                return *p1 > *p2;
-                              });
-      leaderboard.insert(it, pair.second);
-    }
+    std::sort(
+      players.begin(), players.end(),
+      [](const auto p1, const auto p2) { return *p1 > *p2; }
+    );
 
     // print them out in sorted order
-    for (unsigned i = 0; i < leaderboard.size(); ++i) {
+    for (unsigned i = 0; i < players.size(); ++i) {
       os << i + 1 << ".\t" << std::setfill(' ') << std::setw(5);
-      auto &player = *leaderboard[i];
+      auto &player = *players[i];
       os <<  player.mass() << "\t" << player << std::endl;
     }
     return os;
