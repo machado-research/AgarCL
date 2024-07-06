@@ -83,23 +83,7 @@ if [ "$os_name" == "Darwin" ]; then
     pip install -e .
     echo "Pybind11 installed successfully."
 
-    # Step 4: Install GLAD
-    cd ../..
-    glad_path="$current_dir/environment/glad"
-    if [ ! -d "$glad_path" ]; then
-        echo "No glad directory found. Please install glad first in environment directory."
-        exit 1
-    else
-        echo "Glad directory found."
-
-        cmake_file_path="$current_dir/agario/CMakeLists.txt"
-        if [ ! -f "$cmake_file_path" ]; then
-            echo "CMakeLists.txt not found."
-            exit 1
-        fi
-    fi
-
-    # Step 5: Running the code
+    # Step 4: Running the code
     python3 setup.py install
 
 # Check if the OS is Linux
@@ -134,24 +118,7 @@ elif [ "$os_name" == "Linux" ]; then
     sudo apt-get install freeglut3-dev
     sudo apt install libstdc++-12-dev
     
-    # Step 5: Install GLAD
-    cd ..
-
-    glad_path="$current_dir/environment/glad"
-    if [ ! -d "$glad_path" ]; then
-        echo "No glad directory found. Please install glad first in environment directory."
-        exit 1
-    else
-        echo "Glad directory found."
-
-        cmake_file_path="$current_dir/agario/CMakeLists.txt"
-        if [ ! -f "$cmake_file_path" ]; then
-            echo "CMakeLists.txt not found."
-            exit 1
-        fi
-    fi
-
-    # Step 6: USE CLANG Compiler
+    # Step 5: USE CLANG Compiler
     if command -v gcc &> /dev/null; then
         sudo apt-get remove gcc
     fi
@@ -161,7 +128,7 @@ elif [ "$os_name" == "Linux" ]; then
     fi
     CXX=`which clang++`
 
-    # Step 7: Exporting right paths to bashrc
+    # Step 6: Exporting right paths to bashrc
     if ! grep -q "CPLUS_INCLUDE_PATH" "$HOME/.bashrc"; then
         echo "Updating include paths in $HOME/.bashrc"
 
@@ -170,7 +137,7 @@ elif [ "$os_name" == "Linux" ]; then
         echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
     fi
 
-    # Step 8: Benchmarking
+    # Step 7: Benchmarking
     cd build
     git clone https://github.com/google/benchmark.git
     cd benchmark
@@ -179,7 +146,7 @@ elif [ "$os_name" == "Linux" ]; then
     cmake --build "build" --config Release
     sudo cmake --build "build" --config Release --target install
     
-    # Step 9: Running the code
+    # Step 8: Running the code
     python3 setup.py install
     
 else
