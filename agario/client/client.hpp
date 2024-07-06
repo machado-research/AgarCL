@@ -116,11 +116,11 @@ namespace agario {
 
         range_bot_pids = std::make_pair(std::min(range_bot_pids.first,player_pid), std::max(range_bot_pids.second,player_pid));
         for (agario::pid i = range_bot_pids.first; i <= range_bot_pids.second; i++) {
-          auto &player = engine.get_player(i);
-          if (player.dead()) {
-            std::cout << "Player \"" << player.name() << "\" (pid ";
-            std::cout << player.pid() << ") died." << std::endl;
-            engine.respawn(player);
+          auto &bot = engine.get_player(i);
+          if (bot.dead()) {
+            std::cout << "Player \"" << bot.name() << "\" (pid ";
+            std::cout << bot.pid() << ") died." << std::endl;
+            engine.respawn(bot);
           }
         }
 
