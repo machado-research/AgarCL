@@ -9,6 +9,7 @@ project(AgarLE
 
 set(CMAKE_CXX_STANDARD 17)
 set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON)
+set(GLM_BUILD_TESTS OFF)
 # set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -fsanitize=address  -fsanitize=leak -g")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=leak -g")
 # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fsanitize=leak -g")
@@ -20,6 +21,7 @@ set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
 add_subdirectory(dependencies/benchmark)
+add_subdirectory(dependencies/glm)
 add_subdirectory(agario)
 add_subdirectory(environment)
 add_subdirectory(utils)

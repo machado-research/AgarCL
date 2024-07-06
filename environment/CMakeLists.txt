@@ -22,7 +22,7 @@ option(RENDERABLE "Make environments renderable" ON) # Disabled by default
 if (RENDERABLE)
     message("Renderable")
     add_definitions(-DRENDERABLE)
-    
+
 
 endif ()
 
@@ -53,19 +53,17 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
 
     # find_library(GLFW REQUIRED)
     find_package(glfw3 3.3 REQUIRED)
-    find_package(glm REQUIRED)
     #NEW
     # find_package(GLEW REQUIRED)
 
     #NEW
     # include_directories(${GLEW_INCLUDE_DIRS})
-    
+
     include_directories(${GLM_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${GLFW_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
-    
-    link_directories(${GLM_LIBRARY_DIRS})
+
     #NEW
     # link_directories(${GLEW_LIBRARY_DIRS})
-    
+
     add_definitions(${GLM_DEFINITIONS})
 
     pybind11_add_module(agarle bindings.cpp renderable.hpp
@@ -81,7 +79,7 @@ else()
     # standard compilation with Grid and Ram environments only
     pybind11_add_module(agarle bindings.cpp renderable.hpp
             ${AGARIO_ENVS_SOURCE})
-            
+
     target_include_directories(agarle PRIVATE "..")
     target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
     target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw)
@@ -101,7 +99,7 @@ if (GTEST_FOUND)
     set(TEST_SRC
             test/main.cpp
             test/grid-env-test.hpp)
-    
+
 
     add_executable(test-envs ${TEST_SRC} ${AGARIO_GRID_ENV_SOURCE})
     target_include_directories(test-envs PUBLIC ".." ${GTEST_INDLUCE_DIRS})
