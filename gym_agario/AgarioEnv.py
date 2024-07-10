@@ -56,9 +56,8 @@ will be set True automatically.
 """
 
 import gymnasium as gym
-from gymnasium import error, spaces, utils
+from gymnasium import spaces
 import numpy as np
-from collections import namedtuple
 
 import agarle
 
