@@ -35,19 +35,30 @@ namespace agario {
 
     public:
 
-      explicit BaseEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots, bool reward_type, int c_death = 0) :
+      explicit BaseEnvironment(
+        int num_agents,
+        int ticks_per_step,
+        int arena_size,
+        bool pellet_regen,
+        int num_pellets,
+        int num_viruses,
+        int num_bots,
+        bool reward_type,
+        int c_death = 0
+      ):
         num_agents_(num_agents),
         dones_(num_agents),
         engine_(arena_size, arena_size, num_pellets, num_viruses, pellet_regen),
-        ticks_per_step_(ticks_per_step), num_bots_(num_bots),
+        ticks_per_step_(ticks_per_step),
+        num_bots_(num_bots),
         reward_type_(reward_type),
         step_dt_(DEFAULT_DT),
-        c_death_(c_death){
-
+        c_death_(c_death)
+      {
         pids_.reserve(num_agents);
         reset();
       }
+
       virtual void close(){}
       ~BaseEnvironment()=default;
       [[nodiscard]] int num_agents() const { return num_agents_; }
