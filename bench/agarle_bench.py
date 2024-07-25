@@ -17,31 +17,38 @@ import numpy as np
 import cProfile
 
 
-def mass(): 
+def mass():
     return 0
 
 def diff():
     return 1
 
 
-default_config = {
-    'ticks_per_step':  4,
-    'num_frames':      10,
-    'arena_size':      500,
-    'num_pellets':     1000,
-    'num_viruses':     25,
-    'num_bots':        100000,
-    'pellet_regen':    True,
-    'grid_size':       9,
-    'observe_cells':   False,
-    'observe_others':  True,
-    'observe_viruses': True,
-    'observe_pellets': True,
-    'obs_type'       : "grid",   #Two options: screen, grid
-    'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
-    'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
-}
 
+# Default configuration for the environment
+# default_config = {
+#     'ticks_per_step':  4,
+#     'num_frames':      10,
+#     'arena_size':      500,
+#     'num_pellets':     1000,
+#     'num_viruses':     25,
+#     'num_bots':        30,
+#     'pellet_regen':    True,
+#     'grid_size':       9,
+#     'observe_cells':   True,
+#     'observe_others':  True,
+#     'observe_viruses': True,
+#     'observe_pellets': True,
+#     'obs_type'       : "grid",   #Two options: screen, grid
+#     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
+#     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
+# }
+
+config_file = 'tasks_configs/Exploration.json'
+with open(config_file, 'r') as file:
+    default_config = eval(file.read())
+    # Convert 'true' and 'false' to True and False in config
+    default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
 
 def main():
     args = parse_args()
@@ -50,24 +57,24 @@ def main():
         for name in default_config
         if hasattr(args, name)
     }
-
+    print(env_config)
     env = gym.make(args.env, **env_config)
-    env.reset() 
+    env.reset()
     states = []
     for _ in range(args.num_steps):
         max_val, min_val = 1, -1
         range_size = max_val - min_val
         random_values = [0.01, 0.1]
         null_action = ([(random_values[0], random_values[1]),0])
-        state, reward, done, step_num = env.step(null_action) 
+        state, reward, done, step_num = env.step(null_action)
         env.render()
     env.close()
-#
+# #
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=10000, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
 
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")

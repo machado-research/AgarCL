@@ -1,6 +1,6 @@
 """
 File: AgarioEnv
-Date: 2019-07-30 
+Date: 2019-07-30
 Author: Jon Deaton (jonpauldeaton@gmail.com)
 
 This file wraps the Agar.io Learning Environment (agarle)
@@ -106,17 +106,17 @@ class AgarioEnv(gym.Env):
         if len(actions) != self.num_agents:
             raise ValueError(f"Number of actions {len(actions)} does"
                                  f"not match number of agents {self.num_agents}")
-        
+
         # make sure that the actions are well-formed
         for action in actions:
             if action not in self.action_space:
                 raise ValueError(f"action {action} not in action space")
-        
+
         # gotta format the action for the underlying module.
         # passing the raw target numpy array is tricky because
         # of data formatting :(
         actions = [(tgt[0], tgt[1], a) for tgt, a in actions]
-        
+
         # set the action for each agent
         self._env.take_actions(actions)
 
@@ -139,7 +139,7 @@ class AgarioEnv(gym.Env):
 
         self.steps += 1
         return observations, rewards, dones, {'steps': self.steps}
-    
+
     def reset(self):
         """ resets the environment
         :return: the state of the environment at the beginning
@@ -151,7 +151,7 @@ class AgarioEnv(gym.Env):
 
     def render(self, mode='human'):
         self._env.render()
-        
+
     def close(self):
         self._env.close()
 
@@ -235,7 +235,7 @@ class AgarioEnv(gym.Env):
 
         else:
             raise ValueError(obs_type)
-        
+
         return env, observation_space
 
     def _get_env_args(self, kwargs):
@@ -259,7 +259,7 @@ class AgarioEnv(gym.Env):
         num_bots = 25
         pellet_regen = True
         allow_respawn = True
-        reward_type   = 1 #means diff 
+        reward_type   = 1 #means diff
         if difficulty == "normal":
             pass  # default
 
@@ -282,22 +282,21 @@ class AgarioEnv(gym.Env):
         self.arena_size      = kwargs.get("arena_size", arena_size)
         self.num_pellets     = kwargs.get("num_pellets", num_pellets)
         self.num_viruses     = kwargs.get("num_viruses", num_viruses)
-        self.num_bots        = kwargs.get("num_bot", num_bots)
+        self.num_bots        = kwargs.get("num_bots", num_bots)
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
         self.reward_type   = kwargs.get("reward_type", reward_type)
         self.c_death         = kwargs.get("c_death", -100)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
-
+        print( "HELLO" , self.num_bots)
         # todo: more assertions
         if type(self.ticks_per_step) is not int or self.ticks_per_step <= 0:
             raise ValueError(f"ticks_per_step must be a positive integer")
 
         return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
-               self.num_viruses, self.num_bots, self.reward_type, \
-                self.allow_respawn, self.c_death
+               self.num_viruses, self.num_bots, self.reward_type
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility
