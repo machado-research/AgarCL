@@ -64,9 +64,9 @@ import agarle
 
 
 class AgarioEnv(gym.Env):
-    metadata = {'render_modes': ['human'], 'render_fps': 60}
+    metadata = {'render_modes': ['human','rgb_array'], 'render_fps': 60}
 
-    def __init__(self, obs_type='grid', **kwargs):
+    def __init__(self, obs_type='grid', render_mode = None, **kwargs):
         super(AgarioEnv, self).__init__()
 
         if obs_type not in ("ram", "screen", "grid"):
@@ -78,6 +78,7 @@ class AgarioEnv(gym.Env):
 
         target_space = spaces.Box(low=-np.inf, high=np.inf, shape=(2,))
         self.action_space = spaces.Tuple((target_space, spaces.Discrete(3)))
+        self.render_mode = render_mode
 
         self._seed = None
 
@@ -124,20 +125,24 @@ class AgarioEnv(gym.Env):
         assert len(rewards) == self.num_agents
 
         # observe the new state of the environment for each agent
-        observations = self._make_observations()
+        self.observations = self._make_observations()
 
         # get the "done" status of each agent
         dones = self._env.dones()
         assert len(dones) == self.num_agents
+        
+        # set the "truncation" status of each agent to 'False'
+        truncations = [False] * len(dones)
 
         # unwrap observations, rewards, dones if not mult-agent
         if not self.multi_agent:
-            observations = observations[0]
+            self.observations = self.observations[0]
             rewards = rewards[0]
             dones = dones[0]
+            truncations = truncations[0]
 
         self.steps += 1
-        return observations, rewards, dones, {'steps': self.steps}
+        return self.observations, rewards, dones, truncations, {'steps': self.steps}
     
     def reset(self):
         """ resets the environment
@@ -148,8 +153,27 @@ class AgarioEnv(gym.Env):
         obs = self._make_observations()
         return obs if self.multi_agent else obs[0]
 
-    def render(self, mode='human'):
-        self._env.render()
+    def render(self):
+        # to do: if statements should be changed to self.render_mode, where: 
+        # "human": The environment is continuously rendered in the current display or terminal, usually for human consumption.
+        # "rgb_array": Return a single frame representing the current state of the environment.
+        if self.render_mode == "human": 
+            self._env.render()
+            
+        if self.render_mode == 'rgb_array':
+            
+            if self.obs_type == "screen": 
+                return self.observations
+                
+            if self.obs_type == "grid": 
+                frames = np.split(self.observations, indices_or_sections=self.num_frames, axis=-1)
+                frame_array = np.empty((self.num_frames, *self._visualise_grid_observations(frames[0]).shape), dtype=np.uint8)
+
+                for i in range(self.num_frames):
+                    frame_array[i] = self._visualise_grid_observations(frames[i])
+
+                return frame_array
+                
         
     def close(self):
         self._env.close()
@@ -160,7 +184,6 @@ class AgarioEnv(gym.Env):
         :return: An observation object
         """
         states = self._env.get_state()
-        # print(f'len(states): {len(states)}, self.num_agents: {self.num_agents}')
         assert len(states) == self.num_agents
 
         if self.obs_type in ("grid", ):
@@ -251,9 +274,12 @@ class AgarioEnv(gym.Env):
 
         multi_agent = False
         num_agents = 1
+        
+        self.grid_size = kwargs.get("grid_size", 128)
 
         # default values for the "normal"
         ticks_per_step = 4
+        num_frames = 1
         arena_size = 1000
         num_pellets = 1000
         num_viruses = 25
@@ -280,13 +306,14 @@ class AgarioEnv(gym.Env):
         self.multi_agent     = kwargs.get("multi_agent", multi_agent)
         self.num_agents      = kwargs.get("num_agents", num_agents)
         self.ticks_per_step  = kwargs.get("ticks_per_step", ticks_per_step)
+        self.num_frames      = kwargs.get("num_frames", num_frames)
         self.arena_size      = kwargs.get("arena_size", arena_size)
         self.num_pellets     = kwargs.get("num_pellets", num_pellets)
         self.num_viruses     = kwargs.get("num_viruses", num_viruses)
         self.num_bots        = kwargs.get("num_bot", num_bots)
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
-        self.reward_type   = kwargs.get("reward_type", reward_type)
+        self.reward_type     = kwargs.get("reward_type", reward_type)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
 
@@ -294,9 +321,10 @@ class AgarioEnv(gym.Env):
         if type(self.ticks_per_step) is not int or self.ticks_per_step <= 0:
             raise ValueError(f"ticks_per_step must be a positive integer")
 
-        return self.num_agents, self.ticks_per_step, self.arena_size, \
+        return self.num_agents, self.num_frames, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
                self.num_viruses, self.num_bots, self.reward_type
+
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility
@@ -304,3 +332,63 @@ class AgarioEnv(gym.Env):
             self._seed = seed
             self._env.seed(seed)
             return [self._seed]
+
+        
+    def _normalize_layer(self, layer):
+        min_val = np.min(layer)
+        max_val = np.max(layer)
+        if min_val == max_val:
+            return np.zeros_like(layer)
+        return (layer - min_val) / (max_val - min_val)
+        
+        
+    def _visualise_grid_observations(self, next_state):
+        for layer_index in range(next_state.shape[2]):
+            layer = next_state[:, :, layer_index]
+        
+            # Create a mask for objects with weight greater than 1 (all except pellets)
+            # Get the coordinates and weights of those objects
+            mask = layer > 1
+            coords = np.argwhere(mask)
+            weights = layer[mask]
+            
+            radii = (weights * 0.1).astype(int)
+            
+            # Draw circles on the same layer
+            for coord, radius in zip(coords, radii):
+                self._draw_weighted_circles(next_state, (coord[0], coord[1]), radius, layer_index)
+            
+        normalized_layers = np.stack([self._normalize_layer(next_state[ :, :, i]) for i in range(8)], axis=-1)
+        
+        rgb_image = np.ones((self.grid_size, self.grid_size, 3)) * 255
+        
+        # Assign layers to a colors:
+        # Pellets (purple)
+        rgb_image[..., 1] -= normalized_layers[..., 2] * 255  # Green
+
+        # Viruses (green)
+        rgb_image[..., 0] -= normalized_layers[..., 4] * 127.5  # Red
+        rgb_image[..., 2] -= normalized_layers[..., 4] * 127.5  # Blue
+        
+        # Us (red)
+        rgb_image[..., 1] -= normalized_layers[..., 5] * 127.5  # Green
+        rgb_image[..., 2] -= normalized_layers[..., 5] * 127.5  # Blue
+
+        # Other agents (pink)
+        rgb_image[..., 1] -= normalized_layers[..., 6] * 65  # Green
+        rgb_image[..., 2] -= normalized_layers[..., 6] * 55  # Blue
+
+        # to do: make out of bounds zone grey
+
+        # Clip values to the range [0, 255]
+        rgb_image = np.clip(rgb_image, 0, 255).astype(np.uint8)
+        
+        return rgb_image
+    
+    
+    def _draw_weighted_circles(self, image, center, radius, layer_index):
+
+        rr, cc = np.ogrid[:image.shape[0], :image.shape[1]]
+        circle_mask = (rr - center[0])**2 + (cc - center[1])**2 <= radius**2
+        image[circle_mask, layer_index] = 1
+    

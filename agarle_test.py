@@ -1,8 +1,10 @@
 import gym
 import time
+from tqdm import tqdm
 
 import numpy as np
 import gym_agario
+from gym.wrappers import RecordVideo
 
 import imageio
 
@@ -16,45 +18,45 @@ def gen_random_actions():
 def dump_next_states(filename, next_state):
   with open(filename, 'wb') as f:
       next_state.tofile(f)
-  
+
 
 def main(config):
-  env = gym.make("agario-screen-v0",  render_mode="rgb_array", **config)
-  video_writer = imageio.get_writer('video/gameplay_4ticks_2k.mp4', fps=60)
+  env = gym.make("agario-grid-v0",  render_mode="rgb_array", **config)
+  video_writer = imageio.get_writer('video/grid_env.mp4', fps=60)
   state = env.reset()
+  # env.render()
 
   start_time = time.time()
     
-  num_steps = 2000  
-  for i in range(num_steps):
-    null_action = gen_random_actions()
-    next_state, reward, done, info = env.step(null_action)  
+  num_steps = 500
+  for i in tqdm(range(num_steps)):
+    # null_action = gen_random_actions()
+    null_action = [(1,1), 0]
+    next_state, reward, done, truncation, info = env.step(null_action)  
+    rendered = env.render()
     
-    for j in range(config['ticks_per_step']):
-      video_writer.append_data(next_state[j])   
-    
-    if done:
-      break
+    for j in range(env.num_frames):
+      video_writer.append_data(rendered[j])   
 
   video_writer.close()
     
-  # end_time = time.time()
-  # total_time = end_time - start_time
-  # fps = num_steps / total_time
+  end_time = time.time()
+  total_time = end_time - start_time
+  fps = num_steps / total_time
     
-  # print(f"Frames per second (FPS): {fps:.2f}")
+  print(f"Frames per second (FPS): {fps:.2f}")
 
 
 if __name__ == "__main__":
   config = {
-    'ticks_per_step': 4,
+    'num_frames': 1,
     'arena_size': 1000,
     'pellet_regen': True,
     'num_pellets': 1000,
     'num_viruses': 25,
     'num_bots': 25,
-    'screen_len': 84, # for screen world
-    # 'grid_size': 9, # for grid world
+    # 'screen_len': 84, # for screen world
+    'grid_size': 128, # for grid world
   } 
   
   main(config)

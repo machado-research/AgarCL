@@ -96,13 +96,13 @@ namespace agario::env {
       using dtype = std::uint8_t; 
 
       explicit ScreenEnvironment(int num_agents, int frames_per_step, int arena_size, bool pellet_regen,
-                                 int num_pellets, int num_viruses, int num_bots,
-                                 screen_len screen_width, screen_len screen_height, int c_death, bool respawn, bool reward_type=0) :
+                                 int num_pellets, int num_viruses, int num_bots,  bool reward_type,
+                                 screen_len screen_width, screen_len screen_height, int c_death, bool respawn) :
         Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type),
         _observation(frames_per_step, screen_width, screen_height),
         frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height)),
         renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height()){
-
+          
         if (!frame_buffer) {
           std::cerr << "Error: frame_buffer is null in ScreenEnvironment constructor" << std::endl;
         }
