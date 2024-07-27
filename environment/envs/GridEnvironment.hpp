@@ -306,17 +306,28 @@ namespace agario::env {
       using dtype = T;
       using Observation = GridObservation;
 
-      explicit GridEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots, bool reward_type=0) :
-        Super(num_agents, ticks_per_step, arena_size, pellet_regen,
-              num_pellets, num_viruses, num_bots,reward_type) {
-
+      explicit GridEnvironment(
+        int num_agents,
+        int ticks_per_step,
+        int arena_size,
+        bool pellet_regen,
+        int num_pellets,
+        int num_viruses,
+        int num_bots,
+        bool reward_type=0
+      ):
+        Super(
+          num_agents, ticks_per_step, arena_size,
+          pellet_regen, num_pellets, num_viruses,
+          num_bots, reward_type
+      ) {
 #ifdef RENDERABLE
         window = std::make_shared<Window>("Agar.io Environment", 512, 512);
-        renderer = std::make_unique<agario::Renderer>(window,
-                                                      this->engine_.arena_width(),
-                                                      this->engine_.arena_height());
-
+        renderer = std::make_unique<agario::Renderer>(
+          window,
+          this->engine_.arena_width(),
+          this->engine_.arena_height()
+        );
 #endif
       }
 
