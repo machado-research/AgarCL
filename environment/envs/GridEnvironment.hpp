@@ -21,7 +21,7 @@
 
 namespace agario::env {
 
-    template<typename T, bool renderable>
+    template<bool renderable>
     class GridObservation {
       using GameState = GameState<renderable>;
       using Player = Player<renderable>;
@@ -38,7 +38,6 @@ namespace agario::env {
       };
 
     public:
-      using dtype = T;
       using Shape = std::tuple<int, int, int>;
       using Strides = std::tuple<ssize_t, ssize_t, ssize_t>;
 
@@ -49,7 +48,7 @@ namespace agario::env {
       template <typename ...Args>
       explicit GridObservation(Args&&... args) : config_(args...) {
         _make_shapes();
-        data_ = new dtype[length()];
+        data_ = new int[length()];
         clear_data();
       }
 
@@ -61,14 +60,14 @@ namespace agario::env {
         delete[] data_; // might be nullptr, thats ok
 
         _make_shapes();
-        data_ = new dtype[length()];
+        data_ = new int[length()];
         clear_data();
       }
 
       [[nodiscard]] bool configured() const  { return data_ != nullptr; }
 
       /* data buffer, mulit-dim array shape and sizes*/
-      const dtype *data() const {
+      const int *data() const {
         if (!configured())
           throw EnvironmentException("GridObservation was not configured.");
         return data_;
@@ -160,7 +159,7 @@ namespace agario::env {
       ~GridObservation() { delete[] data_; }
 
     private:
-      dtype *data_;
+      int *data_;
       Shape shape_;
       Strides strides_;
 
@@ -199,7 +198,7 @@ namespace agario::env {
 
         shape_ = {num_channels, config_.grid_size, config_.grid_size};
 
-        auto dtype_size = static_cast<long>(sizeof(dtype));
+        auto dtype_size = sizeof(int);
         strides_ = {
           config_.grid_size * config_.grid_size * dtype_size,
           config_.grid_size * dtype_size,
@@ -296,14 +295,13 @@ namespace agario::env {
     };
 
 
-    template<typename T, bool renderable>
+    template<bool renderable>
     class GridEnvironment : public BaseEnvironment<renderable> {
       using Player = agario::Player<renderable>;
-      using GridObservation = GridObservation<T, renderable>;
+      using GridObservation = GridObservation<renderable>;
       using Super = BaseEnvironment<renderable>;
 
     public:
-      using dtype = T;
       using Observation = GridObservation;
 
       explicit GridEnvironment(
@@ -389,22 +387,12 @@ namespace agario::env {
           window->swap_buffers();
         }
 
-       void close() override {
-       void close() override {
-#ifdef RENDERABLE
       void close() override {
-#ifdef RENDERABLE
         renderer->close_program();
         window->destroy();
         // glfwTerminate();
         // glDeleteProgram(renderer->shader.program);
-    }
-    }
-    virtual ~GridEnvironment() {
-#ifdef RENDERABLE
       }
-    virtual ~GridEnvironment() {
-#ifdef RENDERABLE
 
 #else
       void render() override {}

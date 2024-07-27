@@ -44,25 +44,23 @@ std::vector<agario::env::Action> to_action_vector(const py::list &actions) {
 /* extracts observations from each agent, wrapping them in NumPy arrays */
 template <typename Environment>
 py::list get_state(const Environment &environment) {
-  using dtype = typename Environment::dtype;
-
   auto &observations = environment.get_observations();
   py::list obs;
   for (auto &observation : observations) {
     // make a copy of the data for the numpy array to take ownership of
-    auto *data = new dtype[observation.length()];
+    auto *data = new int[observation.length()];
     std::copy(observation.data(), observation.data() + observation.length(), data);
 
     const auto &shape = observation.shape();
     const auto &strides = observation.strides();
 
     py::capsule cleanup(data, [](void *ptr) {
-      auto *data_pointer = reinterpret_cast<dtype*>(ptr);
+      auto *data_pointer = reinterpret_cast<int*>(ptr);
       delete[] data_pointer;
     });
 
     // add the numpy array to the list of observations
-    obs.append(py::array_t<dtype>(to_vector(shape), to_vector(strides), data, cleanup));
+    obs.append(py::array_t<int>(to_vector(shape), to_vector(strides), data, cleanup));
   }
 
   return obs; // list of numpy arrays
@@ -74,7 +72,7 @@ PYBIND11_MODULE(agarle, module) {
   module.doc() = "Agar.io Learning Environment";
 
   /* ================ Grid Environment ================ */
-  using GridEnvironment = agario::env::GridEnvironment<int, renderable>;
+  using GridEnvironment = agario::env::GridEnvironment<renderable>;
 
   py::class_<GridEnvironment>(module, "GridEnvironment")
     .def(py::init<int, int, int, bool, int, int, int, bool>())
@@ -87,7 +85,7 @@ PYBIND11_MODULE(agarle, module) {
       bool others    = config.contains("observe_others")  ? config["observe_others"].cast<bool>()  : true;
       bool viruses   = config.contains("observe_viruses") ? config["observe_viruses"].cast<bool>() : true;
       bool pellets   = config.contains("observe_pellets") ? config["observe_pellets"].cast<bool>() : true;
-    
+
       env.configure_observation(num_frames, grid_size, cells, others, viruses, pellets);
     })
     .def("observation_shape", &GridEnvironment::observation_shape)
@@ -100,7 +98,7 @@ PYBIND11_MODULE(agarle, module) {
     .def("step", &GridEnvironment::step)
     .def("get_state", &get_state<GridEnvironment>)
     .def("close", &GridEnvironment::close);
-  
+
   /* ================ Ram Environment ================ */
   // using RamEnvironment = agario::env::RamEnvironment<renderable>;
 
@@ -117,7 +115,7 @@ PYBIND11_MODULE(agarle, module) {
   //   .def("step", &RamEnvironment::step)
   //   .def("get_state", &get_state<RamEnvironment>);
 
-  
+
   /* ================ Screen Environment ================ */
   /* we only include this conditionally if OpenGL was found available for linking */
 
