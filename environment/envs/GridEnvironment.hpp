@@ -378,31 +378,39 @@ namespace agario::env {
 
       }
 
-      void render() override {
 #ifdef RENDERABLE
+      void render() override {
 
-      for (auto &pid: this->pids_) {
-        auto &player = this->engine_.player(pid);
-        renderer->render_screen(player, this->engine_.game_state());
-      }
-        glfwPollEvents();
-        window->swap_buffers();
-#endif
-      }
+        for (auto &pid: this->pids_) {
+          auto &player = this->engine_.player(pid);
+          renderer->render_screen(player, this->engine_.game_state());
+        }
+          glfwPollEvents();
+          window->swap_buffers();
+        }
 
        void close() override {
+       void close() override {
 #ifdef RENDERABLE
-      renderer->close_program();
-      window->destroy();
-      // glfwTerminate();
-      // glDeleteProgram(renderer->shader.program);
-#endif
+      void close() override {
+#ifdef RENDERABLE
+        renderer->close_program();
+        window->destroy();
+        // glfwTerminate();
+        // glDeleteProgram(renderer->shader.program);
+    }
     }
     virtual ~GridEnvironment() {
 #ifdef RENDERABLE
+      }
+    virtual ~GridEnvironment() {
+#ifdef RENDERABLE
 
+#else
+      void render() override {}
+      void close() override {}
 #endif
-    }
+      virtual ~GridEnvironment() {}
 
     private:
       std::vector<Observation> observations;
@@ -411,6 +419,6 @@ namespace agario::env {
       std::unique_ptr<agario::Renderer> renderer;
       std::shared_ptr<Window> window;
 #endif
-    };
+  };
 
 } // namespace agario::env
