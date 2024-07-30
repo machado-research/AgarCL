@@ -119,11 +119,22 @@ namespace agario::env {
       }
         
       void render() override {
-        // to do: render the environment on screen
-        };
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, screen_width(), screen_height());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        for (auto &pid: this->pids_) {
+          auto &player = this->engine_.player(pid);
+          render_frame(player);
+        }
+
+        glfwPollEvents();
+        frame_buffer -> swap_buffers();
+        frame_buffer -> show();
+      }
 
       void close() override {
-        // to do: close the environment
+        renderer.close_program(); 
       }
 
     private:
@@ -131,9 +142,13 @@ namespace agario::env {
       std::shared_ptr<FrameBufferObject> frame_buffer;
       agario::Renderer renderer;
 
+      void render_frame(Player &player) {
+        renderer.render_screen(player, this->engine_.game_state());
+      }
+
       // stores current frame into buffer containing the next observation
       void _partial_observation(Player &player, int frame_index) override {
-        renderer.render_screen(player, this->engine_.game_state());
+        render_frame(player);
         void *data = _observation.frame_data(frame_index);
         frame_buffer->copy(data);
       }
@@ -150,6 +165,8 @@ namespace agario::env {
           return;
         }
       }
+
+      
 
     };
 

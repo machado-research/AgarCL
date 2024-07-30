@@ -37,15 +37,14 @@ public:
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    window = glfwCreateWindow(_width, _height, "", nullptr, nullptr);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // GLFW_FALSE - window is not visible by default, GLFW_TRUE - window is visible by default
+    window = glfwCreateWindow(_width, _height, "Agar.io Environment", nullptr, nullptr);
 
     if (window == nullptr) {
       glfwTerminate();
       throw FBOException("Off-screen window creation failed");
     }
 
-    glfwHideWindow(window);
     glfwMakeContextCurrent(window);
 
     if (!glfwGetCurrentContext()) {
@@ -90,6 +89,8 @@ public:
 
     exception_on_gl_error("After BindBuffer");
 
+    // show();
+
   }
 
   int width() const override { return _width; }
@@ -103,8 +104,8 @@ public:
 
     exception_on_gl_error("ReadBuffer");
     
-    glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
-    // glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    // glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data); // for rgb_array render mode
 
     exception_on_gl_error("ReadPixels");
     }
