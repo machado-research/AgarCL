@@ -54,13 +54,12 @@ Note that if you pass "num_agents" greater than 1, "multi_agent"
 will be set True automatically.
 
 """
-
+from typing import List, Tuple
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 
 import agarle
-
 
 class AgarioEnv(gym.Env):
     metadata = {'render_modes': ['human'], 'render_fps': 60}
@@ -98,28 +97,7 @@ class AgarioEnv(gym.Env):
         """
         assert self.steps is not None, "Cannot call step() before calling reset()"
 
-        if not self.multi_agent:
-            # if not multi-agent then the action should just be a single tuple
-            actions = [actions]
-
-        if type(actions) is not list:
-            raise ValueError("Action list must be a list of two-element tuples")
-
-        if len(actions) != self.num_agents:
-            raise ValueError(f"Number of actions {len(actions)} does"
-                                 f"not match number of agents {self.num_agents}")
-
-        # make sure that the actions are well-formed
-        for action in actions:
-            if action not in self.action_space:
-                raise ValueError(f"action {action} not in action space")
-
-        # gotta format the action for the underlying module.
-        # passing the raw target numpy array is tricky because
-        # of data formatting :(
-        actions = [(tgt[0], tgt[1], a) for tgt, a in actions]
-
-        # set the action for each agent
+        actions = self._sanitize_actions(actions)
         self._env.take_actions(actions)
 
         # step the environment forwards through time
@@ -188,22 +166,18 @@ class AgarioEnv(gym.Env):
 
         args = self._get_env_args(kwargs)
         if obs_type == "grid":
-            num_frames = kwargs.get("num_frames", 2)
-            grid_size = kwargs.get("grid_size", 128)
-            observe_cells = kwargs.get("observe_cells",     True)
-            observe_others = kwargs.get("observe_others",   True)
-            observe_viruses = kwargs.get("observe_viruses", True)
-            observe_pellets = kwargs.get("observe_pellets", True)
-            c_death = kwargs.get("c_death", 0)
+            grid_defaults = {
+                'num_frames': 2,
+                'grid_size': 128,
+                'observe_cells': True,
+                'observe_others': True,
+                'observe_viruses': True,
+                'observe_pellets': True,
+                'c_death': 0,
+            }
+
             env = agarle.GridEnvironment(*args)
-            env.configure_observation({
-                "num_frames": num_frames,
-                "grid_size": grid_size,
-                "observe_cells": observe_cells,
-                "observe_others": observe_others,
-                "observe_viruses": observe_viruses,
-                "observe_pellets": observe_pellets,
-            })
+            env.configure_observation(kwargs | grid_defaults)
 
             channels, width, height = env.observation_shape()
             shape = (width, height, channels)
@@ -239,6 +213,28 @@ class AgarioEnv(gym.Env):
             raise ValueError(obs_type)
 
         return env, observation_space
+
+    def _sanitize_actions(self, actions) -> List[Tuple[float, float, int]]:
+        if not self.multi_agent:
+            # if not multi-agent then the action should just be a single tuple
+            actions = [actions]
+
+        if type(actions) is not list:
+            raise ValueError("Action list must be a list of two-element tuples")
+
+        if len(actions) != self.num_agents:
+            raise ValueError(f"Number of actions {len(actions)} does not match number of agents {self.num_agents}")
+
+        # make sure that the actions are well-formed
+        for action in actions:
+            if action not in self.action_space:
+                raise ValueError(f"action {action} not in action space")
+
+        # gotta format the action for the underlying module.
+        # passing the raw target numpy array is tricky because
+        # of data formatting :(
+        actions = [(tgt[0], tgt[1], a) for tgt, a in actions]
+        return actions
 
     def _get_env_args(self, kwargs):
         """ creates a set of positional arguments to pass to the learning environment
