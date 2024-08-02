@@ -97,6 +97,16 @@ PYBIND11_MODULE(agarle, module) {
     .def("take_actions", [](GridEnvironment &env, const py::list &actions) {
       env.take_actions(to_action_vector(actions));
     })
+    .def("get_frame", []( GridEnvironment &env) {
+      auto& observation = env.get_frame();
+      auto data = (void *)observation.frame_data();
+      auto shape = observation.frame_shape();
+      auto strides = observation.frame_strides();
+      auto format = py::format_descriptor<std::uint8_t>::format();
+      auto buffer = py::buffer_info(data, sizeof(std::uint8_t), format, shape.size(), shape, strides);
+      auto arr = py::array_t<std::uint8_t>(buffer);
+      return arr;
+    })
     .def("reset", &GridEnvironment::reset)
     .def("render", &GridEnvironment::render)
     .def("step", &GridEnvironment::step)

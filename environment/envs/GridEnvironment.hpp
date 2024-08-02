@@ -13,11 +13,12 @@
 
 #ifdef RENDERABLE
 #include <agario/core/renderables.hpp>
-#include <agario/rendering/window.hpp>
 #include <agario/rendering/renderer.hpp>
+#include "agario/rendering/FrameBufferObject.hpp"
 #endif
 
 #define DEFAULT_GRID_SIZE 128
+# define PIXEL_LEN 3
 
 namespace agario::env {
 
@@ -303,6 +304,65 @@ namespace agario::env {
       }
     };
 
+    class FrameObservation {
+    public:
+      explicit FrameObservation(int num_frames, screen_len width, screen_len height) :
+        _num_frames(num_frames), _width(width), _height(height) {
+          _frame_data = new std::uint8_t[length()];
+          clear();
+        }
+
+        [[nodiscard]] const std::uint8_t *frame_data() const { 
+        return _frame_data; }
+
+
+        [[nodiscard]] std::size_t length() const {
+          return  _num_frames * _width * _height * PIXEL_LEN;
+        }
+
+        void clear() {
+          std::fill(_frame_data, _frame_data + length(), 0);
+        }
+
+        std::uint8_t *frame_data(int frame_index) const {
+        if (frame_index >= _num_frames)
+          throw FBOException("Frame index " + std::to_string(frame_index) + " out of bounds");
+
+        auto data_index = frame_index * _width * _height * PIXEL_LEN;
+        return &_frame_data[data_index];
+        }
+
+        [[nodiscard]] int num_frames() const { return _num_frames; }
+
+        [[nodiscard]] std::vector<int> frame_shape() const {
+          return {_num_frames, _width, _height, PIXEL_LEN};
+        }
+
+        [[nodiscard]] std::vector<ssize_t> frame_strides() const {
+          return {
+            _width * _height * PIXEL_LEN * dtype_size,
+                    _height * PIXEL_LEN * dtype_size,
+                              PIXEL_LEN * dtype_size,
+                                          dtype_size
+          };                       
+        }
+
+        ~FrameObservation() {
+        if (_frame_data) {
+            delete[] _frame_data;
+        } else {
+            std::cout << "Error: _frame_data is null in destructor" << std::endl;
+        }
+      }
+    private:
+      int _num_frames;
+      const int _width;
+      const int _height;
+      static constexpr ssize_t dtype_size = sizeof(std::uint8_t);
+      std::uint8_t *_frame_data;
+
+    };
+
 
     template<typename T, bool renderable>
     class GridEnvironment : public BaseEnvironment<renderable> {
@@ -317,18 +377,18 @@ namespace agario::env {
       explicit GridEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
                                int num_pellets, int num_viruses, int num_bots, bool reward_type=0) :
         Super(num_agents, ticks_per_step, arena_size, pellet_regen, 
-              num_pellets, num_viruses, num_bots,reward_type) {
+              num_pellets, num_viruses, num_bots,reward_type),
+        frame_observation(ticks_per_step, 512, 512),
+        frame_buffer(std::make_shared<FrameBufferObject>(512, 512)) {
 
 #ifdef RENDERABLE
-        window = std::make_shared<Window>("Agar.io Environment", 512, 512);
-        renderer = std::make_unique<agario::Renderer>(window,
+        renderer = std::make_unique<agario::Renderer>(frame_buffer,
                                                       this->engine_.arena_width(),
                                                       this->engine_.arena_height());
         // //make the renderer as normal pointer 
         // renderer  = new agario::Renderer(window,
         //           this->engine_.arena_width(),
         //           this->engine_.arena_height());
-
 
 #endif
       }
@@ -386,50 +446,79 @@ namespace agario::env {
             }
         }
 
-       
         auto &state = this->engine_.game_state();
         // we store in the observation the last `num_frames` frames between each step
         int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
         if (frame_index >= 0)
           observation.add_frame(player, state, frame_index);
-      
+
+        last_player = &player;
+        last_frame_index = frame_index;  
       }
 
       void render() override {
 #ifdef RENDERABLE
 
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      glViewport(0, 0, frame_buffer->width(), frame_buffer->height());
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
       for (auto &pid: this->pids_) {
         auto &player = this->engine_.player(pid);
         renderer->render_screen(player, this->engine_.game_state());
       }
-        glfwPollEvents();
-        window->swap_buffers();
+
+      glfwPollEvents();
+      frame_buffer -> swap_buffers();
+      frame_buffer -> show();
+#endif
+      }
+
+    FrameObservation& get_frame() {
+      save_frames();
+      return frame_observation;
+    }
+
+    std::tuple<int, int, int, int> frame_observation_shape() const {
+        std::vector<int> shape_vec = frame_observation.frame_shape();
+        return std::make_tuple(shape_vec[0], shape_vec[1], shape_vec[2], shape_vec[3]);
+      }
+
+      void save_frames() {
+#ifdef RENDERABLE
+      if (last_player != nullptr) {
+        for (int frame_index = 0; frame_index < frame_observation.num_frames(); ++frame_index) {
+            renderer->render_screen(*last_player, this->engine_.game_state());
+            void *data = frame_observation.frame_data(frame_index);
+            frame_buffer->copy(data);
+        }
+      }
 #endif
       }
 
        void close() override {
 #ifdef RENDERABLE
       renderer->close_program(); 
-      window->destroy();
       // glfwTerminate();
       // glDeleteProgram(renderer->shader.program);
 #endif
     }
     virtual ~GridEnvironment() {
 #ifdef RENDERABLE
-
-
     // delete renderer;
 #endif
     }
 
     private:
       std::vector<Observation> observations;
+      FrameObservation frame_observation;
+      int last_frame_index = 0;  // Store the last frame index
+      Player* last_player = nullptr;  // Store the last processed player
 
 #ifdef RENDERABLE
       // agario::Renderer renderer;
       std::unique_ptr<agario::Renderer> renderer;
-      std::shared_ptr<Window> window;
+      std::shared_ptr<FrameBufferObject> frame_buffer;
 #endif
     };
 

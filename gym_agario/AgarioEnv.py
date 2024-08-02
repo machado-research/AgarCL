@@ -160,19 +160,13 @@ class AgarioEnv(gym.Env):
         if self.render_mode == "human": 
             self._env.render()
             
-        if self.render_mode == 'rgb_array':
+        if self.render_mode == "rgb_array":
             
             if self.obs_type == "screen": 
                 return self.observations
                 
             if self.obs_type == "grid": 
-                frames = np.split(self.observations, indices_or_sections=self.num_frames, axis=-1)
-                frame_array = np.empty((self.num_frames, *self._visualise_grid_observations(frames[0]).shape), dtype=np.uint8)
-
-                for i in range(self.num_frames):
-                    frame_array[i] = self._visualise_grid_observations(frames[i])
-
-                return frame_array
+                return  self._env.get_frame()
                 
         
     def close(self):
@@ -332,63 +326,4 @@ class AgarioEnv(gym.Env):
             self._seed = seed
             self._env.seed(seed)
             return [self._seed]
-
         
-    def _normalize_layer(self, layer):
-        min_val = np.min(layer)
-        max_val = np.max(layer)
-        if min_val == max_val:
-            return np.zeros_like(layer)
-        return (layer - min_val) / (max_val - min_val)
-        
-        
-    def _visualise_grid_observations(self, next_state):
-        for layer_index in range(next_state.shape[2]):
-            layer = next_state[:, :, layer_index]
-        
-            # Create a mask for objects with weight greater than 1 (all except pellets)
-            # Get the coordinates and weights of those objects
-            mask = layer > 1
-            coords = np.argwhere(mask)
-            weights = layer[mask]
-            
-            radii = (weights * 0.1).astype(int)
-            
-            # Draw circles on the same layer
-            for coord, radius in zip(coords, radii):
-                self._draw_weighted_circles(next_state, (coord[0], coord[1]), radius, layer_index)
-            
-        normalized_layers = np.stack([self._normalize_layer(next_state[ :, :, i]) for i in range(8)], axis=-1)
-        
-        rgb_image = np.ones((self.grid_size, self.grid_size, 3)) * 255
-        
-        # Assign layers to a colors:
-        # Pellets (purple)
-        rgb_image[..., 1] -= normalized_layers[..., 2] * 255  # Green
-
-        # Viruses (green)
-        rgb_image[..., 0] -= normalized_layers[..., 4] * 127.5  # Red
-        rgb_image[..., 2] -= normalized_layers[..., 4] * 127.5  # Blue
-        
-        # Us (red)
-        rgb_image[..., 1] -= normalized_layers[..., 5] * 127.5  # Green
-        rgb_image[..., 2] -= normalized_layers[..., 5] * 127.5  # Blue
-
-        # Other agents (pink)
-        rgb_image[..., 1] -= normalized_layers[..., 6] * 65  # Green
-        rgb_image[..., 2] -= normalized_layers[..., 6] * 55  # Blue
-
-        # to do: make out of bounds zone grey
-
-        # Clip values to the range [0, 255]
-        rgb_image = np.clip(rgb_image, 0, 255).astype(np.uint8)
-        
-        return rgb_image
-    
-    
-    def _draw_weighted_circles(self, image, center, radius, layer_index):
-
-        rr, cc = np.ogrid[:image.shape[0], :image.shape[1]]
-        circle_mask = (rr - center[0])**2 + (cc - center[1])**2 <= radius**2
-        image[circle_mask, layer_index] = 1
-    
