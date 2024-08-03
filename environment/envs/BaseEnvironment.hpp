@@ -35,21 +35,32 @@ namespace agario {
 
     public:
 
-      explicit BaseEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots, bool reward_type, int c_death = 0) :
+      explicit BaseEnvironment(
+        int num_agents,
+        int ticks_per_step,
+        int arena_size,
+        bool pellet_regen,
+        int num_pellets,
+        int num_viruses,
+        int num_bots,
+        bool reward_type,
+        int c_death = 0
+      ):
         num_agents_(num_agents),
         dones_(num_agents),
         engine_(arena_size, arena_size, num_pellets, num_viruses, pellet_regen),
-        ticks_per_step_(ticks_per_step), num_bots_(num_bots),
+        ticks_per_step_(ticks_per_step),
+        num_bots_(num_bots),
         reward_type_(reward_type),
         step_dt_(DEFAULT_DT),
-        c_death_(c_death){
-        
+        c_death_(c_death)
+      {
         pids_.reserve(num_agents);
         reset();
       }
+
       virtual void close(){}
-      ~BaseEnvironment()=default; 
+      ~BaseEnvironment()=default;
       [[nodiscard]] int num_agents() const { return num_agents_; }
 
       void repsawn_all_players(){
@@ -87,7 +98,7 @@ namespace agario {
           for (int i = 0; i < num_agents(); ++i)
             rewards[i] -= (before[i] - c_death_);
         }
-        
+
         return rewards;
       }
 
@@ -96,9 +107,8 @@ namespace agario {
       std::vector<T> masses() const {
         std::vector<T> masses_;
         masses_.reserve(num_agents());
-        for (auto &pid : pids_) {
-          auto &player = engine_.get_player(pid);
-          masses_.emplace_back(static_cast<T>(player.mass()));
+        for (const auto &[pid, player] : engine_.players()) {
+          masses_.emplace_back(static_cast<T>(player->mass()));
         }
         return masses_;
       }
@@ -129,7 +139,7 @@ namespace agario {
        */
       void take_action(agario::pid pid, float dx, float dy, int action) {
         auto &player = engine_.player(pid);
-        
+
         if (player.dead()) return; // its okay to take action on a dead player
 
         /* todo: this isn't exactly "calibrated" such such that

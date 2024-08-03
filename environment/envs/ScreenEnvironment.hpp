@@ -31,7 +31,7 @@ namespace agario::env {
         clear();
       }
 
-      [[nodiscard]] const std::uint8_t *frame_data() const { 
+      [[nodiscard]] const std::uint8_t *frame_data() const {
         return _frame_data; }
 
 
@@ -66,16 +66,16 @@ namespace agario::env {
                    _height * PIXEL_LEN * dtype_size,
                              PIXEL_LEN * dtype_size,
                                          dtype_size
-        };                       
+        };
       }
 
       ~ScreenObservation() {
-            if (_frame_data) {
-                delete[] _frame_data;
-            } else {
-                std::cout << "Error: _frame_data is null in destructor" << std::endl;
-            }
+        if (_frame_data) {
+          delete[] _frame_data;
+        } else {
+          std::cout << "Error: _frame_data is null in destructor" << std::endl;
         }
+      }
 
     private:
       int _num_frames;
@@ -95,20 +95,31 @@ namespace agario::env {
       using Food = Food<renderable>;
     public:
       using Super = BaseEnvironment<renderable>;
-      using dtype = std::uint8_t; 
+      using dtype = std::uint8_t;
 
-      explicit ScreenEnvironment(int num_agents, int frames_per_step, int arena_size, bool pellet_regen,
-                                 int num_pellets, int num_viruses, int num_bots, bool respawn,
-                                 screen_len screen_width, screen_len screen_height, bool reward_type=0) :
-        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type),
+      explicit ScreenEnvironment(
+        int num_agents,
+        int frames_per_step,
+        int arena_size,
+        bool pellet_regen,
+        int num_pellets,
+        int num_viruses,
+        int num_bots,
+        bool respawn,
+        screen_len screen_width,
+        screen_len screen_height,
+        bool reward_type=0,
+        int c_death=0
+      ):
+        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death),
         _observation(frames_per_step, screen_width, screen_height),
         frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height)),
-        renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height()) {
-
-          if (!frame_buffer) {
-              std::cerr << "Error: frame_buffer is null in ScreenEnvironment constructor" << std::endl;
-          }
+        renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height())
+      {
+        if (!frame_buffer) {
+          std::cerr << "Error: frame_buffer is null in ScreenEnvironment constructor" << std::endl;
         }
+      }
 
       [[nodiscard]] const ScreenObservation &get_state() {
         return _observation; }
@@ -137,7 +148,3 @@ namespace agario::env {
     };
 
 } // namespace agario:env
-
-
-
-
