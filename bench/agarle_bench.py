@@ -26,18 +26,6 @@ def diff():
 import random
 from typing import Tuple, List
 
-# class LocationDistribution:
-#     @abstractmethod
-#     def sample(self, n: int) -> List[Tuple[int, int]]:
-#         pass
-
-
-
-# # Example usage:
-# uniform_dist = UniformLocationDistribution(0, 100, 0, 100)
-# samples = uniform_dist.sample(5)
-# print(samples)
-
 # Default configuration for the environment
 # default_config = {
 #     'ticks_per_step':  4,
@@ -57,14 +45,16 @@ from typing import Tuple, List
 #     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
 # }
 
-config_file = 'tasks_configs/Exploration.json'
+
+config_file = './tasks_configs/Exploration.json'
 with open(config_file, 'r') as file:
     default_config = eval(file.read())
-    # Convert 'true' and 'false' to True and False in config
     default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
 
 def main():
+
     args = parse_args()
+
     env_config = {
         name: getattr(args, name)
         for name in default_config
@@ -87,7 +77,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
     parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
-
+    parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")
     for param in default_config:
