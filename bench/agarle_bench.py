@@ -68,11 +68,7 @@ def main():
     env.reset()
     states = []
     for _ in range(args.num_steps):
-        max_val, min_val = 1, -1
-        range_size = max_val - min_val
-        # random_values = [0.01, 0.1]
         agent_actions = []
-
         for i in range(num_agents):
             target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
             agent_actions.append((target_space.sample(), np.random.randint(0, 3)))
