@@ -289,7 +289,7 @@ class AgarioEnv(gym.Env):
         self.c_death         = kwargs.get("c_death", -100)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
-        print( "HELLO" , self.num_bots)
+
         # todo: more assertions
         if type(self.ticks_per_step) is not int or self.ticks_per_step <= 0:
             raise ValueError(f"ticks_per_step must be a positive integer")

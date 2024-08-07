@@ -27,29 +27,29 @@ import random
 from typing import Tuple, List
 
 # Default configuration for the environment
-# default_config = {
-#     'ticks_per_step':  4,
-#     'num_frames':      10,
-#     'arena_size':      500,
-#     'num_pellets':     1000,
-#     'num_viruses':     25,
-#     'num_bots':        30,
-#     'pellet_regen':    True,
-#     'grid_size':       9,
-#     'observe_cells':   True,
-#     'observe_others':  True,
-#     'observe_viruses': True,
-#     'observe_pellets': True,
-#     'obs_type'       : "grid",   #Two options: screen, grid
-#     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
-#     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
-# }
+default_config = {
+    'ticks_per_step':  4,
+    'num_frames':      10,
+    'arena_size':      500,
+    'num_pellets':     1000,
+    'num_viruses':     25,
+    'num_bots':        30,
+    'pellet_regen':    True,
+    'grid_size':       9,
+    'observe_cells':   True,
+    'observe_others':  True,
+    'observe_viruses': True,
+    'observe_pellets': True,
+    'obs_type'       : "grid",   #Two options: screen, grid
+    'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
+    'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
+}
 
 
-config_file = './tasks_configs/Exploration.json'
-with open(config_file, 'r') as file:
-    default_config = eval(file.read())
-    default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
+# config_file = './tasks_configs/Exploration.json'
+# with open(config_file, 'r') as file:
+#     default_config = eval(file.read())
+#     default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
 
 def main():
 
@@ -61,15 +61,23 @@ def main():
         if hasattr(args, name)
     }
     print(env_config)
-    env = gym.make(args.env, **env_config)
+    num_agents =  2
+    env = gym.make(args.env, **{
+    "multi_agent": True,
+    "num_agents": num_agents})
     env.reset()
     states = []
     for _ in range(args.num_steps):
         max_val, min_val = 1, -1
         range_size = max_val - min_val
-        random_values = [0.01, 0.1]
-        null_action = ([(random_values[0], random_values[1]),0])
-        state, reward, done, step_num = env.step(null_action)
+        # random_values = [0.01, 0.1]
+        agent_actions = []
+
+        for i in range(num_agents):
+            target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
+            agent_actions.append((target_space.sample(), np.random.randint(0, 3)))
+        state, reward, done, step_num = env.step(agent_actions)
+        print(reward)
         env.render()
     env.close()
 
