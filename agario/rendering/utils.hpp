@@ -1,8 +1,10 @@
 #pragma once
 
-#include <GL/glut.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
+#ifdef __LINUX__
+  #include <GL/glut.h>
+  #include <GL/gl.h>
+  #include <GL/glu.h>
+#endif
 
 class FBOException : public std::runtime_error {
   // using runtime_error::runtime_error;
