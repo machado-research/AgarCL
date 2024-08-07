@@ -10,6 +10,5 @@
     "observe_cells":   true,
     "observe_others":  true,
     "observe_viruses": true,
-    "observe_pellets": true,
-    "pellet_location_distribution": "Uniform"
+    "observe_pellets": true
 }

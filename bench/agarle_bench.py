@@ -15,7 +15,7 @@ import gymnasium as gym
 import gym_agario
 import numpy as np
 import cProfile
-
+from abc import ABC, abstractmethod
 
 def mass():
     return 0
@@ -23,7 +23,20 @@ def mass():
 def diff():
     return 1
 
+import random
+from typing import Tuple, List
 
+# class LocationDistribution:
+#     @abstractmethod
+#     def sample(self, n: int) -> List[Tuple[int, int]]:
+#         pass
+
+
+
+# # Example usage:
+# uniform_dist = UniformLocationDistribution(0, 100, 0, 100)
+# samples = uniform_dist.sample(5)
+# print(samples)
 
 # Default configuration for the environment
 # default_config = {
@@ -69,7 +82,6 @@ def main():
         state, reward, done, step_num = env.step(null_action)
         env.render()
     env.close()
-# #
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
