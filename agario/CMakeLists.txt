@@ -8,7 +8,7 @@ project(Agario
         LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-# For C as well 
+# For C as well
 
 set(DEBUG_FLAGS "-g -O0 -fpermissive -fsized-deallocation")
 set(RELEASE_FLAGS "-O3 -fpermissive")
@@ -78,20 +78,15 @@ set(AGARIO_SRC ${AGARIO_CORE_SRC} ${AGARIO_ENGINE_SRC})
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 #find_library(GLFW REQUIRED)
-find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 #NEW
 # find_package(GLEW REQUIRED)
-#NEW 
-include_directories(${GLM_INCLUDE_DIRS})
+#NEW
 #NEW
 # include_directories(${GLEW_INCLUDE_DIRS})
 
-link_directories(${GLM_LIBRARY_DIRS})
 #NEW
 # link_directories(${GLEW_LIBRARY_DIRS})
-
-add_definitions(${GLM_DEFINITIONS})
 
 include_directories(client engine ${OPENGL_INCLUDE_DIR})
 
@@ -105,10 +100,11 @@ set(AGARIO_CLIENT_SRC
         # /usr/include/glad/include/glad/glad.h
         )
 
-set(EXT_SOURCE_DIR "glad/src")
-set(EXT_INCLUDE_DIR "glad/include")
-include_directories("${EXT_INCLUDE_DIR}/glad/glad.h")
-add_library(glad "${EXT_SOURCE_DIR}/glad.c")
+
+
+set(EXT_SOURCE_DIR "../dependencies/glad/src")
+set(EXT_INCLUDE_DIR "../dependencies/glad/include")
+add_library(glad "${EXT_INCLUDE_DIR}/glad/glad.h" "${EXT_SOURCE_DIR}/glad.c")
 
 # Add the -fPIC flag to ensure position-independent code
 set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)

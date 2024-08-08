@@ -9,6 +9,7 @@
 #include <agario/bots/bots.hpp>
 
 #include <chrono>
+#include <thread>
 
 #include <string>
 #include <ctime>
@@ -17,6 +18,7 @@
 #define WINDOW_NAME "AgarIO"
 #define DEFAULT_SCREEN_WIDTH 640
 #define DEFAULT_SCREEN_HEIGHT 480
+#define MAX_FPS 60
 
 #define RENDERABLE true
 
@@ -101,12 +103,14 @@ namespace agario {
     }
 
     void game_loop() {
+      long _tick_time = 1000 / MAX_FPS;
+      auto target_tick_time = std::chrono::milliseconds(_tick_time);
       auto before = std::chrono::system_clock::now();
       while (!window->should_close()) {
 
-        auto now = std::chrono::system_clock::now();
-        auto dt = now - before;
-        before = now;
+        auto tick_start = std::chrono::system_clock::now();
+        auto dt = tick_start - before;
+        before = tick_start;
 
         auto &player = engine.player(player_pid);
 
@@ -116,7 +120,7 @@ namespace agario {
           if (player.dead()) {
             std::cout << "Player \"" << player.name() << "\" (pid ";
             std::cout << player.pid() << ") died." << std::endl;
-            engine.respawn(i);
+            engine.respawn(player);
           }
         }
 
@@ -127,6 +131,12 @@ namespace agario {
         window->swap_buffers();
 
         engine.tick(dt);
+        auto tick_end = std::chrono::system_clock::now();
+        auto tick_time = tick_end - tick_start;
+        auto sleep_time = std::chrono::duration_cast<std::chrono::milliseconds>(target_tick_time - tick_time);
+        if (sleep_time > std::chrono::milliseconds(0)) {
+          std::this_thread::sleep_for(sleep_time);
+        }
       }
     }
 
@@ -144,7 +154,7 @@ namespace agario {
 
     template <typename T>
     void add_bot(int num_bots) {
-      agario::pid pid = 0; 
+      agario::pid pid = 0;
       for (int i = 0; i < num_bots; i++)
         {
           pid = engine.add_player<T>();

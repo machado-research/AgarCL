@@ -56,8 +56,8 @@ namespace {
     EXPECT_EQ((void*) &engine.get_game_state(), (void*) &engine.game_state());
 
     auto &state = engine.get_game_state();
-    EXPECT_EQ(engine.arena_width(), state.arena_width) << "Engine/state arena width mismatch";
-    EXPECT_EQ(engine.arena_height(), state.arena_height) << "Engine/state arena height mismatch";
+    EXPECT_EQ(engine.arena_width(), state.config.arena_width) << "Engine/state arena width mismatch";
+    EXPECT_EQ(engine.arena_height(), state.config.arena_height) << "Engine/state arena height mismatch";
 
     // make sure that state accessors reference same objects as the state
     EXPECT_EQ((void*) &engine.players(), (void*) &state.players);

@@ -1,0 +1,43 @@
+name: build
+on:
+    pull_request:
+        branches: [ master ]
+
+jobs:
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ubuntu-latest]
+                cxx: [clang++]
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                submodules: 'true'
+
+            - name: cache cmake
+              uses: actions/cache@v2
+              env:
+                cache-name: cache-cmake
+              with:
+                path: build/
+                key: ${{ env.cache-name }}-${{ matrix.os }}-${{ matrix.cxx }}
+
+            - name: apt dependencies
+              run: |
+                sudo apt update
+                sudo apt install -yq libglm-dev libglobjects-dev cmake libgtest-dev libgl1-mesa-dev libglu1-mesa-dev libglfw3-dev freeglut3-dev libstdc++-12-dev
+
+            - name: build
+              env:
+                CXX: ${{ matrix.cxx }}
+              run: |
+                cmake -B build -D CMAKE_BUILD_TYPE=Release
+                cmake --build build --target all -j4 --config Release
+
+            - name: test
+              run: |
+                ./build/agario/test-engine
+                ./build/agario/test-engine-renderable
+                ./build/bench/agario-bench

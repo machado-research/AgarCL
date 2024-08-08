@@ -30,7 +30,7 @@ namespace agario::env {
       using Pellet = Pellet<renderable>;
       using Virus = Virus<renderable>;
       using Food = Food<renderable>;
-      
+
       enum calc_type {
         at_least_ = 0,
         total_mass_ = 1,
@@ -93,7 +93,7 @@ namespace agario::env {
           throw EnvironmentException("GridObservation was not configured.");
 
         int channel = channels_per_frame() * frame_index;
-        _mark_out_of_bounds(player, channel, game_state.arena_width, game_state.arena_height);
+        _mark_out_of_bounds(player, channel, game_state.config.arena_width, game_state.config.arena_height);
         if (config_.observe_pellets) {
           channel++;
           _store_entities<Pellet>(game_state.pellets, player, channel, calc_type::at_least_); //at least one_pellet
@@ -134,16 +134,12 @@ namespace agario::env {
       /* the number of frames captured by the observation */
       [[nodiscard]] int num_frames() const { return config_.num_frames; }
 
-      /* Give me whether the agents [my agent and other bots] should respawn or not*/
-      [[nodiscard]] bool respawn() const { return config_.respawn; }
 
-      /* Give more negative reward for the agent if it getting eaten*/  
-      [[nodiscard]] int c_death() const { return config_.c_death; }
       // no copy operations because if you're copying this object then
       // you're probably not using it correctly
       GridObservation(const GridObservation &) = delete; // no copy constructor
       GridObservation &operator=(const GridObservation &) = delete; // no copy assignments
-      
+
       /* move constructor */
       GridObservation(GridObservation &&obs) noexcept :
         data_(std::move(obs.data_)),
@@ -174,18 +170,16 @@ namespace agario::env {
       public:
         Configuration(int num_frames, int grid_size,
                       bool observe_cells, bool observe_others,
-                      bool observe_viruses, bool observe_pellets, bool respawn, int c_death = 0) :
+                      bool observe_viruses, bool observe_pellets) :
           num_frames(num_frames), grid_size(grid_size),
           observe_cells(observe_cells), observe_others(observe_others),
-          observe_pellets(observe_pellets), observe_viruses(observe_viruses), respawn(respawn), c_death(c_death) {}
+          observe_pellets(observe_pellets), observe_viruses(observe_viruses) {}
         int num_frames;
         int grid_size;
         bool observe_pellets;
         bool observe_cells;
         bool observe_viruses;
         bool observe_others;
-        bool respawn; // allow respawn
-        int c_death; // more negative reward for the agent if it getting eaten
       };
 
       Configuration config_;
@@ -196,8 +190,6 @@ namespace agario::env {
         // Pellets: one says if there is a pellet in the cell, the other says the total pellets in the cell.
         // Viruses: one says if there is a virus in the cell, the other says the total viruses in the cell.
         // Observing others: one says if there is a cell in the cell, the other says the maximum in the cell.
-        // return static_cast<int>(1 + config_.observe_cells + config_.observe_others
-        //                         + config_.observe_viruses + config_.observe_pellets);
         return static_cast<int>(1 + config_.observe_cells + 2*config_.observe_others
                                 + 2*config_.observe_viruses + 2*config_.observe_pellets);
       }
@@ -205,7 +197,7 @@ namespace agario::env {
       /* creates the shape and strides to represent the multi-dimensional array */
       void _make_shapes() {
         int num_channels = config_.num_frames * channels_per_frame();
-        
+
         shape_ = {num_channels, config_.grid_size, config_.grid_size};
 
         auto dtype_size = static_cast<long>(sizeof(dtype));
@@ -215,7 +207,7 @@ namespace agario::env {
           dtype_size
         };
       }
-      
+
       /* stores the given entities in the data array at the given `channel` */
       template<typename U>
       void _store_entities(const std::vector<U> &entities, const Player &player, int channel, calc_type calc = calc_type::total_mass_) {
@@ -312,7 +304,7 @@ namespace agario::env {
           clear();
         }
 
-        [[nodiscard]] const std::uint8_t *frame_data() const { 
+        [[nodiscard]] const std::uint8_t *frame_data() const {
         return _frame_data; }
 
 
@@ -344,7 +336,7 @@ namespace agario::env {
                     _height * PIXEL_LEN * dtype_size,
                               PIXEL_LEN * dtype_size,
                                           dtype_size
-          };                       
+          };
         }
 
         ~FrameObservation() {
@@ -376,7 +368,7 @@ namespace agario::env {
 
       explicit GridEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
                                int num_pellets, int num_viruses, int num_bots, bool reward_type=0) :
-        Super(num_agents, ticks_per_step, arena_size, pellet_regen, 
+        Super(num_agents, ticks_per_step, arena_size, pellet_regen,
               num_pellets, num_viruses, num_bots,reward_type),
         frame_observation(ticks_per_step, 512, 512),
         frame_buffer(std::make_shared<FrameBufferObject>(512, 512)) {
@@ -385,10 +377,6 @@ namespace agario::env {
         renderer = std::make_unique<agario::Renderer>(frame_buffer,
                                                       this->engine_.arena_width(),
                                                       this->engine_.arena_height());
-        // //make the renderer as normal pointer 
-        // renderer  = new agario::Renderer(window,
-        //           this->engine_.arena_width(),
-        //           this->engine_.arena_height());
 
 #endif
       }
@@ -431,20 +419,6 @@ namespace agario::env {
 
         Observation &observation = observations[agent_index];
 
-        if (player.dead())
-        {
-          if(observation.respawn()){
-            std::cout << "Player \"" << player.name() << "\" (pid ";
-              std::cout << player.pid() << ") died." << std::endl;
-            this->engine_.respawn(this->pids_[agent_index]);
-            this-> c_death_ = observation.c_death();
-          }
-          else 
-            {
-              this->dones_[agent_index] = true;
-              return;
-            }
-        }
 
         auto &state = this->engine_.game_state();
         // we store in the observation the last `num_frames` frames between each step
@@ -453,7 +427,7 @@ namespace agario::env {
           observation.add_frame(player, state, frame_index);
 
         last_player = &player;
-        last_frame_index = frame_index;  
+        last_frame_index = frame_index;
       }
 
       void render() override {
@@ -498,14 +472,13 @@ namespace agario::env {
 
        void close() override {
 #ifdef RENDERABLE
-      renderer->close_program(); 
+      renderer->close_program();
       // glfwTerminate();
       // glDeleteProgram(renderer->shader.program);
 #endif
     }
     virtual ~GridEnvironment() {
 #ifdef RENDERABLE
-    // delete renderer;
 #endif
     }
 
@@ -516,7 +489,6 @@ namespace agario::env {
       Player* last_player = nullptr;  // Store the last processed player
 
 #ifdef RENDERABLE
-      // agario::Renderer renderer;
       std::unique_ptr<agario::Renderer> renderer;
       std::shared_ptr<FrameBufferObject> frame_buffer;
 #endif

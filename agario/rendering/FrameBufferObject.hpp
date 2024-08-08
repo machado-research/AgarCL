@@ -2,10 +2,11 @@
 
 #include "agario/rendering/platform.hpp"
 #include <GLFW/glfw3.h>
-#include <GL/glut.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-
+#ifdef __LINUX__
+  #include <GL/glut.h>
+  #include <GL/gl.h>
+  #include <GL/glu.h>
+#endif
 #include "agario/rendering/Canvas.hpp"
 #include "agario/rendering/utils.hpp"
 #include <iostream>
@@ -52,13 +53,13 @@ public:
     }else{
       std::cout << "glfwGetCurrentContext ok " << std::endl;
     }
-    
+
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
       throw FBOException("Failed to initialize GLAD" );
     }else{
       std::cout << "GLAD ok " << std::endl;
     }
-    
+
     // Frame Buffer Object
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
@@ -74,7 +75,7 @@ public:
     glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, _width, _height);
     glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth);
-    
+
 
     auto fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (fbo_status == GL_FRAMEBUFFER_UNSUPPORTED)
@@ -103,13 +104,13 @@ public:
     glReadBuffer(GL_BACK);
 
     exception_on_gl_error("ReadBuffer");
-    
+
     // glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
     glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data); // for rgb_array render mode
 
     exception_on_gl_error("ReadPixels");
     }
-  
+
 
   void swap_buffers() const { glfwSwapBuffers(window); }
 

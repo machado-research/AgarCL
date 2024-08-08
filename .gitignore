@@ -1,4 +1,9 @@
 # Created by .ignore support plugin (hsz.mobi)
+
+# project specific rules
+environment/glad
+agario/glad
+
 ### SublimeText template
 # Cache files for Sublime Text
 *.tmlanguage.cache
@@ -789,10 +794,5 @@ venv.bak/
 
 cmake-build-debug/
 
-.history 
+.history
 .DS_store
-test_opengl*
-#screen observations visualisations
-plotted_observations/
-glad/
-plot_obs.py

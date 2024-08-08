@@ -8,8 +8,32 @@
 #include <unordered_map>
 #include <iomanip>
 #include <memory>
+#include <random>
 
 namespace agario {
+
+  class GameConfig {
+    public:
+      const agario::distance arena_width, arena_height;
+
+      const size_t target_num_pellets;
+      const size_t target_num_viruses;
+      const bool pellet_regen;
+
+      explicit GameConfig(
+        agario::distance w,
+        agario::distance h,
+        size_t num_pellets,
+        size_t num_viruses,
+        bool pellet_regen
+      ):
+        arena_width(w),
+        arena_height(h),
+        target_num_pellets(num_pellets),
+        target_num_viruses(num_viruses),
+        pellet_regen(pellet_regen)
+      {}
+  };
 
   template<bool renderable>
   class GameState {
@@ -21,11 +45,16 @@ namespace agario {
     std::vector<agario::Food<renderable>> foods;
     std::vector<agario::Virus<renderable>> viruses;
 
-    agario::distance arena_width, arena_height;
-    agario::tick ticks;
+    std::mt19937_64 rng;
+    agario::tick ticks = 0;
+    agario::pid next_pid = 0;
 
-    explicit GameState (agario::distance arena_width, agario::distance arena_height) :
-      arena_width(arena_width), arena_height(arena_height), ticks(0) { }
+    agario::GameConfig config;
+
+    explicit GameState (const agario::GameConfig &c) :
+      config(c),
+      rng(std::random_device{}())
+    { }
 
     void clear() {
       players.clear();

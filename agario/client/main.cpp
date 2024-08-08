@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <cxxopts.hpp>
+#include <dependencies/cxxopts.hpp>
 #include "agario/client/client.hpp"
 
 cxxopts::Options options() {

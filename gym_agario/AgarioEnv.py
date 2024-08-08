@@ -1,6 +1,6 @@
 """
 File: AgarioEnv
-Date: 2019-07-30 
+Date: 2019-07-30
 Author: Jon Deaton (jonpauldeaton@gmail.com)
 
 This file wraps the Agar.io Learning Environment (agarle)
@@ -54,14 +54,12 @@ Note that if you pass "num_agents" greater than 1, "multi_agent"
 will be set True automatically.
 
 """
-
-import gym
-from gym import error, spaces, utils
+from typing import List, Tuple
+import gymnasium as gym
+from gymnasium import spaces
 import numpy as np
-from collections import namedtuple
 
 import agarle
-
 
 class AgarioEnv(gym.Env):
     metadata = {'render_modes': ['human','rgb_array'], 'render_fps': 60}
@@ -76,8 +74,12 @@ class AgarioEnv(gym.Env):
         self.steps = None
         self.obs_type = obs_type
 
-        target_space = spaces.Box(low=-np.inf, high=np.inf, shape=(2,))
-        self.action_space = spaces.Tuple((target_space, spaces.Discrete(3)))
+        self.action_space = spaces.Tuple((
+            # (dx, dy) movemment vector
+            spaces.Box(low=-1, high=1, shape=(2,)),
+            # 0=noop  1=split  2=feed
+            spaces.Discrete(3),
+        ))
         self.render_mode = render_mode
 
         self._seed = None
@@ -96,28 +98,7 @@ class AgarioEnv(gym.Env):
         """
         assert self.steps is not None, "Cannot call step() before calling reset()"
 
-        if not self.multi_agent:
-            # if not multi-agent then the action should just be a single tuple
-            actions = [actions]
-
-        if type(actions) is not list:
-            raise ValueError("Action list must be a list of two-element tuples")
-
-        if len(actions) != self.num_agents:
-            raise ValueError(f"Number of actions {len(actions)} does"
-                                 f"not match number of agents {self.num_agents}")
-        
-        # make sure that the actions are well-formed
-        for action in actions:
-            if action not in self.action_space:
-                raise ValueError(f"action {action} not in action space")
-        
-        # gotta format the action for the underlying module.
-        # passing the raw target numpy array is tricky because
-        # of data formatting :(
-        actions = [(tgt[0], tgt[1], a) for tgt, a in actions]
-        
-        # set the action for each agent
+        actions = self._sanitize_actions(actions)
         self._env.take_actions(actions)
 
         # step the environment forwards through time
@@ -130,7 +111,7 @@ class AgarioEnv(gym.Env):
         # get the "done" status of each agent
         dones = self._env.dones()
         assert len(dones) == self.num_agents
-        
+
         # set the "truncation" status of each agent to 'False'
         truncations = [False] * len(dones)
 
@@ -143,7 +124,7 @@ class AgarioEnv(gym.Env):
 
         self.steps += 1
         return self.observations, rewards, dones, truncations, {'steps': self.steps}
-    
+
     def reset(self):
         """ resets the environment
         :return: the state of the environment at the beginning
@@ -154,21 +135,21 @@ class AgarioEnv(gym.Env):
         return obs if self.multi_agent else obs[0]
 
     def render(self):
-        # to do: if statements should be changed to self.render_mode, where: 
+        # to do: if statements should be changed to self.render_mode, where:
         # "human": The environment is continuously rendered in the current display or terminal, usually for human consumption.
         # "rgb_array": Return a single frame representing the current state of the environment.
-        if self.render_mode == "human": 
+        if self.render_mode == "human":
             self._env.render()
-            
+
         if self.render_mode == "rgb_array":
-            
-            if self.obs_type == "screen": 
+
+            if self.obs_type == "screen":
                 return self.observations
-                
-            if self.obs_type == "grid": 
+
+            if self.obs_type == "grid":
                 return  self._env.get_frame()
-                
-        
+
+
     def close(self):
         self._env.close()
 
@@ -202,25 +183,18 @@ class AgarioEnv(gym.Env):
 
         args = self._get_env_args(kwargs)
         if obs_type == "grid":
-            num_frames = kwargs.get("num_frames", 2)
-            grid_size = kwargs.get("grid_size", 128)
-            observe_cells = kwargs.get("observe_cells",     True)
-            observe_others = kwargs.get("observe_others",   True)
-            observe_viruses = kwargs.get("observe_viruses", True)
-            observe_pellets = kwargs.get("observe_pellets", True)
-            allow_respawn = kwargs.get("allow_respawn", True)
-            c_death = kwargs.get("c_death", -100)
+            grid_defaults = {
+                'num_frames': 2,
+                'grid_size': 128,
+                'observe_cells': True,
+                'observe_others': True,
+                'observe_viruses': True,
+                'observe_pellets': True,
+                'c_death': 0,
+            }
+
             env = agarle.GridEnvironment(*args)
-            env.configure_observation({
-                "num_frames": num_frames,
-                "grid_size": grid_size,
-                "observe_cells": observe_cells,
-                "observe_others": observe_others,
-                "observe_viruses": observe_viruses,
-                "observe_pellets": observe_pellets,
-                "allow_respawn": allow_respawn,
-                "c_death": c_death
-            })
+            env.configure_observation(kwargs | grid_defaults)
 
             channels, width, height = env.observation_shape()
             shape = (width, height, channels)
@@ -245,7 +219,7 @@ class AgarioEnv(gym.Env):
             screen_len = kwargs.get("screen_len", 84)
             c_death = kwargs.get("c_death", 0)
             allow_respawn = kwargs.get("allow_respawn", True)
-            
+
             args += (screen_len, screen_len)
             args += (c_death, allow_respawn)
             env = agarle.ScreenEnvironment(*args)
@@ -253,8 +227,30 @@ class AgarioEnv(gym.Env):
 
         else:
             raise ValueError(obs_type)
-        
+
         return env, observation_space
+
+    def _sanitize_actions(self, actions) -> List[Tuple[float, float, int]]:
+        if not self.multi_agent:
+            # if not multi-agent then the action should just be a single tuple
+            actions = [actions]
+
+        if type(actions) is not list:
+            raise ValueError("Action list must be a list of two-element tuples")
+
+        if len(actions) != self.num_agents:
+            raise ValueError(f"Number of actions {len(actions)} does not match number of agents {self.num_agents}")
+
+        # make sure that the actions are well-formed
+        for action in actions:
+            if action not in self.action_space:
+                raise ValueError(f"action {action} not in action space")
+
+        # gotta format the action for the underlying module.
+        # passing the raw target numpy array is tricky because
+        # of data formatting :(
+        actions = [(tgt[0], tgt[1], a) for tgt, a in actions]
+        return actions
 
     def _get_env_args(self, kwargs):
         """ creates a set of positional arguments to pass to the learning environment
@@ -268,7 +264,7 @@ class AgarioEnv(gym.Env):
 
         multi_agent = False
         num_agents = 1
-        
+
         self.grid_size = kwargs.get("grid_size", 128)
 
         # default values for the "normal"
@@ -280,7 +276,7 @@ class AgarioEnv(gym.Env):
         num_bots = 25
         pellet_regen = True
         allow_respawn = True
-        reward_type   = 1 #means diff 
+        reward_type   = 1 #means diff
         if difficulty == "normal":
             pass  # default
 
@@ -308,6 +304,7 @@ class AgarioEnv(gym.Env):
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
         self.reward_type     = kwargs.get("reward_type", reward_type)
+        self.c_death         = kwargs.get("c_death", -100)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
 
@@ -326,4 +323,3 @@ class AgarioEnv(gym.Env):
             self._seed = seed
             self._env.seed(seed)
             return [self._seed]
-        

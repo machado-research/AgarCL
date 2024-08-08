@@ -72,7 +72,11 @@
         "valarray": "cpp",
         "variant": "cpp",
         "stdarg.h": "c",
-        "*.glsl": "cpp"
+        "*.glsl": "cpp",
+        "future": "cpp"
     },
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true
 }

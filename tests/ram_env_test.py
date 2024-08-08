@@ -6,8 +6,8 @@ Date: 9/7/19
 Author: Jon Deaton (jonpauldeaton@gmail.com)
 """
 
-
-import gym, gym_agario
+import gymnasium as gym
+import gym_agario
 
 import numpy as np
 import unittest

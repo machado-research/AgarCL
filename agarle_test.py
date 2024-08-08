@@ -1,9 +1,9 @@
-import gym
+import gymnasium as gym
+import gym_agario
+import argparse
 import time
 from tqdm import tqdm
 
-import numpy as np
-import gym_agario
 
 import imageio
 

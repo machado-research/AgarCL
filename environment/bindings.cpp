@@ -87,10 +87,8 @@ PYBIND11_MODULE(agarle, module) {
       bool others    = config.contains("observe_others")  ? config["observe_others"].cast<bool>()  : true;
       bool viruses   = config.contains("observe_viruses") ? config["observe_viruses"].cast<bool>() : true;
       bool pellets   = config.contains("observe_pellets") ? config["observe_pellets"].cast<bool>() : true;
-      bool respawn   = config.contains("allow_respawn")   ? config["allow_respawn"].cast<bool>()   : true;
-      int c_death    = config.contains("c_death")         ? config["c_death"].cast<int>()           : 0;
-    
-      env.configure_observation(num_frames, grid_size, cells, others, viruses, pellets, respawn, c_death);
+
+      env.configure_observation(num_frames, grid_size, cells, others, viruses, pellets);
     })
     .def("observation_shape", &GridEnvironment::observation_shape)
     .def("dones", &GridEnvironment::dones)
@@ -112,7 +110,7 @@ PYBIND11_MODULE(agarle, module) {
     .def("step", &GridEnvironment::step)
     .def("get_state", &get_state<GridEnvironment>)
     .def("close", &GridEnvironment::close);
-  
+
   /* ================ Ram Environment ================ */
   // using RamEnvironment = agario::env::RamEnvironment<renderable>;
 
@@ -129,7 +127,7 @@ PYBIND11_MODULE(agarle, module) {
   //   .def("step", &RamEnvironment::step)
   //   .def("get_state", &get_state<RamEnvironment>);
 
-  
+
   /* ================ Screen Environment ================ */
   /* we only include this conditionally if OpenGL was found available for linking */
 
@@ -141,7 +139,7 @@ PYBIND11_MODULE(agarle, module) {
 
  py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
 
-   .def(pybind11::init<int, int, int, bool, int, int, int, screen_len, screen_len, int, bool, bool>())
+   .def(pybind11::init<int, int, int, bool, int, int, int, bool, screen_len, screen_len, bool, int>())
    .def("seed", &ScreenEnvironment::seed)
    .def("observation_shape", &ScreenEnvironment::observation_shape)
    .def("dones", &ScreenEnvironment::dones)

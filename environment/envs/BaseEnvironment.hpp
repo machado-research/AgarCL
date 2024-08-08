@@ -35,21 +35,45 @@ namespace agario {
 
     public:
 
-      explicit BaseEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots, bool reward_type) :
+      explicit BaseEnvironment(
+        int num_agents,
+        int ticks_per_step,
+        int arena_size,
+        bool pellet_regen,
+        int num_pellets,
+        int num_viruses,
+        int num_bots,
+        bool reward_type,
+        int c_death = 0
+      ):
         num_agents_(num_agents),
         dones_(num_agents),
         engine_(arena_size, arena_size, num_pellets, num_viruses, pellet_regen),
-        ticks_per_step_(ticks_per_step), num_bots_(num_bots),
+        ticks_per_step_(ticks_per_step),
+        num_bots_(num_bots),
         reward_type_(reward_type),
-        step_dt_(DEFAULT_DT) {
-          
+        step_dt_(DEFAULT_DT),
+        c_death_(c_death)
+      {
         pids_.reserve(num_agents);
         reset();
       }
+
       virtual void close(){}
-      ~BaseEnvironment()=default; 
+      ~BaseEnvironment()=default;
       [[nodiscard]] int num_agents() const { return num_agents_; }
+
+      void repsawn_all_players(){
+        for(auto &pair : this->engine_.state.players){
+          auto pid = pair.first;
+          auto player = pair.second;
+          if(player->dead()){
+            std::cout << "Player \"" << player->name() << "\" (pid ";
+            std::cout << pid << ") died." << std::endl;
+            this->engine_.respawn(*player);
+          }
+        }
+      }
 
       /**
        * Steps the environment forward by several game frames
@@ -66,15 +90,15 @@ namespace agario {
           engine_.tick(step_dt_);
           for (int agent = 0; agent < num_agents(); agent++)
               this->_partial_observation(agent, tick);
+          repsawn_all_players();
         }
-
         // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
         if(reward_type_){
           for (int i = 0; i < num_agents(); ++i)
             rewards[i] -= (before[i] - c_death_);
         }
-        
+
         return rewards;
       }
 
@@ -83,9 +107,8 @@ namespace agario {
       std::vector<T> masses() const {
         std::vector<T> masses_;
         masses_.reserve(num_agents());
-        for (auto &pid : pids_) {
-          auto &player = engine_.get_player(pid);
-          masses_.emplace_back(static_cast<T>(player.mass()));
+        for (const auto &[pid, player] : engine_.players()) {
+          masses_.emplace_back(static_cast<T>(player->mass()));
         }
         return masses_;
       }
@@ -116,7 +139,7 @@ namespace agario {
        */
       void take_action(agario::pid pid, float dx, float dy, int action) {
         auto &player = engine_.player(pid);
-        
+
         if (player.dead()) return; // its okay to take action on a dead player
 
         /* todo: this isn't exactly "calibrated" such such that
@@ -131,7 +154,6 @@ namespace agario {
       /* resets the environment by resetting the game engine. */
       void reset() {
         engine_.reset();
-
         pids_.clear();
         c_death_ = 0;
         // add players
@@ -187,21 +209,21 @@ namespace agario {
 
         for (int i = 0; i < num_bots_; i++) {
           switch (i % num_bots_) {
-            case 0:
-              engine_.template add_player<HungryBot>();
-              break;
-            case 1:
-              engine_.template add_player<HungryShyBot>();
-              break;
-            case 2:
-              engine_.template add_player<AggressiveBot>();
-              break;
-            case 3:
-              engine_.template add_player<AggressiveShyBot>();
-              break;
-            default:
-              engine_.template add_player<HungryBot>();
-              break;
+                case 0:
+                  engine_.template add_player<HungryBot>();
+                break;
+                case 1:
+                  engine_.template add_player<HungryShyBot>();
+                break;
+                case 2:
+                  engine_.template add_player<AggressiveBot>();
+                break;
+                case 3:
+                  engine_.template add_player<AggressiveShyBot>();
+                break;
+                default:
+                  engine_.template add_player<HungryBot>();
+                break;
           }
         }
       }
