@@ -102,13 +102,14 @@ namespace agario {
         return rewards;
       }
 
-      /* the mass of each player */
+        /* the mass of each player */
       template<typename T>
       std::vector<T> masses() const {
         std::vector<T> masses_;
         masses_.reserve(num_agents());
-        for (const auto &[pid, player] : engine_.players()) {
-          masses_.emplace_back(static_cast<T>(player->mass()));
+         for (auto &pid : pids_) {
+          auto &player = engine_.get_player(pid);
+          masses_.emplace_back(static_cast<T>(player.mass()));
         }
         return masses_;
       }
