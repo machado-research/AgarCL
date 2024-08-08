@@ -44,12 +44,12 @@ namespace agario {
         reward_type_(reward_type),
         step_dt_(DEFAULT_DT),
         c_death_(c_death){
-        
+
         pids_.reserve(num_agents);
         reset();
       }
       virtual void close(){}
-      ~BaseEnvironment()=default; 
+      ~BaseEnvironment()=default;
       [[nodiscard]] int num_agents() const { return num_agents_; }
 
       void repsawn_all_players(){
@@ -87,7 +87,7 @@ namespace agario {
           for (int i = 0; i < num_agents(); ++i)
             rewards[i] -= (before[i] - c_death_);
         }
-        
+
         return rewards;
       }
 
@@ -129,7 +129,7 @@ namespace agario {
        */
       void take_action(agario::pid pid, float dx, float dy, int action) {
         auto &player = engine_.player(pid);
-        
+
         if (player.dead()) return; // its okay to take action on a dead player
 
         /* todo: this isn't exactly "calibrated" such such that
