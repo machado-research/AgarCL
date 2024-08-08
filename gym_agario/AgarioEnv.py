@@ -96,7 +96,7 @@ class AgarioEnv(gym.Env):
         """
         assert self.steps is not None, "Cannot call step() before calling reset()"
 
-        if not self.multi_agent:
+        if not self.multi_agent and isinstance(actions, tuple):
             # if not multi-agent then the action should just be a single tuple
             actions = [actions]
 

@@ -61,9 +61,9 @@ def main():
         if hasattr(args, name)
     }
     print(env_config)
-    num_agents =  2
+    num_agents =  1
     env = gym.make(args.env, **{
-    "multi_agent": True,
+    # "multi_agent": True,
     "num_agents": num_agents})
     env.reset()
     states = []

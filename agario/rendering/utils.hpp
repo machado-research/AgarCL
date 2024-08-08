@@ -1,8 +1,8 @@
 #pragma once
 
-#include <GL/glut.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
+// #include <GL/glut.h>
+// #include <GL/gl.h>
+// #include <GL/glu.h>
 
 class FBOException : public std::runtime_error {
   // using runtime_error::runtime_error;
