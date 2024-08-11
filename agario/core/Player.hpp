@@ -165,6 +165,10 @@ class Player {
                    std::make_move_iterator(new_cells.end()));
     }
 
+    void set_bot(bool is_bot_) { is_bot_ = is_bot_;}
+    bool is_bot() const { return is_bot_; }
+
+
     // virtual destructor because it's polymorphic
     virtual ~Player() = default;
     Player(const Player & /* other */) = default;
@@ -178,6 +182,7 @@ class Player {
     agario::color _color;
     agario::score _score = 0;
     agario::mass _minMassCell = 0;
+    bool is_bot_ = false;
 
   };
 
