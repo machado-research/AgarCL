@@ -102,7 +102,7 @@ namespace agario {
         return rewards;
       }
 
-        /* the mass of each player */
+        /* the mass of each rl-controlled player */
       template<typename T>
       std::vector<T> masses() const {
         std::vector<T> masses_;
