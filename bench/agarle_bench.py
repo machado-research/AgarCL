@@ -71,7 +71,7 @@ def main():
         for i in range(num_agents):
             target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
             agent_actions.append((target_space.sample(), np.random.randint(0, 3)))
-        state, reward, done, step_num = env.step(agent_actions)
+        state, reward, done , step_num = env.step(agent_actions)
         env.render()
     env.close()
 
