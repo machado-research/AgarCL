@@ -373,9 +373,6 @@ namespace agario::env {
       for (auto &pid: this->pids_) {
         auto &player = this->engine_.player(pid);
         renderer->render_screen(player, this->engine_.game_state());
-        std::cout << "Player: " << player.pid() << " Mass: " << player.mass() << std::endl;
-        //positions
-        std::cout << "Player: " << player.pid() << " X: " << player.x() << " Y: " << player.y() << std::endl;
       }
         glfwPollEvents();
         window->swap_buffers();

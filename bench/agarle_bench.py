@@ -45,11 +45,10 @@ default_config = {
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
 }
 
-
-# config_file = './tasks_configs/Exploration.json'
-# with open(config_file, 'r') as file:
-#     default_config = eval(file.read())
-#     default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
+config_file = 'bench/tasks_configs/Exploration.json'
+with open(config_file, 'r') as file:
+    default_config = eval(file.read())
+    default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
 
 def main():
 
@@ -61,9 +60,9 @@ def main():
         if hasattr(args, name)
     }
     print(env_config)
-    num_agents =  1
+    num_agents =  2
     env = gym.make(args.env, **{
-    # "multi_agent": True,
+    "multi_agent": True,
     "num_agents": num_agents})
     env.reset()
     states = []
@@ -73,7 +72,6 @@ def main():
             target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
             agent_actions.append((target_space.sample(), np.random.randint(0, 3)))
         state, reward, done, step_num = env.step(agent_actions)
-        print(reward)
         env.render()
     env.close()
 
