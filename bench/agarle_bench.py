@@ -39,6 +39,7 @@ default_config = {
     'observe_pellets': True,
     'obs_type'       : "grid",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
+    'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
 }
 
