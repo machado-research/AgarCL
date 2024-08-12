@@ -62,9 +62,9 @@ import numpy as np
 import agarle
 
 class AgarioEnv(gym.Env):
-    metadata = {'render_modes': ['human'], 'render_fps': 60}
+    metadata = {'render_modes': ['human','rgb_array'], 'render_fps': 60}
 
-    def __init__(self, obs_type='grid', **kwargs):
+    def __init__(self, obs_type='grid', render_mode = None, **kwargs):
         super(AgarioEnv, self).__init__()
 
         if obs_type not in ("ram", "screen", "grid"):
@@ -80,6 +80,7 @@ class AgarioEnv(gym.Env):
             # 0=noop  1=split  2=feed
             spaces.Discrete(3),
         ))
+        self.render_mode = render_mode
 
         self._seed = None
 
@@ -105,20 +106,24 @@ class AgarioEnv(gym.Env):
         assert len(rewards) == self.num_agents
 
         # observe the new state of the environment for each agent
-        observations = self._make_observations()
+        self.observations = self._make_observations()
 
         # get the "done" status of each agent
         dones = self._env.dones()
         assert len(dones) == self.num_agents
 
+        # set the "truncation" status of each agent to 'False'
+        truncations = [False] * len(dones)
+
         # unwrap observations, rewards, dones if not mult-agent
         if not self.multi_agent:
-            observations = observations[0]
+            self.observations = self.observations[0]
             rewards = rewards[0]
             dones = dones[0]
+            truncations = truncations[0]
 
         self.steps += 1
-        return observations, rewards, dones, {'steps': self.steps}
+        return self.observations, rewards, dones, truncations, {'steps': self.steps}
 
     def reset(self):
         """ resets the environment
@@ -129,8 +134,21 @@ class AgarioEnv(gym.Env):
         obs = self._make_observations()
         return obs if self.multi_agent else obs[0]
 
-    def render(self, mode='human'):
-        self._env.render()
+    def render(self):
+        # to do: if statements should be changed to self.render_mode, where:
+        # "human": The environment is continuously rendered in the current display or terminal, usually for human consumption.
+        # "rgb_array": Return a single frame representing the current state of the environment.
+        if self.render_mode == "human":
+            self._env.render()
+
+        if self.render_mode == "rgb_array":
+
+            if self.obs_type == "screen":
+                return self.observations
+
+            if self.obs_type == "grid":
+                return  self._env.get_frame()
+
 
     def close(self):
         self._env.close()
@@ -141,7 +159,6 @@ class AgarioEnv(gym.Env):
         :return: An observation object
         """
         states = self._env.get_state()
-        # print(f'len(states): {len(states)}, self.num_agents: {self.num_agents}')
         assert len(states) == self.num_agents
 
         if self.obs_type in ("grid", ):
@@ -199,15 +216,14 @@ class AgarioEnv(gym.Env):
             # introduce some ugly work-arounds and layers of indirection
             # in the underlying C++ code
 
-            screen_len = kwargs.get("screen_len", 1024)
+            screen_len = kwargs.get("screen_len", 84)
             c_death = kwargs.get("c_death", 0)
-            args += (screen_len, screen_len)
-            args += (c_death,)
-            env = agarle.ScreenEnvironment(*args)
+            allow_respawn = kwargs.get("allow_respawn", True)
 
-            # todo: use env.observation_shape() ?
-            shape = 1, screen_len, screen_len, 3
-            observation_space = spaces.Box(low=0, high=255, shape=shape, dtype=np.uint8)
+            args += (screen_len, screen_len)
+            args += (c_death, allow_respawn)
+            env = agarle.ScreenEnvironment(*args)
+            observation_space = spaces.Box(low=0, high=255, shape=env.observation_shape(), dtype=np.uint8)
 
         else:
             raise ValueError(obs_type)
@@ -249,8 +265,11 @@ class AgarioEnv(gym.Env):
         multi_agent = False
         num_agents = 1
 
+        self.grid_size = kwargs.get("grid_size", 128)
+
         # default values for the "normal"
         ticks_per_step = 4
+        num_frames = 1
         arena_size = 1000
         num_pellets = 1000
         num_viruses = 25
@@ -277,13 +296,14 @@ class AgarioEnv(gym.Env):
         self.multi_agent     = kwargs.get("multi_agent", multi_agent)
         self.num_agents      = kwargs.get("num_agents", num_agents)
         self.ticks_per_step  = kwargs.get("ticks_per_step", ticks_per_step)
+        self.num_frames      = kwargs.get("num_frames", num_frames)
         self.arena_size      = kwargs.get("arena_size", arena_size)
         self.num_pellets     = kwargs.get("num_pellets", num_pellets)
         self.num_viruses     = kwargs.get("num_viruses", num_viruses)
         self.num_bots        = kwargs.get("num_bot", num_bots)
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
-        self.reward_type   = kwargs.get("reward_type", reward_type)
+        self.reward_type     = kwargs.get("reward_type", reward_type)
         self.c_death         = kwargs.get("c_death", -100)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
@@ -292,9 +312,10 @@ class AgarioEnv(gym.Env):
         if type(self.ticks_per_step) is not int or self.ticks_per_step <= 0:
             raise ValueError(f"ticks_per_step must be a positive integer")
 
-        return self.num_agents, self.ticks_per_step, self.arena_size, \
+        return self.num_agents, self.num_frames, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
                self.num_viruses, self.num_bots, self.reward_type
+
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility
