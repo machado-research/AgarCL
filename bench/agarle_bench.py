@@ -59,7 +59,7 @@ def main():
         range_size = max_val - min_val
         random_values = [0.01, 0.1]
         null_action = ([(random_values[0], random_values[1]),0])
-        state, reward, done, trancation, step_num = env.step(null_action)
+        state, reward, done, step_num, _ = env.step(null_action)
         env.render()
     env.close()
 #
