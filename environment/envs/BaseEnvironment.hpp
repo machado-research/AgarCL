@@ -108,7 +108,7 @@ namespace agario {
         std::vector<T> masses_;
         masses_.reserve(num_agents());
         for (const auto &[pid, player] : engine_.players()) {
-          if (player->is_bot()) continue;
+          if (player->is_bot) continue;
           masses_.push_back(static_cast<T>(player->mass()));
         }
         return masses_;
@@ -210,38 +210,22 @@ namespace agario {
 
         for (int i = 0; i < num_bots_; i++) {
           switch (i % num_bots_) {
-                case 0:{
-                  auto bot_pid = engine_.template add_player<HungryBot>();
-                  auto &bot = engine_.player(bot_pid);
-                  bot.set_bot(true);
-                  break;
-                }
-                case 1:{
-                  auto shy_bot_pid = engine_.template add_player<HungryShyBot>();
-                  auto &shy_bot = engine_.player(shy_bot_pid);
-                  shy_bot.set_bot(true);
-                  break;
-                }
-                case 2:{
-                  auto aggressive_bot_pid = engine_.template add_player<AggressiveBot>();
-                  auto &aggressive_bot = engine_.player(aggressive_bot_pid);
-                  aggressive_bot.set_bot(true);
-                  break;
-                }
-                case 3:{
-                  auto aggressive_shy_bot_pid = engine_.template add_player<AggressiveShyBot>();
-                  auto &aggressive_shy_bot = engine_.player(aggressive_shy_bot_pid);
-                  aggressive_shy_bot.set_bot(true);
-                  break;
-                }
-                default:{
-                  auto bot_pid = engine_.template add_player<HungryBot>();
-                  auto &bot = engine_.player(bot_pid);
-                  bot.set_bot(true);
-                  break;
-                }
+                case 0:
+                  engine_.template add_player<HungryBot>();
+                break;
+                case 1:
+                  engine_.template add_player<HungryShyBot>();
+                break;
+                case 2:
+                  engine_.template add_player<AggressiveBot>();
+                break;
+                case 3:
+                  engine_.template add_player<AggressiveShyBot>();
+                break;
+                default:
+                  engine_.template add_player<HungryBot>();
+                break;
           }
-
         }
       }
 

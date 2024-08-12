@@ -22,9 +22,10 @@ namespace agario {
 
     public:
       Bot(agario::pid pid, const std::string &name, agario::color color) : Player(pid, name, color) {}
-      Bot(agario::pid pid, const std::string &name) : Bot(pid, name, default_color) {}
-      explicit Bot(const std::string &name) : Bot(-1, name) {}
+      Bot(agario::pid pid, const std::string &name) : Bot(pid, name, default_color)  {}
+      explicit Bot(const std::string &name) : Bot(-1, name){}
       explicit Bot(agario::pid pid) : Bot(pid, "Bot") {}
+      bool is_bot = true;
 
     protected:
 
