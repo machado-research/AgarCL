@@ -52,9 +52,7 @@ namespace agario::env {
         return &_frame_data[data_index];
       }
 
-
       [[nodiscard]] int num_frames() const { return _num_frames; }
-
 
       [[nodiscard]] std::vector<int> shape() const {
         return {_num_frames, _width, _height, PIXEL_LEN};
@@ -123,18 +121,45 @@ namespace agario::env {
 
       [[nodiscard]] const ScreenObservation &get_state() {
         return _observation; }
-      // [[nodiscard]] const ScreenObservation &get_observations() const { return _observation; }
       [[nodiscard]] screen_len screen_width() const { return frame_buffer->width(); }
       [[nodiscard]] screen_len screen_height() const { return frame_buffer->height(); }
+
+      std::tuple<int, int, int, int> observation_shape() const {
+        std::vector<int> shape_vec = _observation.shape();
+        return std::make_tuple(shape_vec[0], shape_vec[1], shape_vec[2], shape_vec[3]);
+      }
+
+      void render() override {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, screen_width(), screen_height());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        for (auto &pid: this->pids_) {
+          auto &player = this->engine_.player(pid);
+          render_frame(player);
+        }
+
+        glfwPollEvents();
+        frame_buffer -> swap_buffers();
+        frame_buffer -> show();
+      }
+
+      void close() override {
+        renderer.close_program();
+      }
 
     private:
       ScreenObservation _observation;
       std::shared_ptr<FrameBufferObject> frame_buffer;
       agario::Renderer renderer;
 
+      void render_frame(Player &player) {
+        renderer.render_screen(player, this->engine_.game_state());
+      }
+
       // stores current frame into buffer containing the next observation
       void _partial_observation(Player &player, int frame_index) override {
-        renderer.render_screen(player, this->engine_.game_state());
+        render_frame(player);
         void *data = _observation.frame_data(frame_index);
         frame_buffer->copy(data);
       }
@@ -143,7 +168,16 @@ namespace agario::env {
       void _partial_observation(int agent_index, int tick_index) override{
         auto &player = this->engine_.player(this->pids_[agent_index]);
         _partial_observation(player, tick_index);
+
+        if (player.dead())
+        {
+          // to do: modify for respawn == True
+          this->dones_[agent_index] = true;
+          return;
+        }
       }
+
+
 
     };
 
