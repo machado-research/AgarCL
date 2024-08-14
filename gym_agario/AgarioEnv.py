@@ -231,7 +231,7 @@ class AgarioEnv(gym.Env):
         return env, observation_space
 
     def _sanitize_actions(self, actions) -> List[Tuple[float, float, int]]:
-        if not self.multi_agent:
+        if not self.multi_agent and type(actions) is not list:
             # if not multi-agent then the action should just be a single tuple
             actions = [actions]
 
