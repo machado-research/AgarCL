@@ -87,7 +87,7 @@ PYBIND11_MODULE(agarle, module) {
       bool others    = config.contains("observe_others")  ? config["observe_others"].cast<bool>()  : true;
       bool viruses   = config.contains("observe_viruses") ? config["observe_viruses"].cast<bool>() : true;
       bool pellets   = config.contains("observe_pellets") ? config["observe_pellets"].cast<bool>() : true;
-    
+
       env.configure_observation(num_frames, grid_size, cells, others, viruses, pellets);
     })
     .def("observation_shape", &GridEnvironment::observation_shape)
@@ -95,12 +95,22 @@ PYBIND11_MODULE(agarle, module) {
     .def("take_actions", [](GridEnvironment &env, const py::list &actions) {
       env.take_actions(to_action_vector(actions));
     })
+    .def("get_frame", []( GridEnvironment &env) {
+      auto& observation = env.get_frame();
+      auto data = (void *)observation.frame_data();
+      auto shape = observation.frame_shape();
+      auto strides = observation.frame_strides();
+      auto format = py::format_descriptor<std::uint8_t>::format();
+      auto buffer = py::buffer_info(data, sizeof(std::uint8_t), format, shape.size(), shape, strides);
+      auto arr = py::array_t<std::uint8_t>(buffer);
+      return arr;
+    })
     .def("reset", &GridEnvironment::reset)
     .def("render", &GridEnvironment::render)
     .def("step", &GridEnvironment::step)
     .def("get_state", &get_state<GridEnvironment>)
     .def("close", &GridEnvironment::close);
-  
+
   /* ================ Ram Environment ================ */
   // using RamEnvironment = agario::env::RamEnvironment<renderable>;
 
@@ -117,7 +127,7 @@ PYBIND11_MODULE(agarle, module) {
   //   .def("step", &RamEnvironment::step)
   //   .def("get_state", &get_state<RamEnvironment>);
 
-  
+
   /* ================ Screen Environment ================ */
   /* we only include this conditionally if OpenGL was found available for linking */
 
@@ -129,9 +139,9 @@ PYBIND11_MODULE(agarle, module) {
 
  py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
 
-   .def(pybind11::init<int, int, int, bool, int, int, int, bool, screen_len, screen_len, bool>())
+   .def(pybind11::init<int, int, int, bool, int, int, int, bool, screen_len, screen_len, bool, int>())
    .def("seed", &ScreenEnvironment::seed)
-  //  .def("observation_shape", &ScreenEnvironment::observation_shape)
+   .def("observation_shape", &ScreenEnvironment::observation_shape)
    .def("dones", &ScreenEnvironment::dones)
    .def("take_actions", [](ScreenEnvironment &env, const py::list &actions) {
      env.take_actions(to_action_vector(actions));
@@ -151,7 +161,8 @@ PYBIND11_MODULE(agarle, module) {
       auto arr = py::array_t<std::uint8_t>(buffer);
       obs.append(arr);
       return obs;
-    });
+    })
+    .def("close", &ScreenEnvironment::close);
   module.attr("has_screen_env") = py::bool_(true);
 
 #else

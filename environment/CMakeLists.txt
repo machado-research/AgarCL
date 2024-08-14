@@ -103,7 +103,7 @@ if (GTEST_FOUND)
 
     add_executable(test-envs ${TEST_SRC} ${AGARIO_GRID_ENV_SOURCE})
     target_include_directories(test-envs PUBLIC ".." ${GTEST_INDLUCE_DIRS})
-    target_link_libraries(test-envs glad glfw gtest pthread)
+    target_link_libraries(test-envs glad glfw gtest pthread ${OPENGL_LIBRARIES})
 
 else()
     message("Google Test not found")

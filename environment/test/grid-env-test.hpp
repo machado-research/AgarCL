@@ -185,4 +185,3 @@ namespace {
     ASSERT_NO_THROW(env->close());
   }
 }
-

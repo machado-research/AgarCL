@@ -24,6 +24,7 @@ git clone --recursive git@github.com:machado-research/AgarLE.git
 # Installation 
 Run the following line in the terminal:
 ```sh
+cd agarLE
 ./install.sh
 ```
 

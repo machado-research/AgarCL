@@ -31,7 +31,7 @@ namespace agario::env {
         clear();
       }
 
-      [[nodiscard]] const std::uint8_t *frame_data() const { 
+      [[nodiscard]] const std::uint8_t *frame_data() const {
         return _frame_data; }
 
 
@@ -52,9 +52,7 @@ namespace agario::env {
         return &_frame_data[data_index];
       }
 
-
       [[nodiscard]] int num_frames() const { return _num_frames; }
-
 
       [[nodiscard]] std::vector<int> shape() const {
         return {_num_frames, _width, _height, PIXEL_LEN};
@@ -66,16 +64,16 @@ namespace agario::env {
                    _height * PIXEL_LEN * dtype_size,
                              PIXEL_LEN * dtype_size,
                                          dtype_size
-        };                       
+        };
       }
 
       ~ScreenObservation() {
-            if (_frame_data) {
-                delete[] _frame_data;
-            } else {
-                std::cout << "Error: _frame_data is null in destructor" << std::endl;
-            }
+        if (_frame_data) {
+          delete[] _frame_data;
+        } else {
+          std::cout << "Error: _frame_data is null in destructor" << std::endl;
         }
+      }
 
     private:
       int _num_frames;
@@ -95,35 +93,73 @@ namespace agario::env {
       using Food = Food<renderable>;
     public:
       using Super = BaseEnvironment<renderable>;
-      using dtype = std::uint8_t; 
+      using dtype = std::uint8_t;
 
-      explicit ScreenEnvironment(int num_agents, int frames_per_step, int arena_size, bool pellet_regen,
-                                 int num_pellets, int num_viruses, int num_bots, bool respawn,
-                                 screen_len screen_width, screen_len screen_height, bool reward_type=0) :
-        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type),
+      explicit ScreenEnvironment(
+        int num_agents,
+        int frames_per_step,
+        int arena_size,
+        bool pellet_regen,
+        int num_pellets,
+        int num_viruses,
+        int num_bots,
+        bool respawn,
+        screen_len screen_width,
+        screen_len screen_height,
+        bool reward_type=0,
+        int c_death=0
+      ):
+        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death),
         _observation(frames_per_step, screen_width, screen_height),
         frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height)),
-        renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height()) {
-
-          if (!frame_buffer) {
-              std::cerr << "Error: frame_buffer is null in ScreenEnvironment constructor" << std::endl;
-          }
+        renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height())
+      {
+        if (!frame_buffer) {
+          std::cerr << "Error: frame_buffer is null in ScreenEnvironment constructor" << std::endl;
         }
+      }
 
       [[nodiscard]] const ScreenObservation &get_state() {
         return _observation; }
-      // [[nodiscard]] const ScreenObservation &get_observations() const { return _observation; }
       [[nodiscard]] screen_len screen_width() const { return frame_buffer->width(); }
       [[nodiscard]] screen_len screen_height() const { return frame_buffer->height(); }
+
+      std::tuple<int, int, int, int> observation_shape() const {
+        std::vector<int> shape_vec = _observation.shape();
+        return std::make_tuple(shape_vec[0], shape_vec[1], shape_vec[2], shape_vec[3]);
+      }
+
+      void render() override {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, screen_width(), screen_height());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        for (auto &pid: this->pids_) {
+          auto &player = this->engine_.player(pid);
+          render_frame(player);
+        }
+
+        glfwPollEvents();
+        frame_buffer -> swap_buffers();
+        frame_buffer -> show();
+      }
+
+      void close() override {
+        renderer.close_program();
+      }
 
     private:
       ScreenObservation _observation;
       std::shared_ptr<FrameBufferObject> frame_buffer;
       agario::Renderer renderer;
 
+      void render_frame(Player &player) {
+        renderer.render_screen(player, this->engine_.game_state());
+      }
+
       // stores current frame into buffer containing the next observation
       void _partial_observation(Player &player, int frame_index) override {
-        renderer.render_screen(player, this->engine_.game_state());
+        render_frame(player);
         void *data = _observation.frame_data(frame_index);
         frame_buffer->copy(data);
       }
@@ -132,12 +168,17 @@ namespace agario::env {
       void _partial_observation(int agent_index, int tick_index) override{
         auto &player = this->engine_.player(this->pids_[agent_index]);
         _partial_observation(player, tick_index);
+
+        if (player.dead())
+        {
+          // to do: modify for respawn == True
+          this->dones_[agent_index] = true;
+          return;
+        }
       }
+
+
 
     };
 
 } // namespace agario:env
-
-
-
-

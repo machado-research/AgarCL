@@ -21,10 +21,10 @@ namespace agario {
       static constexpr agario::color default_color = agario::color::yellow;
 
     public:
-      Bot(agario::pid pid, const std::string &name, agario::color color) : Player(pid, name, color) {}
-      Bot(agario::pid pid, const std::string &name) : Bot(pid, name, default_color) {}
-      explicit Bot(const std::string &name) : Bot(-1, name) {}
-      explicit Bot(agario::pid pid) : Bot(pid, "Bot") {}
+      Bot(agario::pid pid, const std::string &name, agario::color color) : Player(pid, name, color) {this->is_bot = true;}
+      Bot(agario::pid pid, const std::string &name) : Bot(pid, name, default_color)  {this->is_bot = true;}
+      explicit Bot(const std::string &name) : Bot(-1, name) {this->is_bot = true;}
+      explicit Bot(agario::pid pid) : Bot(pid, "Bot") {this->is_bot = true;}
 
     protected:
 

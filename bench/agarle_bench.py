@@ -42,13 +42,16 @@ default_config = {
     'observe_pellets': True,
     'obs_type'       : "grid",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
+    'render_mode'    : "human", # Two options: "human", "rgb_array"
+    'multi_agent'    :  True,
+    'num_agents'     :  2,
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
 }
 
-config_file = 'bench/tasks_configs/Exploration.json'
-with open(config_file, 'r') as file:
-    default_config = eval(file.read())
-    default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
+# config_file = 'bench/tasks_configs/Exploration.json'
+# with open(config_file, 'r') as file:
+#     default_config = eval(file.read())
+#     default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
 
 def main():
 
@@ -60,25 +63,24 @@ def main():
         if hasattr(args, name)
     }
     print(env_config)
-    num_agents =  2
-    env = gym.make(args.env, **{
-    "multi_agent": True,
-    "num_agents": num_agents})
+    num_agents =  default_config['num_agents']
+    env = gym.make(args.env, **env_config)
     env.reset()
     states = []
     for _ in range(args.num_steps):
         agent_actions = []
         for i in range(num_agents):
             target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
-            agent_actions.append((target_space.sample(), np.random.randint(0, 3)))
-        state, reward, done , step_num = env.step(agent_actions)
+            action = (target_space.sample(), np.random.randint(0, 3))
+            agent_actions.append(action)
+        state, reward, done, truncations, step_num = env.step(agent_actions)
         env.render()
     env.close()
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=100, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")

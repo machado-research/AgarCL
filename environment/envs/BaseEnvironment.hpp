@@ -35,19 +35,30 @@ namespace agario {
 
     public:
 
-      explicit BaseEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots, bool reward_type, int c_death = 0) :
+      explicit BaseEnvironment(
+        int num_agents,
+        int ticks_per_step,
+        int arena_size,
+        bool pellet_regen,
+        int num_pellets,
+        int num_viruses,
+        int num_bots,
+        bool reward_type,
+        int c_death = 0
+      ):
         num_agents_(num_agents),
         dones_(num_agents),
         engine_(arena_size, arena_size, num_pellets, num_viruses, pellet_regen),
-        ticks_per_step_(ticks_per_step), num_bots_(num_bots),
+        ticks_per_step_(ticks_per_step),
+        num_bots_(num_bots),
         reward_type_(reward_type),
         step_dt_(DEFAULT_DT),
-        c_death_(c_death){
-
+        c_death_(c_death)
+      {
         pids_.reserve(num_agents);
         reset();
       }
+
       virtual void close(){}
       ~BaseEnvironment()=default;
       [[nodiscard]] int num_agents() const { return num_agents_; }
@@ -91,14 +102,14 @@ namespace agario {
         return rewards;
       }
 
-      /* the mass of each player */
+        /* the mass of each rl-controlled player */
       template<typename T>
       std::vector<T> masses() const {
         std::vector<T> masses_;
         masses_.reserve(num_agents());
-        for (auto &pid : pids_) {
-          auto &player = engine_.get_player(pid);
-          masses_.emplace_back(static_cast<T>(player.mass()));
+        for (const auto &[pid, player] : engine_.players()) {
+          if (player->is_bot) continue;
+          masses_.push_back(static_cast<T>(player->mass()));
         }
         return masses_;
       }

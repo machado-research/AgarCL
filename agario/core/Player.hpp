@@ -31,7 +31,7 @@ class Player {
     float anti_team_decay = 1.0;
     int elapsed_ticks = 0;
     int last_decay_tick = 0;
-
+    bool is_bot = false;
     Player() = delete;
     Player(agario::pid pid, std::string name, agario::color color):
       action(none),
@@ -178,6 +178,7 @@ class Player {
     agario::color _color;
     agario::score _score = 0;
     agario::mass _minMassCell = 0;
+
 
   };
 
