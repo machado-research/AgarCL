@@ -182,10 +182,11 @@ namespace agario {
       std::vector<Cell> created_cells; // list of new cells that will be created
       int create_limit = PLAYER_CELL_LIMIT - player.cells.size();
 
-      bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT) & (player.get_min_mass_cell() >= MIN_CELL_SPLIT_MASS));
+      bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT));
 
 
       for (Cell &cell : player.cells) {
+        can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
         eat_pellets(cell);
         eat_food(cell);
