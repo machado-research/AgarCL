@@ -231,7 +231,7 @@ class AgarioEnv(gym.Env):
         return env, observation_space
 
     def _sanitize_actions(self, actions) -> List[Tuple[float, float, int]]:
-        if not self.multi_agent:
+        if not self.multi_agent and type(actions) is not list:
             # if not multi-agent then the action should just be a single tuple
             actions = [actions]
 
@@ -300,7 +300,7 @@ class AgarioEnv(gym.Env):
         self.arena_size      = kwargs.get("arena_size", arena_size)
         self.num_pellets     = kwargs.get("num_pellets", num_pellets)
         self.num_viruses     = kwargs.get("num_viruses", num_viruses)
-        self.num_bots        = kwargs.get("num_bot", num_bots)
+        self.num_bots        = kwargs.get("num_bots", num_bots)
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
         self.reward_type     = kwargs.get("reward_type", reward_type)
@@ -315,7 +315,6 @@ class AgarioEnv(gym.Env):
         return self.num_agents, self.num_frames, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
                self.num_viruses, self.num_bots, self.reward_type
-
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility

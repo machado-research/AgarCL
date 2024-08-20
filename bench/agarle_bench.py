@@ -15,7 +15,7 @@ import gymnasium as gym
 import gym_agario
 import numpy as np
 import cProfile
-
+from abc import ABC, abstractmethod
 
 def mass():
     return 0
@@ -23,53 +23,65 @@ def mass():
 def diff():
     return 1
 
+import random
+from typing import Tuple, List
 
+# Default configuration for the environment
 default_config = {
     'ticks_per_step':  4,
     'num_frames':      10,
     'arena_size':      500,
     'num_pellets':     1000,
     'num_viruses':     25,
-    'num_bots':        100000,
+    'num_bots':        30,
     'pellet_regen':    True,
     'grid_size':       9,
-    'observe_cells':   False,
+    'observe_cells':   True,
     'observe_others':  True,
     'observe_viruses': True,
     'observe_pellets': True,
     'obs_type'       : "grid",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     'render_mode'    : "human", # Two options: "human", "rgb_array"
-    # 'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
+    'multi_agent'    :  True,
+    'num_agents'     :  2,
+    'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
 }
 
+# config_file = 'bench/tasks_configs/Exploration.json'
+# with open(config_file, 'r') as file:
+#     default_config = eval(file.read())
+#     default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
 
 def main():
+
     args = parse_args()
+
     env_config = {
         name: getattr(args, name)
         for name in default_config
         if hasattr(args, name)
     }
-
+    print(env_config)
+    num_agents =  default_config['num_agents']
     env = gym.make(args.env, **env_config)
     env.reset()
     states = []
     for _ in range(args.num_steps):
-        max_val, min_val = 1, -1
-        range_size = max_val - min_val
-        random_values = [0.01, 0.1]
-        null_action = ([(random_values[0], random_values[1]),0])
-        state, reward, done, step_num, _ = env.step(null_action)
+        agent_actions = []
+        for i in range(num_agents):
+            target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
+            action = (target_space.sample(), np.random.randint(0, 3))
+            agent_actions.append(action)
+        state, reward, done, truncations, step_num = env.step(agent_actions)
         env.render()
     env.close()
-#
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
-
+    parser.add_argument("-n", "--num_steps", default=100, type=int, help="Number of steps")
+    parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")
     for param in default_config:
