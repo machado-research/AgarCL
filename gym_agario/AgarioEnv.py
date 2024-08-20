@@ -125,7 +125,7 @@ class AgarioEnv(gym.Env):
         self.steps += 1
         return self.observations, rewards, dones, truncations, {'steps': self.steps}
 
-    def reset(self):
+    def reset(self, **kwargs):
         """ resets the environment
         :return: the state of the environment at the beginning
         """
