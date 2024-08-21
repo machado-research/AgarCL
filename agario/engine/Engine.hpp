@@ -184,7 +184,7 @@ namespace agario {
 
       bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT));
 
-      player.heighest_mass = std::max(player.heighest_mass, player.mass());
+      player.highest_mass = std::max(player.highest_mass, player.mass());
 
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;

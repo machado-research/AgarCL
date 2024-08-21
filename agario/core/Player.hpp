@@ -35,7 +35,7 @@ class Player {
 
     // Statistics for the player
     int food_eaten = 0;       // pellets
-    agario::mass heighest_mass = CELL_MIN_SIZE;
+    agario::mass highest_mass = CELL_MIN_SIZE;
     int cells_eaten = 0; // number of cells eaten by the player
     int viruses_eaten = 0; // number of viruses eaten by the player
     int top_position = 0; // top position of the player in the leaderboard

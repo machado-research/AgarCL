@@ -85,7 +85,7 @@ namespace agario {
       os << i + 1 << ".\t" << std::setfill(' ') << std::setw(5);
       auto &player = *leaderboard[i];
       // os <<  player.mass() << "\t" << player << std::endl;
-      os << player.food_eaten << "\t" << player.heighest_mass << "\t\t" << player.cells_eaten << "\t\t" << player.viruses_eaten << "\t\t"<< player << std::endl;
+      os << player.food_eaten << "\t" << player.highest_mass << "\t\t" << player.cells_eaten << "\t\t" << player.viruses_eaten << "\t\t"<< player << std::endl;
     }
     return os;
   }
