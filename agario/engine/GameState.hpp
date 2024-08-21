@@ -79,12 +79,13 @@ namespace agario {
                               });
       leaderboard.insert(it, pair.second);
     }
-
+    std:: cout << "Food Eaten\tHeighest Mass\tCells Eaten\tViruses Eaten\ttime_alive\tName" << std::endl;
     // print them out in sorted order
     for (unsigned i = 0; i < leaderboard.size(); ++i) {
       os << i + 1 << ".\t" << std::setfill(' ') << std::setw(5);
       auto &player = *leaderboard[i];
-      os <<  player.mass() << "\t" << player << std::endl;
+      // os <<  player.mass() << "\t" << player << std::endl;
+      os << player.food_eaten << "\t" << player.heighest_mass << "\t\t" << player.cells_eaten << "\t\t" << player.viruses_eaten << "\t\t"<< player << std::endl;
     }
     return os;
   }
