@@ -89,10 +89,10 @@ if [ "$os_name" == "Darwin" ]; then
 # Check if the OS is Linux
 elif [ "$os_name" == "Linux" ]; then
     # Step 1: Install CMake
-    sudo apt-get install libglm-dev
-    sudo apt-get install libglobjects-dev
-    sudo apt-get install cmake
-    sudo apt-get install libgtest-dev
+    sudo apt-get install -y libglm-dev
+    sudo apt-get install -y libglobjects-dev
+    sudo apt-get install -y cmake
+    sudo apt-get install -y libgtest-dev
 
     # Step 2: Install GLM
     mkdir -p "$current_dir/build"
@@ -112,19 +112,19 @@ elif [ "$os_name" == "Linux" ]; then
     make
 
     # Step 4: Install required packages
-    sudo apt-get install libgl1-mesa-dev
-    sudo apt-get install libglu1-mesa-dev
-    sudo apt-get install libglfw3-dev
-    sudo apt-get install freeglut3-dev
-    sudo apt install libstdc++-12-dev
+    sudo apt-get install -y libgl1-mesa-dev
+    sudo apt-get install -y libglu1-mesa-dev
+    sudo apt-get install -y libglfw3-dev
+    sudo apt-get install -y freeglut3-dev
+    sudo apt install -y libstdc++-12-dev
 
     # Step 5: USE CLANG Compiler
     if command -v gcc &> /dev/null; then
-        sudo apt-get remove gcc
+        sudo apt-get remove -y gcc
     fi
 
     if ! command -v clang &> /dev/null; then
-        sudo apt-get install clang
+        sudo apt-get install -y clang
     fi
     CXX=`which clang++`
 
