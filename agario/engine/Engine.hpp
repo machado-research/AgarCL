@@ -184,15 +184,17 @@ namespace agario {
 
       bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT));
 
+      player.highest_mass = std::max(player.highest_mass, player.mass());
 
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
-        eat_pellets(cell);
-        eat_food(cell);
+        player.food_eaten +=eat_pellets(cell);
+        player.food_eaten +=eat_food(cell);
 
         if (check_virus_collisions(cell, created_cells, create_limit, can_eat_virus)) {
           player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
+          player.viruses_eaten++;
         }
 
       }
@@ -622,7 +624,7 @@ namespace agario {
      * from the game which the cell eats
      * @param cell the cell which is doing the eating
      */
-    void eat_pellets(Cell &cell) {
+    int eat_pellets(Cell &cell) {
       auto prev_size = pellet_count();
 
       state.pellets.erase(
@@ -634,10 +636,12 @@ namespace agario {
 
       auto num_eaten = prev_size - pellet_count();
       cell.increment_mass(num_eaten * PELLET_MASS);
+
+      return num_eaten;
     }
 
-    void eat_food(Cell &cell) {
-      if (cell.mass() < FOOD_MASS) return;
+    int eat_food(Cell &cell) {
+      if (cell.mass() < FOOD_MASS) return 0;
       auto prev_size = food_count();
 
       state.foods.erase(
@@ -648,6 +652,8 @@ namespace agario {
         state.foods.end());
       auto num_eaten = prev_size - food_count();
       cell.increment_mass(num_eaten * FOOD_MASS);
+
+      return num_eaten;
     }
 
     void emit_foods(Player &player) {
@@ -752,9 +758,9 @@ namespace agario {
      */
     void check_players_collisions(Player &p1, Player &p2) {
       for (auto &cell : p2.cells)
-        eat_others(p1, cell);
+        p2.cells_eaten += eat_others(p1, cell);
       for (auto &cell : p1.cells)
-        eat_others(p2, cell);
+        p1.cells_eaten +=eat_others(p2, cell);
     }
 
     /**
@@ -764,10 +770,10 @@ namespace agario {
      * todo: update this so that removals are O(1) making this
      * section O(n) rather tha O(n^2)
      */
-    void eat_others(Player &player, Cell &cell) {
+    int eat_others(Player &player, Cell &cell) {
 
       agario::mass original_mass = player.mass();
-
+      int          original_size = player.cells.size();
       // remove all the cells that we eat
       player.cells.erase(
         std::remove_if(player.cells.begin(), player.cells.end(),
@@ -778,6 +784,10 @@ namespace agario {
 
       agario::mass gained_mass = original_mass - player.mass();
       cell.increment_mass(gained_mass);
+
+      int eaten_cells = original_size - player.cells.size();
+      return eaten_cells;
+
     }
 
     void recombine_cells(Player &player) {
