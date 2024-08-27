@@ -32,7 +32,7 @@ if [ "$os_name" == "Darwin" ]; then
         echo "$ZSHRC_PATH not found. Creating $ZSHRC_PATH"
         touch "$ZSHRC_PATH"
     fi
-    
+
     if ! grep -q "CPLUS_INCLUDE_PATH" "$ZSHRC_PATH"; then
         echo "Updating include paths in $ZSHRC_PATH"
 
@@ -40,7 +40,7 @@ if [ "$os_name" == "Darwin" ]; then
         echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
         echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
     fi
-    
+
     if grep -q "CPATH" "$ZSHRC_PATH"; then
         echo "CPATH already in $ZSHRC_PATH"
     else
@@ -89,11 +89,11 @@ if [ "$os_name" == "Darwin" ]; then
 # Check if the OS is Linux
 elif [ "$os_name" == "Linux" ]; then
     # Step 1: Install CMake
-    sudo apt-get install libglm-dev 
-    sudo apt-get install libglobjects-dev
-    sudo apt-get install cmake
-    sudo apt-get install libgtest-dev
-    
+    sudo apt-get install -y libglm-dev
+    sudo apt-get install -y libglobjects-dev
+    sudo apt-get install -y cmake
+    sudo apt-get install -y libgtest-dev
+
     # Step 2: Install GLM
     mkdir -p "$current_dir/build"
     cd "$current_dir/build"
@@ -112,19 +112,19 @@ elif [ "$os_name" == "Linux" ]; then
     make
 
     # Step 4: Install required packages
-    sudo apt-get install libgl1-mesa-dev
-    sudo apt-get install libglu1-mesa-dev
-    sudo apt-get install libglfw3-dev
-    sudo apt-get install freeglut3-dev
-    sudo apt install libstdc++-12-dev
-    
+    sudo apt-get install -y libgl1-mesa-dev
+    sudo apt-get install -y libglu1-mesa-dev
+    sudo apt-get install -y libglfw3-dev
+    sudo apt-get install -y freeglut3-dev
+    sudo apt install -y libstdc++-12-dev
+
     # Step 5: USE CLANG Compiler
     if command -v gcc &> /dev/null; then
-        sudo apt-get remove gcc
+        sudo apt-get remove -y gcc
     fi
 
     if ! command -v clang &> /dev/null; then
-        sudo apt-get install clang
+        sudo apt-get install -y clang
     fi
     CXX=`which clang++`
 
@@ -145,10 +145,10 @@ elif [ "$os_name" == "Linux" ]; then
     cmake -E chdir "build" cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../
     cmake --build "build" --config Release
     sudo cmake --build "build" --config Release --target install
-    
+
     # Step 8: Running the code
-    python3 setup.py install
-    
+    sudo python3 setup.py install
+
 else
     echo "Unsupported Operating System: $os_name"
     exit 1
