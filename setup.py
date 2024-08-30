@@ -59,14 +59,18 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(name='GymAgario',
-      version='0.0.1',
-      author="Jon Deaton",
-      author_email="jonpauldeaton@gmail.com",
-      description="Agar.io RL gym",
-      url="https://github.com/jondeaton/AgarLE",
-      install_requires=["gymnasium~=0.29", "numpy"],
-      packages=["gym_agario"],
-      long_description=long_description,
-      ext_modules=[CMakeExtension('agarle')],
-      cmdclass=dict(build_ext=CMakeBuild),
-      license="MIT")
+    version='0.0.1',
+    author="Jon Deaton",
+    author_email="jonpauldeaton@gmail.com",
+    description="Agar.io RL gym",
+    url="https://github.com/jondeaton/AgarLE",
+    install_requires=[
+        "gymnasium~=0.29",
+        "numpy",
+    ],
+    packages=["gym_agario"],
+    long_description=long_description,
+    ext_modules=[CMakeExtension('agarle')],
+    cmdclass=dict(build_ext=CMakeBuild),
+    license="MIT",
+)
