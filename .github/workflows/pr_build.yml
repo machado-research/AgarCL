@@ -36,8 +36,22 @@ jobs:
                 cmake -B build -D CMAKE_BUILD_TYPE=Release
                 cmake --build build --target all -j4 --config Release
 
-            - name: test
+            - name: cpp test
               run: |
                 ./build/agario/test-engine
                 ./build/agario/test-engine-renderable
                 ./build/bench/agario-bench
+
+
+            - name: python install
+              env:
+                CXX: ${{ matrix.cxx }}
+              run: |
+                python -m venv .venv
+                . .venv/bin/activate
+                python setup.py install
+
+            - name: python test
+              run: |
+                . .venv/bin/activate
+                python bench/agarle_bench.py
