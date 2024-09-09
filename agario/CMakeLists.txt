@@ -73,6 +73,11 @@ set(AGARIO_RENDERING_SRC
         rendering/window.hpp
         rendering/FrameBufferObject.hpp)
 
+set (UTILS
+        utils/collision_detection.hpp
+        utils/random.hpp
+        utils/structures.hpp)
+
 set(AGARIO_SRC ${AGARIO_CORE_SRC} ${AGARIO_ENGINE_SRC})
 
 set(OpenGL_GL_PREFERENCE GLVND)
@@ -93,11 +98,11 @@ include_directories(client engine ${OPENGL_INCLUDE_DIR})
 set(AGARIO_CLIENT_SRC
         ${AGARIO_BOT_SRC}
         ${AGARIO_RENDERING_SRC}
+        ${UTILS}
         core/Entities.hpp
         client/client.hpp
         rendering/renderer.hpp
         rendering/shader.hpp
-        # /usr/include/glad/include/glad/glad.h
         )
 
 

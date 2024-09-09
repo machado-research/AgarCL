@@ -127,8 +127,25 @@ namespace agario {
         if (!player.dead())
           tick_player(player, elapsed_seconds);
       }
+      // to change the hierarchy of: I want pair of player_id and cells: Keep in mind that we will std::move cells
+      std::vector<std::pair<agario::pid, std::vector<Cell>>> cells;
 
-      check_player_collisions();
+      for (auto &pair : state.players) {
+        auto &player = *pair.second;
+        if (player.dead()) {
+          cells.emplace_back(pair.first, std::move(player.cells));
+          player.cells.clear();
+        }
+      }
+      // do the collision part here:
+      // check_player_collisions();
+
+      // return the updated cells to the players
+
+      for(auto &pair : cells) {
+        auto &player = *state.players.at(pair.first);
+        player.add_cells(pair.second);
+      }
 
       move_foods(elapsed_seconds);
       if (state.config.pellet_regen) {
