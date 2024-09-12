@@ -7,13 +7,14 @@
 #include <sstream>
 #include<set>
 #include <numeric>
-
+#include<random>
 #include "agario/core/Player.hpp"
 #include "agario/core/settings.hpp"
 #include "agario/core/types.hpp"
 #include "agario/core/Entities.hpp"
 #include "agario/engine/GameState.hpp"
 #include "agario/utils/random.hpp"
+#include "agario/utils/collision_detection.hpp"
 #include <thread>
 #include <chrono>
 namespace agario {
@@ -79,7 +80,7 @@ namespace agario {
       return const_cast<Player &>(get_player(pid));
     }
 
-    const Player &get_player(agario::pid pid) const {
+    Player &get_player(agario::pid pid) const {
       if (state.players.find(pid) == state.players.end()) {
         std::stringstream ss;
         ss << "Player ID: " << pid << " does not exist.";
@@ -128,24 +129,53 @@ namespace agario {
           tick_player(player, elapsed_seconds);
       }
       // to change the hierarchy of: I want pair of player_id and cells: Keep in mind that we will std::move cells
-      std::vector<std::pair<agario::pid, std::vector<Cell>>> cells;
+      std::vector<std::pair<agario::pid, Cell>> cells_per_player;
 
-      for (auto &pair : state.players) {
+      for(auto &pair : state.players) {
         auto &player = *pair.second;
-        if (player.dead()) {
-          cells.emplace_back(pair.first, std::move(player.cells));
-          player.cells.clear();
+        sort(player.cells.begin(), player.cells.end());
+        for(auto &cell : player.cells) {
+          cells_per_player.emplace_back(std::make_pair(player.pid(), std::move(cell)));
         }
       }
+
+      //change
+      PrecisionCollisionDetection<renderable> pcd({arena_width(), arena_height()}, 1);
+      //send the cells for each player
+      auto results = pcd.solve(cells_per_player, cells_per_player);
+
+      // print results
+      for (const auto& result : results) {
+        const auto& id = result.first;
+        const auto& cells = result.second;
+        for (const auto& vect_id : cells) {
+          auto &eaten_player = get_player(vect_id.first);
+          const auto& cell = vect_id.second;
+          auto &player = get_player(cells_per_player[id].first);
+          auto& eaten_player_cells = eaten_player.cells;
+          auto it = std::lower_bound(player.cells.begin(), player.cells.end(), cells_per_player[id].second.id, [](const Cell& c, int id) {
+            return c.id < id;
+          });
+
+          if (it != player.cells.end()) {
+            it->increment_mass(cell.mass());
+          }
+
+          auto eaten_it = std::lower_bound(eaten_player_cells.begin(), eaten_player_cells.end(), cell.id, [](const Cell& c, int id) {
+            return c.id < id;
+          });
+
+          if (eaten_it != eaten_player_cells.end()) {
+            eaten_player_cells.erase(eaten_it);
+          }
+
+        }
+      }
+
       // do the collision part here:
       // check_player_collisions();
 
-      // return the updated cells to the players
-
-      for(auto &pair : cells) {
-        auto &player = *state.players.at(pair.first);
-        player.add_cells(pair.second);
-      }
+      cells_per_player.clear();
 
       move_foods(elapsed_seconds);
       if (state.config.pellet_regen) {

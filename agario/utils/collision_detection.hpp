@@ -1,50 +1,49 @@
 #include<iostream>
 #include<unordered_map>
-#include "structures.hpp"
+// #include "structures.hpp"
+
 
 
 namespace agario {
-
-
-    class BaseCollisionDetection {
+    template<bool renderable>
+    class PrecisionCollisionDetection {
     public:
-        BaseCollisionDetection(Border border) : border(border) {}
-
-        virtual void solve(std::vector<Query>& query_list, std::vector<Gallery>& gallery_list) = 0;
-
-    protected:
-        Border border;
-    };
-
-
-    class PrecisionCollisionDetection : public BaseCollisionDetection {
-    public:
-        PrecisionCollisionDetection(Border border, int precision) : BaseCollisionDetection(border), precision(precision) {}
+        typedef Cell<renderable> Cell;
+        std::pair<float,float> border;
+        PrecisionCollisionDetection(std::pair<float,float> border, int precision = 50) : border(border), precision(precision) {}
 
         int get_row(float x) {
-            return static_cast<int>((x - border.minx) / border.height * precision);
+            return static_cast<int>(x / border.second * precision);
         }
 
-        void solve(std::vector<std::pair<agario::pid, std::vector<Cell>>>& query_list, std::vector<std::pair<agario::pid, std::vector<Cell>>>& gallery_list) override {
+        std::unordered_map<int, std::vector<std::pair<agario::pid, Cell>>> solve(std::vector<std::pair<agario::pid, Cell>>& query_list, std::vector<std::pair<agario::pid, Cell>>& gallery_list) {
             std::unordered_map<int, std::vector<std::pair<int, float>>> vec;
             for (int id = 0; id < gallery_list.size(); id++) {
-                const auto& node = gallery_list[id];
-                int row_id = get_row(node.position.x);
-                vec[row_id].push_back(std::make_pair(id, node.position.y));
+                const auto& node = gallery_list[id].second;
+                int row_id = get_row(node.x);
+                vec[row_id].emplace_back(std::make_pair(id, node.y));
             }
             for (auto& val : vec) {
                 std::sort(val.second.begin(), val.second.end(), [](const auto& a, const auto& b) {
                     return a.second < b.second;
                 });
             }
-            std::unordered_map<int, std::vector<std::pair<agario::pid, std::vector<Cell>>>> results;
+
+            // //print vec
+            // for(auto &val : vec){
+            //     std::cout << val.first << " : ";
+            //     for(auto &v : val.second){
+            //         std::cout << v.first << " ";
+            //     }
+            //     std::cout << std::endl;
+            // }
+            std::unordered_map<int, std::vector<std::pair<agario::pid, Cell>>> results;
             for (int id = 0; id < query_list.size(); id++) {
-                const auto& query = query_list[id];
-                results[id] = {};
-                float left = query.position.y - query.radius;
-                float right = query.position.y + query.radius;
-                int top = get_row(query.position.x - query.radius);
-                int bottom = get_row(query.position.x + query.radius);
+                const auto& query = query_list[id].second; //cell
+                float left = query.y - query.radius();
+                float right = query.y + query.radius();
+                int top = get_row(left);
+                int bottom = get_row(right);
                 for (int i = top; i <= bottom; i++) {
                     if (vec.find(i) == vec.end()) continue;
                     int l = vec[i].size();
@@ -55,11 +54,15 @@ namespace agario {
                         }
                     }
                     for (int j = start_pos; j < l; j++) {
-                        if (vec[i][j].second > right) break;
-                        if (query.touches_with_margin(gallery_list[vec[i][j].first])) {
-                            results[id].push_back(gallery_list[vec[i][j].first]);
+                        if (vec[i][j].second > right || query_list[id].first == gallery_list[vec[i][j].first].first) break;
+                        if (query.touches(gallery_list[vec[i][j].first].second) && query.can_eat(gallery_list[vec[i][j].first].second)) {
+                            results[id].emplace_back(std::move(gallery_list[vec[i][j].first]));
+                            // in this case, query can eat gallery_list[vec[i][j].first]cell
+                            //get tje player of gallery_list
+                            // eat_others(player, gallery_list[vec[i][j].first].second);
                         }
                     }
+
                 }
             }
             return results;
@@ -68,6 +71,4 @@ namespace agario {
     private:
         int precision;
     };
-
-
 }

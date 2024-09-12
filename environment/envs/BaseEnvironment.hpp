@@ -68,8 +68,8 @@ namespace agario {
           auto pid = pair.first;
           auto player = pair.second;
           if(player->dead()){
-            std::cout << "Player \"" << player->name() << "\" (pid ";
-            std::cout << pid << ") died." << std::endl;
+            // std::cout << "Player \"" << player->name() << "\" (pid ";
+            // std::cout << pid << ") died." << std::endl;
             this->engine_.respawn(*player);
           }
         }
