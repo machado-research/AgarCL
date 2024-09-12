@@ -10,18 +10,18 @@ namespace agario {
     public:
         typedef Cell<renderable> Cell;
         std::pair<float,float> border;
-        PrecisionCollisionDetection(std::pair<float,float> border, int precision = 50) : border(border), precision(precision) {}
+        PrecisionCollisionDetection(std::pair<float,float> border, int precision = 10) : border(border), precision(precision) {}
 
-        int get_column(float x) {
-            return static_cast<int>(x / border.second * precision);
+        int get_row(float x) {
+            return static_cast<int>(x / border.first * precision);
         }
 
         std::unordered_map<int, std::vector<std::pair<agario::pid, Cell>>> solve(std::vector<std::pair<agario::pid, Cell>>& query_list, std::vector<std::pair<agario::pid, Cell>>& gallery_list) {
             std::unordered_map<int, std::vector<std::pair<int, float>>> vec;
             for (int id = 0; id < gallery_list.size(); id++) {
                 const auto& node = gallery_list[id].second;
-                int column_id = get_column(node.x);
-                vec[column_id].emplace_back(std::make_pair(id, node.y));
+                int row_id = get_row(node.x);
+                vec[row_id].emplace_back(std::make_pair(id, node.y));
             }
             for (auto& val : vec) {
                 std::sort(val.second.begin(), val.second.end(), [](const auto& a, const auto& b) {
@@ -34,8 +34,8 @@ namespace agario {
                 const auto& query = query_list[id].second; //cell
                 float left = query.x - query.radius();
                 float right = query.x + query.radius();
-                int top = get_column(left);
-                int bottom = get_column(right);
+                int top = get_row(left);
+                int bottom = get_row(right);
                 for (int i = top; i <= bottom; i++) {
                     if (vec.find(i) == vec.end()) continue;
                     int l = vec[i].size();
@@ -46,7 +46,7 @@ namespace agario {
                         }
                     }
                     for (int j = start_pos; j < l; j++) {
-                        if (vec[i][j].second > right || query_list[id].first == gallery_list[vec[i][j].first].first) break;
+                        if (query_list[id].first == gallery_list[vec[i][j].first].first) break;
                         if (query.touches(gallery_list[vec[i][j].first].second) && query.can_eat(gallery_list[vec[i][j].first].second)) {
                             results[id].emplace_back(std::move(gallery_list[vec[i][j].first]));
                             // in this case, query can eat gallery_list[vec[i][j].first]cell

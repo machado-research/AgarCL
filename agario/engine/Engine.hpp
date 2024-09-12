@@ -144,19 +144,6 @@ namespace agario {
       //send the cells for each player
       auto results = pcd.solve(cells_per_player, cells_per_player);
 
-      // for(auto &result : results)
-      // {
-      //   const auto id = result.first;
-      //   const auto &cells = result.second;
-      //   int player_id = cells_per_player[id].first;
-      //   std::cout << "Player " << player_id << " has eaten: ";
-      //   for(const auto &vect_id : cells)
-      //   {
-      //      std::cout << vect_id.first << " with mass " << vect_id.second.mass() << " ";
-      //   }
-      //   std::cout << '\n';
-      // }
-
       for (const auto& result : results) {
         const auto& id = result.first;
         const auto& cells = result.second;
