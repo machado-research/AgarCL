@@ -140,11 +140,23 @@ namespace agario {
       }
 
       //change
-      PrecisionCollisionDetection<renderable> pcd({arena_width(), arena_height()}, 1);
+      PrecisionCollisionDetection<renderable> pcd({arena_width(), arena_height()});
       //send the cells for each player
       auto results = pcd.solve(cells_per_player, cells_per_player);
 
-      // print results
+      // for(auto &result : results)
+      // {
+      //   const auto id = result.first;
+      //   const auto &cells = result.second;
+      //   int player_id = cells_per_player[id].first;
+      //   std::cout << "Player " << player_id << " has eaten: ";
+      //   for(const auto &vect_id : cells)
+      //   {
+      //      std::cout << vect_id.first << " with mass " << vect_id.second.mass() << " ";
+      //   }
+      //   std::cout << '\n';
+      // }
+
       for (const auto& result : results) {
         const auto& id = result.first;
         const auto& cells = result.second;
@@ -178,11 +190,15 @@ namespace agario {
       cells_per_player.clear();
 
       move_foods(elapsed_seconds);
-      if (state.config.pellet_regen) {
-        add_pellets(state.config.target_num_pellets - state.pellets.size());
+
+      if(state.ticks%180 == 0){
+        if (state.config.pellet_regen) {
+          add_pellets(state.config.target_num_pellets - state.pellets.size());
+        }
+        add_viruses(state.config.target_num_viruses - state.viruses.size());
       }
-      add_viruses(state.config.target_num_viruses - state.viruses.size());
       state.ticks++;
+
     }
 
     void seed(unsigned s) {
