@@ -239,7 +239,7 @@ namespace agario {
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
-        // player.food_eaten +=eat_pellets(cell);
+        player.food_eaten +=eat_pellets(cell);
         player.food_eaten +=eat_food(cell);
 
         if (check_virus_collisions(cell, created_cells, create_limit, can_eat_virus)) {
@@ -481,7 +481,7 @@ namespace agario {
               return static_cast<int>(x / border * precision);
     }
 
-    bool check_pellets_collisions(vector<Pellet> &pellets, Player &player) {
+    bool check_pellets_collisions(std::vector<Pellet> &pellets, Player &player) {
             std::unordered_map<int, std::vector<std::pair<int, float>>> vec;
 
             for (int id = 0; id < pellets.size(); id++) {
