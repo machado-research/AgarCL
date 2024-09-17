@@ -140,7 +140,7 @@ namespace agario {
       }
 
       //change
-      PrecisionCollisionDetection<renderable> pcd({arena_width(), arena_height()});
+      PrecisionCollisionDetection<renderable> pcd({arena_width(), arena_height()}, 100);
       //send the cells for each player
       auto results = pcd.solve(cells_per_player, cells_per_player);
 
@@ -239,7 +239,7 @@ namespace agario {
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
-        player.food_eaten +=eat_pellets(cell);
+        // player.food_eaten +=eat_pellets(cell);
         player.food_eaten +=eat_food(cell);
 
         if (check_virus_collisions(cell, created_cells, create_limit, can_eat_virus)) {
@@ -263,7 +263,7 @@ namespace agario {
       // some actions do not need to happen every tick
       // these will be executed once per second
       if (player.elapsed_ticks % 60 == 0) {
-        maybe_activate_anti_team(player);
+        maybe_activate_anti_team(player); // we can optimize it using a data structure to remove a range in a faster time instead of making it O(n)
         mass_decay(player);
       }
     }
@@ -477,15 +477,69 @@ namespace agario {
 
     }
 
+    int get_row(float x, int border, int precision=100) {
+              return static_cast<int>(x / border * precision);
+    }
+
+    bool check_pellets_collisions(vector<Pellet> &pellets, Player &player) {
+            std::unordered_map<int, std::vector<std::pair<int, float>>> vec;
+
+            for (int id = 0; id < pellets.size(); id++) {
+                const auto& node = pellets[id];
+                int row_id = get_row(node.x, state.config.arena_width);
+                vec[row_id].emplace_back(std::make_pair(id, node.y));
+            }
+            for (auto& val : vec) {
+                std::sort(val.second.begin(), val.second.end(), [](const auto& a, const auto& b) {
+                    return a.second < b.second;
+                });
+            }
+
+            std::unordered_map<int, std::vector<Cell>> results;
+
+            // the query_list
+            for(auto &cell : player.cells) {
+                float left = cell.x - cell.radius();
+                float right = cell.x + cell.radius();
+                int top = get_row(left,state.config.arena_width);
+                int bottom = get_row(right, state.config.arena_width);
+                for (int i = top; i <= bottom; i++) {
+                    if (vec.find(i) == vec.end()) continue;
+                    int l = vec[i].size();
+                    int start_pos = 0;
+                    for (int j = 12; j >= 0; j--) {
+                        if (start_pos + (1 << j) < l && vec[i][start_pos + (1 << j)].second < left) {
+                            start_pos += (1 << j);
+                        }
+                    }
+                    auto & pellet = pellets[vec[i][start_pos].first];
+                    for (int j = start_pos; j < l; j++) {
+                        if(cell.can_eat(pellet) && cell.collides_with(pellet)) {
+                          cell.increment_mass(pellet.mass());
+                          // remove the pellet from the game
+                          if(pellets.size() > 1)
+                            std::swap(pellet, pellets.back());
+                          pellets.pop_back();
+                        }
+                    }
+
+                }
+            }
+
+    }
+
     /**
      * Moves all of `player`'s cells apart slightly such that
      * cells which aren't eligible for recombining don't overlap
      * with other cells of the same player.
      */
-    void check_player_self_collisions(Player &player, const agario::time_delta &elapsed_seconds) {
+    // NEED TO OPTIMIZE THIS FUNCTION: BIG BIG BIG O(n^2) for each player, so it is O(M*N^2): N is the number of cells and M is the number of Players
+    // What if we can make it O(M*N*log(N)), or Much better O(M*N)? How?
+    // One option left to try is to use the quadtree data structure to store the cells of each player, and then check the cells that are close to each other.
 
+    void check_player_self_collisions(Player &player, const agario::time_delta &elapsed_seconds) {
     bool overlap = false;
-    for(int iter = 0 ; iter < 10 ;iter++){
+    for(int iter = 0 ; iter < 8 ;iter++){
       overlap = false;
       for (int idx_a = 0; idx_a < player.cells.size(); idx_a++) {
         for (int idx_b = idx_a + 1; idx_b < player.cells.size(); idx_b++) {
@@ -505,7 +559,6 @@ namespace agario {
       }
       if(!overlap)
         break;
-
     }
 
     if(overlap)
@@ -522,11 +575,6 @@ namespace agario {
     }
 
   }
-
-
-    template <typename T> int sgn(T val) {
-        return (T(0) < val) - (val < T(0));
-    }
 
     /**
      * Moves `cell_a` and `cell_b` apart slightly

@@ -125,22 +125,12 @@ namespace agario {
                             _mass(mass), _can_recombine(false) {
       set_mass(mass);
       _recombine_timer = std::chrono::steady_clock::now();
-      id = generate_random_id(); // Add a random id for the cell
-
-    }
-
-    int generate_random_id() {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(1, 1000);
-        return dis(gen);
     }
 
     bool operator < (const Cell &other_cell) const
     {
       return this->id < other_cell.id;
     }
-
 
     template<typename Loc>
     Cell(Loc &&loc, agario::mass mass) : Cell(loc, Velocity(), mass) {}
@@ -210,7 +200,6 @@ namespace agario {
 
     agario::Velocity splitting_velocity;
     agario::real_time _recombine_timer;
-    int id;
 
   private:
     agario::mass _mass;

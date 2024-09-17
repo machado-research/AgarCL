@@ -1,7 +1,7 @@
 #pragma once
 
 #include <math.h>
-
+#include<random>
 #include "agario/core/types.hpp"
 
 #define CELL_EAT_MARGIN 1.1
@@ -10,11 +10,24 @@ namespace agario {
 
   class Ball {
   public:
+    void * quad_node = nullptr;
+    int id;
+
+
     Ball() = delete;
+
+    int generate_random_id() {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(1, 1000);
+        return dis(gen);
+    }
 
     explicit Ball(const Location &loc) : x(loc.x), y(loc.y) {}
 
-    Ball(distance x, distance y) : Ball(Location(x, y)) {}
+    Ball(distance x, distance y) : Ball(Location(x, y)) {
+      id = generate_random_id();
+    }
 
     virtual distance radius() const = 0;
 
@@ -46,8 +59,8 @@ namespace agario {
 
     // mass based comparison, useful for sorting and such
     bool operator==(const Ball &other) const { return mass() == other.mass(); }
-    bool operator<(const Ball &other) const { return mass() < other.mass(); }
-    bool operator>(const Ball &other) const { return mass() > other.mass(); }
+    bool operator<(const Ball &other) const { return id < other.id; }
+    bool operator>(const Ball &other) const { return id > other.id; }
 
     distance x;
     distance y;

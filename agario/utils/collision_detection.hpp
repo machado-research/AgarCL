@@ -1,10 +1,12 @@
 #include<iostream>
 #include<unordered_map>
-// #include "structures.hpp"
+#include "structures.hpp"
 
 
 
 namespace agario {
+
+
     template<bool renderable>
     class PrecisionCollisionDetection {
     public:
@@ -47,11 +49,8 @@ namespace agario {
                     }
                     for (int j = start_pos; j < l; j++) {
                         if (query_list[id].first == gallery_list[vec[i][j].first].first) break;
-                        if (query.touches(gallery_list[vec[i][j].first].second) && query.can_eat(gallery_list[vec[i][j].first].second)) {
+                        if (query.collides_with(gallery_list[vec[i][j].first].second) && query.can_eat(gallery_list[vec[i][j].first].second)) {
                             results[id].emplace_back(std::move(gallery_list[vec[i][j].first]));
-                            // in this case, query can eat gallery_list[vec[i][j].first]cell
-                            //get tje player of gallery_list
-                            // eat_others(player, gallery_list[vec[i][j].first].second);
                         }
                     }
 
@@ -63,4 +62,98 @@ namespace agario {
     private:
         int precision;
     };
+    // query_list: the cells of a player.
+    // gallery_list : the pellets
+    template<bool renderable>
+    class RebuildQuadTreeCollisionDetection {
+        public:
+            RebuildQuadTreeCollisionDetection(Border border, int node_capacity = 64, int tree_depth = 32)
+                : node_capacity(node_capacity), tree_depth(tree_depth), border(border) {}
+
+            std::unordered_map<int, std::vector<agario::Pellet<renderable>>> solve(Player<renderable> &player, const std::vector<agario::Pellet<renderable>>& gallery_list) {
+                auto &query_list = player.cells;
+                QuadNode<renderable> quadTree(border, tree_depth, node_capacity);
+                for (const auto& node : gallery_list) {
+                    quadTree.insert(node);
+                }
+
+                std::unordered_map<int, std::vector<agario::Pellet<renderable>>> results;
+                for (size_t i = 0; i < query_list.size(); ++i) {
+                    results[i] = {};
+                    auto query = query_list[i];
+                    Border query_border(
+                        std::max(query.position.x - query.radius(), border.minx),
+                        std::max(query.position.y - query.radius(), border.miny),
+                        std::min(query.position.x + query.radius(), border.maxx),
+                        std::min(query.position.y + query.radius(), border.maxy)
+                    );
+
+                    auto quadTree_results = quadTree.find(query_border);
+                    for (const auto& result : quadTree_results) {
+                        if (query.can_eat(result) && query.collides_with(result)) {
+                            results[i].push_back(result);
+                        }
+                    }
+                }
+                return results;
+            }
+
+        private:
+            int node_capacity;
+            int tree_depth;
+            Border border;
+    };
+
+    template<typename NodeType, bool renderable>
+    class RemoveQuadTreeCollisionDetection {
+    public:
+        RemoveQuadTreeCollisionDetection(Border border, int node_capacity = 64, int tree_depth = 32)
+            : node_capacity(node_capacity), tree_depth(tree_depth), border(border) {
+            quadTree = new QuadNode<renderable>(border, tree_depth, node_capacity);
+        }
+
+        ~RemoveQuadTreeCollisionDetection() {
+            delete quadTree;
+        }
+
+        std::unordered_map<int, std::vector<agario::Pellet<renderable>>> solve(Player<renderable> &player, const std::vector<agario::Pellet<renderable>>& changed_node_list) {
+            auto& query_list = player.cells;
+
+            for (const auto& node : changed_node_list) {
+                if (node.quad_node != nullptr) {
+                    node.quad_node->remove(node);
+                }
+                if (!node.is_remove) {
+                    quadTree->insert(node);
+                }
+            }
+
+            std::unordered_map<int, std::vector<agario::Pellet<renderable>>> results;
+            for (size_t i = 0; i < query_list.size(); ++i) {
+                results[i] = {};
+                const auto& query = query_list[i];
+                Border query_border(
+                    std::max(query.position.x - query.radius(), border.minx),
+                    std::max(query.position.y - query.radius(), border.miny),
+                    std::min(query.position.x + query.radius(), border.maxx),
+                    std::min(query.position.y + query.radius(), border.maxy)
+                );
+
+                auto quadTree_results = quadTree->find(query_border);
+                for (const auto& result : quadTree_results) {
+                    if (query.judge_cover(result)) {
+                        results[i].push_back(result);
+                    }
+                }
+            }
+            return results;
+        }
+
+    private:
+        int node_capacity;
+        int tree_depth;
+        Border border;
+        QuadNode<renderable>* quadTree;
+    };;;
+
 }
