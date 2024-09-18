@@ -10,7 +10,6 @@ namespace agario {
 
   class Ball {
   public:
-    void * quad_node = nullptr;
     int id;
 
 
