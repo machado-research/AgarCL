@@ -277,7 +277,7 @@ namespace agario {
       // some actions do not need to happen every tick
       // these will be executed once per second
       if (player.elapsed_ticks % 60 == 0) {
-        maybe_activate_anti_team(player); // we can optimize it using a data structure to remove a range in a faster time instead of making it O(n)
+        maybe_activate_anti_team(player);
         mass_decay(player);
       }
     }
@@ -508,7 +508,7 @@ namespace agario {
                     if (vec.find(i) == vec.end()) continue;
                     int l = vec[i].size();
                     int start_pos = 0;
-                    for (int j = 12; j >= 0; j--) {
+                    for (int j = 10; j >= 0; j--) {
                         if (start_pos + (1 << j) < l && vec[i][start_pos + (1 << j)].second < left) {
                             start_pos += (1 << j);
                         }

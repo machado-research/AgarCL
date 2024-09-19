@@ -410,7 +410,7 @@ namespace agario::env {
       }
 
       /* allows for intermediate grid frames to be stored in the GridObservation */
-      void _partial_observation(int agent_index, int tick_index) override {
+      void _partial_observation(int agent_index, int tick_index, int last_tick) override {
         assert(agent_index < this->num_agents());
         assert(tick_index < this->ticks_per_step());
 

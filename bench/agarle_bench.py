@@ -31,7 +31,7 @@ import csv
 # Default configuration for the environment
 default_config = {
     'ticks_per_step':  4,
-    'num_frames':      1,
+    'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      500,
     'num_pellets':     512,
     'num_viruses':     25,
@@ -81,10 +81,11 @@ def main():
                 action = (target_space.sample(), np.random.randint(0, 3))
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
+            import pdb; pdb.set_trace()
         print("SPS: ", global_step / (time.time() - start_time))
     #     SPS_VALUES.append(global_step / (time.time() - start_time))
 
-    # with open('SPS_values_opt3_screen.csv', mode='w') as file:
+    # with open('SPS_values_opt_screen.csv', mode='w') as file:
     #     writer = csv.writer(file)
     #     writer.writerow(SPS_VALUES)
 
