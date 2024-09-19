@@ -86,12 +86,12 @@ namespace agario {
 
         auto before = masses<float>();
 
-        for (int tick = 0; tick < ticks_per_step(); tick++) {
+        for (int tick = 0; tick < ticks_per_step(); tick++)
           engine_.tick(step_dt_);
-          repsawn_all_players();
-        }
+
         for (int agent = 0; agent < num_agents(); agent++)
           this->_partial_observation(agent, ticks_per_step() - 1);
+        repsawn_all_players();
 
         // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
