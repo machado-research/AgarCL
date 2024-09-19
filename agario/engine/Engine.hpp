@@ -98,6 +98,7 @@ namespace agario {
     void initialize_game() {
       add_pellets(state.config.target_num_pellets);
       add_viruses(state.config.target_num_viruses);
+      update_vec();
     }
 
     void respawn(Player &player) {
@@ -183,8 +184,10 @@ namespace agario {
         if (state.config.pellet_regen) {
           add_pellets(state.config.target_num_pellets - state.pellets.size());
         }
+        int prev_virus_size = state.viruses.size();
         add_viruses(state.config.target_num_viruses - state.viruses.size());
-        update_vec();
+        if(prev_virus_size - state.viruses.size() != 0)
+            update_vec();
       }
       state.ticks++;
 
@@ -259,6 +262,12 @@ namespace agario {
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
         player.food_eaten +=eat_pellets(cell);
         player.food_eaten +=eat_food(cell);
+
+        // if (check_virus_collisions(cell, created_cells, create_limit, can_eat_virus)) {
+        //   player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
+        //   player.viruses_eaten++;
+        // }
+
       }
       if(check_virus_collisions(player, create_limit, can_eat_virus))
       {

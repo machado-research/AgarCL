@@ -42,7 +42,7 @@ default_config = {
     'observe_others':  True,
     'observe_viruses': True,
     'observe_pellets': True,
-    'obs_type'       : "screen",   #Two options: screen, grid
+    'obs_type'       : "grid",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     # 'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
@@ -72,7 +72,7 @@ def main():
     SPS_VALUES = []
     global_step = 0
     start_time = time.time()
-    for iter in range(1000):
+    for iter in tqdm.tqdm(range(1000)):
         for _ in range(args.num_steps):
             agent_actions = []
             global_step += 1
@@ -81,11 +81,10 @@ def main():
                 action = (target_space.sample(), np.random.randint(0, 3))
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
-            import pdb; pdb.set_trace()
         print("SPS: ", global_step / (time.time() - start_time))
     #     SPS_VALUES.append(global_step / (time.time() - start_time))
 
-    # with open('SPS_values_opt_screen.csv', mode='w') as file:
+    # with open('SPS_values_full_opt_screen.csv', mode='w') as file:
     #     writer = csv.writer(file)
     #     writer.writerow(SPS_VALUES)
 
