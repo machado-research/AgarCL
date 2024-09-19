@@ -82,11 +82,11 @@ def main():
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
         print("SPS: ", global_step / (time.time() - start_time))
-    #     SPS_VALUES.append(global_step / (time.time() - start_time))
+        SPS_VALUES.append(global_step / (time.time() - start_time))
 
-    # with open('SPS_values_full_opt_screen.csv', mode='w') as file:
-    #     writer = csv.writer(file)
-    #     writer.writerow(SPS_VALUES)
+    with open('SPS_values_full_opt_grid.csv', mode='w') as file:
+        writer = csv.writer(file)
+        writer.writerow(SPS_VALUES)
 
 
 

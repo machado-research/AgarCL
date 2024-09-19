@@ -410,7 +410,7 @@ namespace agario::env {
       }
 
       /* allows for intermediate grid frames to be stored in the GridObservation */
-      void _partial_observation(int agent_index, int tick_index, int last_tick) override {
+      void _partial_observation(int agent_index, int tick_index) override {
 
         assert(agent_index < this->num_agents());
         assert(tick_index < this->ticks_per_step());
@@ -424,7 +424,7 @@ namespace agario::env {
           auto &state = this->engine_.game_state();
           // we store in the observation the last `num_frames` frames between each step
           int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
-          if (frame_index >= 0 && tick_index == last_tick - 1) // frame skipping
+          if (frame_index >= 0) // frame skipping
             observation.add_frame(player, state, frame_index);
 
 

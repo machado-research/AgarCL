@@ -88,10 +88,11 @@ namespace agario {
 
         for (int tick = 0; tick < ticks_per_step(); tick++) {
           engine_.tick(step_dt_);
-          for (int agent = 0; agent < num_agents(); agent++)
-              this->_partial_observation(agent, tick, ticks_per_step());
           repsawn_all_players();
         }
+        for (int agent = 0; agent < num_agents(); agent++)
+          this->_partial_observation(agent, ticks_per_step() - 1);
+
         // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
         if(reward_type_){
@@ -172,7 +173,7 @@ namespace agario {
         // after `reset` will return a state representing the fresh beginning
         for (int frame_index = 0; frame_index < ticks_per_step(); frame_index++)
           for (int agent_index = 0; agent_index < num_agents(); agent_index++)
-            this->_partial_observation(agent_index, frame_index, ticks_per_step());
+            this->_partial_observation(agent_index, frame_index);
       }
 
       [[nodiscard]] std::vector<bool> dones() const { return dones_; }
@@ -197,8 +198,8 @@ namespace agario {
 
       /* override this to allow environment to get it's state from
        * intermediate frames between the start and end of a "step" */
-      virtual void _partial_observation(int agent_index, int tick_index, int last_tick) {};
-      virtual void _partial_observation(Player &player, int tick_index, int last_tick) {};
+      virtual void _partial_observation(int agent_index, int tick_index) {};
+      virtual void _partial_observation(Player &player, int tick_index) {};
 
     private:
       /* adds the specified number of bots to the game */
