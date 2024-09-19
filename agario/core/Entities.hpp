@@ -198,6 +198,8 @@ namespace agario {
       _mass = new_decayed_mass;   // In the real game, we enforce each cell to lose mass even if it is less than the minimum: https://agario.fandom.com/wiki/Cell
     }
 
+
+
     agario::Velocity splitting_velocity;
     agario::real_time _recombine_timer;
 
