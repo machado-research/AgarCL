@@ -28,6 +28,15 @@ make_includable(rendering/shaders/vertex.glsl rendering/shaders/_vertex.glsl)
 make_includable(rendering/shaders/fragment.glsl rendering/shaders/_fragment.glsl)
 
 
+
+# Allow for USE_EGL
+option(USE_EGL "Make environments headlessly renderable" ON) # Disabled by default
+if (USE_EGL)
+    message("Headlessly renderable")
+    add_definitions(-DUSE_EGL)
+endif ()
+
+
 IF(APPLE)
     # Fix linking on 10.14+. See https://stackoverflow.com/questions/54068035
     link_directories(/usr/local/lib)
@@ -116,7 +125,7 @@ set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(glad PUBLIC ${EXT_INCLUDE_DIR})
 
 add_executable(client ${AGARIO_CLIENT_SRC} ${AGARIO_BOT_SRC}  client/main.cpp)
-target_link_libraries(client ${OPENGL_LIBRARIES} glad glfw glm)
+target_link_libraries(client ${OPENGL_LIBRARIES} OpenGL::EGL glad glfw glm)
 
 include_directories(server)
 set(AGARIO_SERVER_SRC
@@ -158,7 +167,7 @@ if (GTEST_FOUND)
         add_executable(test-engine-renderable ${TEST_SRC} ${AGARIO_SRC})
         target_include_directories(test-engine-renderable PRIVATE ${OPENGL_INCLUDE_DIR})
 
-        target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} glad glm glfw)
+        target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} OpenGL::EGL glad glm glfw)
         target_compile_definitions(test-engine-renderable PUBLIC RENDERABLE)
 
     else()
