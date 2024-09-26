@@ -8,6 +8,7 @@
 
 #ifdef USE_EGL
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 static const EGLint configAttribs[] = {
         EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
         EGL_BLUE_SIZE, 8,
@@ -46,10 +47,11 @@ public:
     window(nullptr) {
 #ifdef USE_EGL
      _initialize_egl();
+     _check_egl_context_creation();
 #else
     _initialize_context();
-#endif
     _check_context_creation();
+#endif
     _initialize_frame_buffers();
   }
 
@@ -156,13 +158,23 @@ private:
 
   void _check_context_creation()
   {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+      throw FBOException("Failed to initialize GLAD");
+    } else {
+      std::cout << "GLAD with ok" << std::endl;
+    }
+  }
+
+#ifdef USE_EGL
+  void _check_egl_context_creation()
+  {
     if (!gladLoadGLLoader((GLADloadproc)eglGetProcAddress)) {
       throw FBOException("Failed to initialize GLAD with EGL");
     } else {
       std::cout << "GLAD with EGL ok" << std::endl;
     }
   }
-
+#endif
 #ifdef USE_EGL
   void _initialize_egl() {
     EGLDisplay eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);

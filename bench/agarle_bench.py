@@ -42,7 +42,7 @@ default_config = {
     'observe_others':  True,
     'observe_viruses': True,
     'observe_pellets': True,
-    'obs_type'       : "grid",   #Two options: screen, grid
+    'obs_type'       : "screen",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     # 'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
