@@ -6,7 +6,7 @@
 #include "agario/rendering/utils.hpp"
 #include <iostream>
 
-// #ifdef USE_EGL
+#ifdef USE_EGL
 #include <EGL/egl.h>
 static const EGLint configAttribs[] = {
         EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
@@ -26,7 +26,7 @@ static const EGLint pbufferAttribs[] = {
       EGL_HEIGHT, pbufferHeight,
       EGL_NONE,
 };
-// #endif
+#endif
 
 
 
@@ -44,12 +44,11 @@ public:
     _width(width), _height(height),
     fbo(0), rbo_depth(0), rbo_color(0),
     window(nullptr) {
-// #ifdef USE_EGL
+#ifdef USE_EGL
      _initialize_egl();
-     std::cout <<"DONE\n";
-// #else
-    // _initialize_context();
-// #endif
+#else
+    _initialize_context();
+#endif
     _check_context_creation();
     _initialize_frame_buffers();
   }
@@ -164,7 +163,7 @@ private:
     }
   }
 
-
+#ifdef USE_EGL
   void _initialize_egl() {
     EGLDisplay eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
@@ -190,8 +189,7 @@ private:
                                          NULL);
 
     eglMakeCurrent(eglDpy, eglSurf, eglSurf, eglCtx);
-
-
   }
+#endif
 
 };
