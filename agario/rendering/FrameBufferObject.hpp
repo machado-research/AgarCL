@@ -64,13 +64,20 @@ public:
   void copy(void *data) {
     glReadBuffer(GL_BACK);
 
+#ifdef USE_EGL
+    exception_on_egl_error("ReadBuffer");
+#else
     exception_on_gl_error("ReadBuffer");
-
+#endif
     // glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
     glReadPixels(0, 0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data); // for rgb_array render mode
 
+#ifdef USE_EGL
+    exception_on_egl_error("ReadPixels");
+#else
     exception_on_gl_error("ReadPixels");
-    }
+#endif
+  }
 
 
   void swap_buffers() const { glfwSwapBuffers(window); }
@@ -153,7 +160,11 @@ private:
       throw FBOException("GL Error: " + std::to_string(glstatus));
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+#ifdef USE_EGL
+    exception_on_egl_error("After BindBuffer");
+#else
     exception_on_gl_error("After BindBuffer");
+#endif
   }
 
   void _check_context_creation()
