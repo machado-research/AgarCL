@@ -58,8 +58,23 @@ public:
   int width() const override { return _width; }
   int height() const override { return _height; }
 
-  void show() const { glfwShowWindow(window); }
-  void hide() const { glfwHideWindow(window); }
+  void show() const {
+#ifdef USE_EGL
+    // For EGL, there is no direct equivalent to showing a window since it's off-screen rendering.
+    // std::cout << "EGL context is active, but no window to show." << std::endl;
+#else
+    glfwShowWindow(window);
+#endif
+  }
+
+  void hide() const {
+#ifdef USE_EGL
+    // For EGL, there is no direct equivalent to hiding a window since it's off-screen rendering.
+    // std::cout << "EGL context is active, but no window to hide." << std::endl;
+#else
+    glfwHideWindow(window);
+#endif
+  }
 
   void copy(void *data) {
     glReadBuffer(GL_BACK);
@@ -80,14 +95,26 @@ public:
   }
 
 
-  void swap_buffers() const { glfwSwapBuffers(window); }
+  void swap_buffers() const {
+  #ifdef USE_EGL
+    eglSwapBuffers(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
+  #else
+    glfwSwapBuffers(window);
+  #endif
+  }
 
   ~FrameBufferObject() override {
     glDeleteFramebuffers(1, &fbo);
     glDeleteRenderbuffers(1, &rbo_color);
     glDeleteRenderbuffers(1, &rbo_depth);
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    #ifdef USE_EGL
+      eglDestroySurface(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
+      eglDestroyContext(eglGetCurrentDisplay(), eglGetCurrentContext());
+      eglTerminate(eglGetCurrentDisplay());
+    #else
+      glfwDestroyWindow(window);
+      glfwTerminate();
+    #endif
   }
 
 private:
