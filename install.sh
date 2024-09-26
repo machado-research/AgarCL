@@ -117,6 +117,7 @@ elif [ "$os_name" == "Linux" ]; then
     sudo apt-get install -y libglfw3-dev
     sudo apt-get install -y freeglut3-dev
     sudo apt install -y libstdc++-12-dev
+    sudo apt-get install libglfw3-dev libgles2-mesa-dev
 
     # Step 5: USE CLANG Compiler
     if command -v gcc &> /dev/null; then

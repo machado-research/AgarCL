@@ -207,6 +207,7 @@ private:
   void _check_egl_context_creation()
   {
     if (!gladLoadGLLoader((GLADloadproc)eglGetProcAddress)) {
+      std::cerr << "Error: " << eglGetError() << std::endl;
       throw FBOException("Failed to initialize GLAD with EGL");
     } else {
       std::cout << "GLAD with EGL ok" << std::endl;
