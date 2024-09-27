@@ -222,6 +222,7 @@ private:
 
     EGLint major, minor;
     if (!eglInitialize(eglDpy, &major, &minor)) {
+      std::cout << eglGetError() << std::endl;
       throw FBOException("Failed to initialize EGL");
     }
 
