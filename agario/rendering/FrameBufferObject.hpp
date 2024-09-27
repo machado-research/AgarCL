@@ -153,7 +153,7 @@ private:
 
     if (!glfwGetCurrentContext()) {
       throw FBOException("Failed to make context current");
-    }else{
+    } else {
       std::cout << "glfwGetCurrentContext ok " << std::endl;
     }
   }
@@ -194,8 +194,7 @@ private:
 #endif
   }
 
-  void _check_context_creation()
-  {
+  void _check_context_creation() {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
       throw FBOException("Failed to initialize GLAD");
     } else {
@@ -204,8 +203,7 @@ private:
   }
 
 #ifdef USE_EGL
-  void _check_egl_context_creation()
-  {
+  void _check_egl_context_creation() {
     if (!gladLoadGLLoader((GLADloadproc)eglGetProcAddress)) {
       std::cerr << "Error: " << eglGetError() << std::endl;
       throw FBOException("Failed to initialize GLAD with EGL");
@@ -214,32 +212,46 @@ private:
     }
   }
 #endif
+
 #ifdef USE_EGL
   void _initialize_egl() {
     EGLDisplay eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (eglDpy == EGL_NO_DISPLAY) {
+      throw FBOException("Failed to get EGL display");
+    }
 
     EGLint major, minor;
-
-    eglInitialize(eglDpy, &major, &minor);
+    if (!eglInitialize(eglDpy, &major, &minor)) {
+      throw FBOException("Failed to initialize EGL");
+    }
 
     // 2. Select an appropriate configuration
     EGLint numConfigs;
     EGLConfig eglCfg;
-
-    eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs);
+    if (!eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs) || numConfigs == 0) {
+      throw FBOException("Failed to choose EGL config");
+    }
 
     // 3. Create a surface
-    EGLSurface eglSurf = eglCreatePbufferSurface(eglDpy, eglCfg,
-                                                 pbufferAttribs);
+    EGLSurface eglSurf = eglCreatePbufferSurface(eglDpy, eglCfg, pbufferAttribs);
+    if (eglSurf == EGL_NO_SURFACE) {
+      throw FBOException("Failed to create EGL surface");
+    }
 
     // 4. Bind the API
-    eglBindAPI(EGL_OPENGL_API);
+    if (!eglBindAPI(EGL_OPENGL_API)) {
+      throw FBOException("Failed to bind EGL OpenGL API");
+    }
 
     // 5. Create a context and make it current
-    EGLContext eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT,
-                                         NULL);
+    EGLContext eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT, NULL);
+    if (eglCtx == EGL_NO_CONTEXT) {
+      throw FBOException("Failed to create EGL context");
+    }
 
-    eglMakeCurrent(eglDpy, eglSurf, eglSurf, eglCtx);
+    if (!eglMakeCurrent(eglDpy, eglSurf, eglSurf, eglCtx)) {
+      throw FBOException("Failed to make EGL context current");
+    }
   }
 #endif
 
