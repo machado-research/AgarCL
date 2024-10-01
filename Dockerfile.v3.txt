@@ -1,15 +1,13 @@
 # syntax=docker/dockerfile:1
-FROM nvidia/opengl:1.0-glvnd-devel-ubuntu22.04
-# FROM ubuntu:22.04
-# FROM nvidia/cudagl:11.4.1-runtime-ubuntu20.04
+FROM ubuntu:24.04
 # GitHub token
 ARG GITHUB_TOKEN=$GITHUB_TOKEN
+ENV EGL_PLATFORM=surfaceless
 
 # Set environment variables
 ENV CPLUS_INCLUDE_PATH=/usr/local/include
 ENV LIBRARY_PATH=/usr/local/lib
 ENV CPATH=/usr/local/include
-
 RUN apt-get update && apt-get install -y sudo
 
 # Create a non-root user and add them to the sudo group, allow passwordless sudo
@@ -18,8 +16,11 @@ RUN useradd -m -s /bin/bash newuser && \
     usermod -aG sudo newuser && \
     echo 'newuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
+
+RUN apt-get update && apt-get install -y sudo
+
 # Install app dependencies and clean up
-RUN apt-get update && apt-get install -y \
+RUN  apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     git \
@@ -36,45 +37,33 @@ RUN apt-get update && apt-get install -y \
     freeglut3-dev \
     libstdc++-12-dev \
     wget \
-    # libegl1-mesa\
-    # libgles2-mesa\
-    # libegl1-mesa-dev \
-    # libgles2-mesa-dev \
-    # libgl1-mesa-dri \
-    # libgl1-mesa-glx \
-    # libglx-mesa0 \
-     # NVIDIA driver installer dependencies
-     libc6-dev \
-     libpci3 \
-     libelf-dev \
-     libglvnd-dev \
-     # OpenGL libraries
-     libxau6 \
-     libxdmcp6 \
-     libxcb1 \
-     libxext6 \
-     libx11-6 \
-     libxv1 \
-     libxtst6 \
-     libdrm2 \
-     libegl1 \
-     libgl1 \
-     libopengl0 \
-     libgles1 \
-     libgles2 \
-     libglvnd0 \
-     libglx0 \
-     libglu1 \
-     libsm6 \
-     libegl1-mesa\
-    libgles2-mesa\
+    libc6-dev \
+    libpci3 \
+    libelf-dev \
+    libglvnd-dev \
+    libxau6 \
+    libxdmcp6 \
+    libxcb1 \
+    libxext6 \
+    libx11-6 \
+    libxv1 \
+    libxtst6 \
+    libdrm2 \
+    libegl1 \
+    libgl1 \
+    libopengl0 \
+    libgles1 \
+    libgles2 \
+    libglvnd0 \
+    libglx0 \
+    libglu1 \
+    libsm6 \
+    libegl-mesa0 \
     libegl1-mesa-dev \
     libgles2-mesa-dev \
     libgl1-mesa-dri \
-    libgl1-mesa-glx \
     libglx-mesa0 \
     mesa-utils && \
-    # mesa-utils-extra && \
     sudo apt-get clean && \
     sudo rm -rf /var/lib/apt/lists/*
 
@@ -133,14 +122,14 @@ RUN cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../ &&
     cmake --build ../build --config Release && \
     cmake --build ../build --config Release --target install
 WORKDIR /home/newuser/AgarLE-benchmark
-RUN sudo python3 -m pip install --upgrade pip 
+# RUN sudo python3 -m pip install --upgrade pip --break-system-packages
 # && \
     # sudo pip3 install -r requirements.txt
 # RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-WORKDIR /home/newuser/AgarLE-benchmark/modules/agar 
+WORKDIR /home/newuser/AgarLE-benchmark/modules/agar
 RUN python3 setup.py install
 USER newuser
 
 
-#additional files 
+#additional files
 RUN sudo apt install nano
