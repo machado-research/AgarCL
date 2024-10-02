@@ -16,6 +16,9 @@ RUN useradd -m -s /bin/bash newuser && \
     usermod -aG sudo newuser && \
     echo 'newuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
+
+RUN apt-get update && apt-get install -y sudo
+
 # Install app dependencies and clean up
 RUN  apt-get update && apt-get install -y \
     python3 \
@@ -124,7 +127,7 @@ RUN python3 -m pip install --upgrade pip
     # sudo pip3 install -r requirements.txt
 # RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 WORKDIR /home/newuser/AgarLE-benchmark/modules/agar
-RUN python3 setup.py install --user
+RUN python3 setup.py install
 USER newuser
 
 RUN sudo chown -R newuser:newuser /home/newuser/AgarLE-benchmark
