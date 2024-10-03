@@ -744,6 +744,20 @@ namespace agario {
                        }),
         state.pellets.end());
 
+      // int num_pellets = prev_size;
+
+      // for(int i = 0 ; i < num_pellets ; i++)
+      // {
+      //   if(cell.can_eat(state.pellets[i]) && cell.collides_with(state.pellets[i]))
+      //   {
+      //     if(num_pellets > 1)
+      //       std::swap(state.pellets[i], state.pellets.back());
+      //     state.pellets.pop_back();
+      //     num_pellets--;
+      //     i--;
+      //   }
+      // }
+
       auto num_eaten = prev_size - pellet_count();
       cell.increment_mass(num_eaten * PELLET_MASS);
 
