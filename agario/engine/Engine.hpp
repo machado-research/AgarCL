@@ -34,7 +34,7 @@ namespace agario {
     using GameState = GameState<renderable>;
 
     agario::GameState<renderable> state;
-    // std::unordered_map<int, std::vector<std::pair<int, float>>> vec;
+    std::unordered_map<int, std::vector<std::pair<int, float>>> vec;
 
     Engine(distance arena_width, distance arena_height,
            int num_pellets = DEFAULT_NUM_PELLETS,
@@ -98,7 +98,7 @@ namespace agario {
     void initialize_game() {
       add_pellets(state.config.target_num_pellets);
       add_viruses(state.config.target_num_viruses);
-      // update_vec();
+      update_vec();
     }
 
     void respawn(Player &player) {
@@ -180,32 +180,32 @@ namespace agario {
 
       move_foods(elapsed_seconds);
 
-      if(state.ticks%240 == 0){
+      if(state.ticks%300 == 0){
         if (state.config.pellet_regen) {
           add_pellets(state.config.target_num_pellets - state.pellets.size());
         }
         int prev_virus_size = state.viruses.size();
         add_viruses(state.config.target_num_viruses - state.viruses.size());
-        // if(prev_virus_size - state.viruses.size() != 0)
-        //     update_vec();
+        if(prev_virus_size - state.viruses.size() != 0)
+            update_vec();
       }
       state.ticks++;
 
     }
 
-    // void update_vec()
-    // {
-    //    for (int id = 0; id < state.viruses.size(); id++) {
-    //             const auto& node = state.viruses[id];
-    //             int row_id = get_row(node.x, state.config.arena_width);
-    //             vec[row_id].emplace_back(std::make_pair(id, node.y));
-    //         }
-    //         for (auto& val : vec) {
-    //             std::sort(val.second.begin(), val.second.end(), [](const auto& a, const auto& b) {
-    //                 return a.second < b.second;
-    //             });
-    //         }
-    // }
+    void update_vec()
+    {
+       for (int id = 0; id < state.viruses.size(); id++) {
+                const auto& node = state.viruses[id];
+                int row_id = get_row(node.x, state.config.arena_width);
+                vec[row_id].emplace_back(std::make_pair(id, node.y));
+            }
+            for (auto& val : vec) {
+                std::sort(val.second.begin(), val.second.end(), [](const auto& a, const auto& b) {
+                    return a.second < b.second;
+                });
+            }
+    }
 
     void seed(unsigned s) {
       this->state.rng.seed(s);
@@ -257,21 +257,23 @@ namespace agario {
 
       // check_pellets_collisions(state.pellets, player);
       player.highest_mass = std::max(player.highest_mass, player.mass());
+      optimized_eat_pellets(player.cells);
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
-        player.food_eaten +=eat_pellets(cell);
+        // player.food_eaten +=eat_pellets(cell);
         player.food_eaten +=eat_food(cell);
 
-      if (check_virus_collisions(cell, created_cells, create_limit, can_eat_virus)) {
+      // if (check_virus_collisions(cell, created_cells, create_limit, can_eat_virus)) {
+      //     player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
+      //     player.viruses_eaten++;
+      //   }
+        if(virus_Opt_Collision(cell, player, create_limit, created_cells, can_eat_virus)){
           player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
           player.viruses_eaten++;
         }
-        // if(virus_Opt_Collision(cell, player, create_limit, created_cells, can_eat_virus)){
-        //   player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
-        //   player.viruses_eaten++;
-        // }
       }
+
       create_limit -= created_cells.size();
       maybe_emit_food(player);
       maybe_split(player, created_cells, create_limit);
@@ -504,42 +506,42 @@ namespace agario {
               return static_cast<int>(x / border * precision);
     }
 
-    // bool virus_Opt_Collision(Cell& cell, Player& player, int create_limit, std::vector<Cell>& created_cells, bool can_eat_virus) {
-    //         // update the vec
-    //         // the query_list
-    //         // for(auto &cell : player.cells) {
-    //             float left = cell.x - cell.radius();
-    //             float right = cell.x + cell.radius();
-    //             int top = get_row(left,state.config.arena_width);
-    //             int bottom = get_row(right, state.config.arena_width);
-    //             for (int i = top; i <= bottom; i++) {
-    //                 if (vec.find(i) == vec.end()) continue;
-    //                 int l = vec[i].size();
-    //                 int start_pos = 0;
-    //                 for (int j = 10; j >= 0; j--) {
-    //                     if (start_pos + (1 << j) < l && vec[i][start_pos + (1 << j)].second < left) {
-    //                         start_pos += (1 << j);
-    //                     }
-    //                 }
-    //                 for (int j = start_pos; j < l; j++) {
-    //                   if(vec[i][j].first >= state.viruses.size())continue;
-    //                   auto & virus = state.viruses[vec[i][j].first];
-    //                     if(cell.can_eat(virus) && cell.collides_with(virus)) {
-    //                         if(can_eat_virus)
-    //                           cell.increment_mass(virus.mass());
-    //                         else
-    //                           disrupt(cell, virus, created_cells, create_limit);
+    bool virus_Opt_Collision(Cell& cell, Player& player, int create_limit, std::vector<Cell>& created_cells, bool can_eat_virus) {
+            // update the vec
+            // the query_list
+            // for(auto &cell : player.cells) {
+                float left = cell.x - cell.radius();
+                float right = cell.x + cell.radius();
+                int top = get_row(left,state.config.arena_width);
+                int bottom = get_row(right, state.config.arena_width);
+                for (int i = top; i <= bottom; i++) {
+                    if (vec.find(i) == vec.end()) continue;
+                    int l = vec[i].size();
+                    int start_pos = 0;
+                    for (int j = 10; j >= 0; j--) {
+                        if (start_pos + (1 << j) < l && vec[i][start_pos + (1 << j)].second < left) {
+                            start_pos += (1 << j);
+                        }
+                    }
+                    for (int j = start_pos; j < l; j++) {
+                      if(vec[i][j].first >= state.viruses.size())continue;
+                      auto & virus = state.viruses[vec[i][j].first];
+                        if(cell.can_eat(virus) && cell.collides_with(virus)) {
+                            if(can_eat_virus)
+                              cell.increment_mass(virus.mass());
+                            else
+                              disrupt(cell, virus, created_cells, create_limit);
 
-    //                           std::swap(virus, state.viruses.back()); // O(1) removal
-    //                           state.viruses.pop_back();
-    //                           return true;
-    //                     }
-    //                 }
+                              std::swap(virus, state.viruses.back()); // O(1) removal
+                              state.viruses.pop_back();
+                              return true;
+                        }
+                    }
 
-    //             }
-    //         // }
-    //         return false;
-    // }
+                }
+            // }
+            return false;
+    }
     /**
      * Moves all of `player`'s cells apart slightly such that
      * cells which aren't eligible for recombining don't overlap
@@ -548,24 +550,46 @@ namespace agario {
     // NEED TO OPTIMIZE THIS FUNCTION: BIG BIG BIG O(n^2) for each player, so it is O(M*N^2): N is the number of cells and M is the number of Players
     // What if we can make it O(M*N*log(N)), or Much better O(M*N)? How?
     // One option left to try is to use the quadtree data structure to store the cells of each player, and then check the cells that are close to each other: Should try after the cleanup.
-
     void check_player_self_collisions(Player &player, const agario::time_delta &elapsed_seconds) {
     bool overlap = false;
     for(int iter = 0 ; iter < 5 ;iter++){
       overlap = false;
-      for (int idx_a = 0; idx_a < player.cells.size(); idx_a++) {
-        for (int idx_b = idx_a + 1; idx_b < player.cells.size(); idx_b++) {
+     // Insert all cells into the spatial map
+      // Define the size of each cell in the spatial map
+      const int   cell_size = 100;
+      const int   mx_cells = 256; //16*16
+      std::unordered_map<int, std::vector<Cell*>> spatial_map;
 
-          Cell &cell_a = player.cells[idx_a];
-          Cell &cell_b = player.cells[idx_b];
-          // only allow collisions if both are eligible for recombining
-          if (cell_a.can_recombine() && cell_b.can_recombine())
-              continue;
+      // Insert all cells into the spatial map
+      for (Cell &cell : player.cells) {
+        int cell_x = static_cast<int>(cell.x / cell_size);
+        int cell_y = static_cast<int>(cell.y / cell_size);
+        int cell_key = cell_y * mx_cells + cell_x; // Create a unique key for each cell
+        spatial_map[cell_key].push_back(&cell);
+      }
 
-          if (cell_a.touches(cell_b))
-          {
-            overlap = true;
-            prevent_overlap(cell_a, cell_b, elapsed_seconds, player.target);
+      // Check for collisions using the spatial map
+      for (Cell &cell : player.cells) {
+        int cell_x = static_cast<int>(cell.x / cell_size);
+        int cell_y = static_cast<int>(cell.y / cell_size);
+
+        // Check the neighboring cells
+        for (int dx = -1; dx <= 1; dx++) {
+          for (int dy = -1; dy <= 1; dy++) {
+            int neighbor_key = (cell_y + dy) * mx_cells + (cell_x + dx);
+            if (spatial_map.find(neighbor_key) != spatial_map.end()) {
+              for (Cell* other_cell : spatial_map[neighbor_key]) {
+                if (&cell == other_cell) continue; // Skip self
+
+                // only allow collisions if both are eligible for recombining
+                if (cell.can_recombine() && other_cell->can_recombine()) continue;
+
+                if (cell.touches(*other_cell)) {
+                  overlap = true;
+                  prevent_overlap(cell, *other_cell, elapsed_seconds, player.target);
+                }
+              }
+            }
           }
         }
       }
@@ -744,24 +768,53 @@ namespace agario {
                        }),
         state.pellets.end());
 
-      // int num_pellets = prev_size;
-
-      // for(int i = 0 ; i < num_pellets ; i++)
-      // {
-      //   if(cell.can_eat(state.pellets[i]) && cell.collides_with(state.pellets[i]))
-      //   {
-      //     if(num_pellets > 1)
-      //       std::swap(state.pellets[i], state.pellets.back());
-      //     state.pellets.pop_back();
-      //     num_pellets--;
-      //     i--;
-      //   }
-      // }
-
       auto num_eaten = prev_size - pellet_count();
       cell.increment_mass(num_eaten * PELLET_MASS);
 
       return num_eaten;
+    }
+
+    void optimized_eat_pellets(std::vector<Cell> &cells) {
+
+      std::sort(cells.begin(), cells.end(), [](const Cell &a, const Cell &b) {
+        if(a.x == b.x)
+          return a.y < b.y;
+        return a.x < b.x;
+      });
+
+      std::sort(state.pellets.begin(), state.pellets.end(), [](const Pellet &a, const Pellet &b) {
+        if(a.x == b.x)
+          return a.y < b.y;
+        return a.x < b.x;
+      });
+
+      // Use two pointers to find collisions
+      int cell_idx = 0;
+      int pellet_idx = 0;
+      std::vector<int> pellets_to_remove;
+
+      while (cell_idx < cells.size() && pellet_idx < state.pellets.size()) {
+        Cell &cell = cells[cell_idx];
+        Pellet &pellet = state.pellets[pellet_idx];
+
+        if (cell.can_eat(pellet) && cell.collides_with(pellet)) {
+          cell.increment_mass(PELLET_MASS);
+          pellets_to_remove.push_back(pellet_idx);
+          ++pellet_idx;
+        } else if (cell.x + cell.radius() < pellet.x - pellet.radius()) {
+          ++cell_idx; // Move to the next cell
+        } else {
+          ++pellet_idx; // Move to the next pellet
+        }
+      }
+
+     for(int pos = pellets_to_remove.size()-1; pos >= 0; pos--)
+      {
+          int cur_pos = pellets_to_remove[pos];
+          if(cur_pos <  state.pellets.size()-1 && state.pellets.size() > 1)
+            std::swap(state.pellets[cur_pos], state.pellets.back());
+          state.pellets.pop_back();
+      }
     }
 
     int eat_food(Cell &cell) {
@@ -911,6 +964,7 @@ namespace agario {
     }
 
     void recombine_cells(Player &player) {
+
       for (auto it = player.cells.begin(); it != player.cells.end(); ++it) {
         if (!it->can_recombine()) continue;
 
@@ -920,7 +974,9 @@ namespace agario {
           Cell &other = *it2;
           if (other.can_recombine() && cell.collides_with(other)) {
             cell.increment_mass(other.mass());
-            it2 = player.cells.erase(it2);
+            // swap the cell to the end and pop it off
+            std::swap(*it2, player.cells.back());
+            player.cells.pop_back();
           } else {
             ++it2;
           }
