@@ -65,7 +65,7 @@ namespace agario {
       using AggressiveBot = AggressiveBot<RENDERABLE>;
       using AggressiveShyBot = AggressiveShyBot<RENDERABLE>;
 
-      int n = 7;
+      int n = 10;
       range_bot_pids = std::make_pair(1e9,0);
       add_bot<HungryBot>(n);
       add_bot<HungryShyBot>(n);

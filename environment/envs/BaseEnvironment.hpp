@@ -68,8 +68,8 @@ namespace agario {
           auto pid = pair.first;
           auto player = pair.second;
           if(player->dead()){
-            std::cout << "Player \"" << player->name() << "\" (pid ";
-            std::cout << pid << ") died." << std::endl;
+            // std::cout << "Player \"" << player->name() << "\" (pid ";
+            // std::cout << pid << ") died." << std::endl;
             this->engine_.respawn(*player);
           }
         }
@@ -86,12 +86,13 @@ namespace agario {
 
         auto before = masses<float>();
 
-        for (int tick = 0; tick < ticks_per_step(); tick++) {
+        for (int tick = 0; tick < ticks_per_step(); tick++)
           engine_.tick(step_dt_);
-          for (int agent = 0; agent < num_agents(); agent++)
-              this->_partial_observation(agent, tick);
-          repsawn_all_players();
-        }
+
+        for (int agent = 0; agent < num_agents(); agent++)
+          this->_partial_observation(agent, ticks_per_step() - 1);
+        repsawn_all_players();
+
         // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
         if(reward_type_){

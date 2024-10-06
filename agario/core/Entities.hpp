@@ -5,7 +5,7 @@
 #include "agario/core/utils.hpp"
 #include "agario/core/settings.hpp"
 #include "agario/core/color.hpp"
-
+#include<random>
 #define PELLET_MASS 1
 #define FOOD_MASS 10
 #define VIRUS_INITIAL_MASS 100
@@ -122,9 +122,14 @@ namespace agario {
     // gotta redeclare all the constructors because of virtual inheritance...
     template<typename Loc, typename Vel>
     Cell(Loc &&loc, Vel &&vel, agario::mass mass) : Ball(loc), Super(loc, vel),
-                                                    _mass(mass), _can_recombine(false) {
+                            _mass(mass), _can_recombine(false) {
       set_mass(mass);
       _recombine_timer = std::chrono::steady_clock::now();
+    }
+
+    bool operator < (const Cell &other_cell) const
+    {
+      return this->id < other_cell.id;
     }
 
     template<typename Loc>
@@ -147,6 +152,10 @@ namespace agario {
 
     distance radius() const override {
       return radius_conversion(mass());
+    }
+
+    bool operator==(const Cell& other) const {
+      return this->id == other.id;
     }
 
     void move(float dt) override {
@@ -178,9 +187,9 @@ namespace agario {
                          std::chrono::seconds(RECOMBINE_TIMER_SEC);
       _can_recombine = false;
     }
-    
+
     /*
-      From observing my mass count I've seen that the bigger a cell is, the faster that cell loses its mass. 
+      From observing my mass count I've seen that the bigger a cell is, the faster that cell loses its mass.
       However, when you have multiple cells, each of the cells loses mass concurrently.
      */
     void mass_decay(double GAME_RATE_MODIFIER = 1.0) {
@@ -188,6 +197,8 @@ namespace agario {
       // set_mass(new_decayed_mass); // if new_decayed_mass is less than CELL_MIN_SIZE, set_mass will set it as CELL_MIN_SIZE
       _mass = new_decayed_mass;   // In the real game, we enforce each cell to lose mass even if it is less than the minimum: https://agario.fandom.com/wiki/Cell
     }
+
+
 
     agario::Velocity splitting_velocity;
     agario::real_time _recombine_timer;
