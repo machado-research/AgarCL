@@ -1,7 +1,6 @@
 #pragma once
 
 #include <math.h>
-#include<random>
 #include "agario/core/types.hpp"
 
 #define CELL_EAT_MARGIN 1.1
@@ -14,18 +13,11 @@ namespace agario {
 
 
     Ball() = delete;
+    static int global_id;
 
-    int generate_random_id() {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(1, 1000);
-        return dis(gen);
-    }
-
-    explicit Ball(const Location &loc) : x(loc.x), y(loc.y) {}
+    explicit Ball(const Location &loc) : x(loc.x), y(loc.y) {id = ++global_id;}
 
     Ball(distance x, distance y) : Ball(Location(x, y)) {
-      id = generate_random_id();
     }
 
     virtual distance radius() const = 0;
@@ -102,3 +94,4 @@ namespace agario {
   };
 
 }
+int agario::Ball::global_id = 1;
