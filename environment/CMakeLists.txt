@@ -27,6 +27,16 @@ if (RENDERABLE)
 endif ()
 
 
+
+# Allow for USE_EGL
+option(USE_EGL "Make environments headlessly renderable" ON) # Disabled by default
+if (USE_EGL)
+    message("Headlessly renderable")
+    add_definitions(-DUSE_EGL)
+endif ()
+
+
+
 set(AGARIO_ENVS_SOURCE
         envs/BaseEnvironment.hpp
         envs/GridEnvironment.hpp
@@ -72,7 +82,7 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
 
     target_include_directories(agarle PRIVATE "..")
     target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw)
+    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
 
 else()
 
@@ -82,7 +92,7 @@ else()
 
     target_include_directories(agarle PRIVATE "..")
     target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw)
+    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
 
     target_compile_options(agarle PUBLIC -fsized-deallocation)
 
@@ -103,7 +113,7 @@ if (GTEST_FOUND)
 
     add_executable(test-envs ${TEST_SRC} ${AGARIO_GRID_ENV_SOURCE})
     target_include_directories(test-envs PUBLIC ".." ${GTEST_INDLUCE_DIRS})
-    target_link_libraries(test-envs glad glfw gtest pthread ${OPENGL_LIBRARIES})
+    target_link_libraries(test-envs glad glfw OpenGL::EGL gtest pthread ${OPENGL_LIBRARIES})
 
 else()
     message("Google Test not found")

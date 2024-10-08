@@ -5,15 +5,15 @@
 
 #define CELL_EAT_MARGIN 1.1
 
+
 namespace agario {
 
   class Ball {
   public:
     int id;
-
-
     Ball() = delete;
     static int global_id;
+
 
     explicit Ball(const Location &loc) : x(loc.x), y(loc.y) {id = ++global_id;}
 
