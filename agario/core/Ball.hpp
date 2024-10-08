@@ -94,5 +94,4 @@ namespace agario {
   };
 
 }
-
-  int agario::Ball::global_id = 1;
+int agario::Ball::global_id = 1;
