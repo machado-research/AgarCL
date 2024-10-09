@@ -98,7 +98,7 @@ namespace agario {
     void initialize_game() {
       add_pellets(state.config.target_num_pellets);
       add_viruses(state.config.target_num_viruses);
-      update_vec();
+      // update_vec();
     }
 
     void respawn(Player &player) {
@@ -199,9 +199,9 @@ namespace agario {
           add_pellets(state.config.target_num_pellets - state.pellets.size());
         }
         int prev_virus_size = state.viruses.size();
-        add_viruses(state.config.target_num_viruses - state.viruses.size());
-        if(prev_virus_size - state.viruses.size() != 0)
-            update_vec();
+        // add_viruses(state.config.target_num_viruses - state.viruses.size());
+        // if(prev_virus_size - state.viruses.size() != 0)
+        //     update_vec();
       }
       state.ticks++;
 
@@ -272,21 +272,16 @@ namespace agario {
       player.highest_mass = std::max(player.highest_mass, player.mass());
       // optimized_eat_pellets(player.cells);
 
-      // if(optimized_check_virus_collisions(player.cells, created_cells, create_limit, can_eat_virus)){
-      //   player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
-      //   player.viruses_eaten++;
-      // }
+      if(optimized_check_virus_collisions(player.cells, created_cells, create_limit, can_eat_virus)){
+        player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
+        player.viruses_eaten++;
+      }
 
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
         // player.food_eaten +=eat_pellets(cell);
         player.food_eaten +=eat_food(cell);
-
-        // if(virus_Opt_Collision(cell, player, create_limit, created_cells, can_eat_virus)){
-        //   player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
-        //   player.viruses_eaten++;
-        // }
       }
 
       create_limit -= created_cells.size();
@@ -521,42 +516,6 @@ namespace agario {
               return static_cast<int>(x / border * precision);
     }
 
-    bool virus_Opt_Collision(Cell& cell, Player& player, int create_limit, std::vector<Cell>& created_cells, bool can_eat_virus) {
-            // update the vec
-            // the query_list
-            // for(auto &cell : player.cells) {
-                float left = cell.x - cell.radius();
-                float right = cell.x + cell.radius();
-                int top = get_row(left,state.config.arena_width);
-                int bottom = get_row(right, state.config.arena_width);
-                for (int i = top; i <= bottom; i++) {
-                    if (vec.find(i) == vec.end()) continue;
-                    int l = vec[i].size();
-                    int start_pos = 0;
-                    for (int j = 10; j >= 0; j--) {
-                        if (start_pos + (1 << j) < l && vec[i][start_pos + (1 << j)].second < left) {
-                            start_pos += (1 << j);
-                        }
-                    }
-                    for (int j = start_pos; j < l; j++) {
-                      if(vec[i][j].first >= state.viruses.size())continue;
-                      auto & virus = state.viruses[vec[i][j].first];
-                        if(cell.can_eat(virus) && cell.collides_with(virus)) {
-                            if(can_eat_virus)
-                              cell.increment_mass(virus.mass());
-                            else
-                              disrupt(cell, virus, created_cells, create_limit);
-
-                              std::swap(virus, state.viruses.back()); // O(1) removal
-                              state.viruses.pop_back();
-                              return true;
-                        }
-                    }
-
-                }
-            // }
-            return false;
-    }
     /**
      * Moves all of `player`'s cells apart slightly such that
      * cells which aren't eligible for recombining don't overlap
