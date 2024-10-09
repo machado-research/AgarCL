@@ -130,7 +130,6 @@ namespace agario::env {
       }
 
       void render() override {
-        std::cout <<"HEYYYYY RENDERRRING\n";
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, screen_width(), screen_height());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
