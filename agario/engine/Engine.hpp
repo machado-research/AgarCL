@@ -194,14 +194,12 @@ namespace agario {
 
       move_foods(elapsed_seconds);
 
-      if(state.ticks%300 == 0){
+      if(state.ticks%600 == 0){
         if (state.config.pellet_regen) {
           add_pellets(state.config.target_num_pellets - state.pellets.size());
         }
         int prev_virus_size = state.viruses.size();
-        // add_viruses(state.config.target_num_viruses - state.viruses.size());
-        // if(prev_virus_size - state.viruses.size() != 0)
-        //     update_vec();
+        add_viruses(state.config.target_num_viruses - state.viruses.size());
       }
       state.ticks++;
 
