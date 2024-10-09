@@ -36,6 +36,9 @@ if (USE_EGL)
 endif ()
 
 
+find_package(OpenMP REQUIRED)
+find_package(TBB REQUIRED)
+
 
 set(AGARIO_ENVS_SOURCE
         envs/BaseEnvironment.hpp
@@ -60,14 +63,8 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
     message("Including ScreenEnvironment in compilation")
     # define the preprocessor macro to include the relevant code
     add_definitions(-DINCLUDE_SCREEN_ENV)
-
-    # find_library(GLFW REQUIRED)
     find_package(glfw3 3.3 REQUIRED)
-    #NEW
-    # find_package(GLEW REQUIRED)
 
-    #NEW
-    # include_directories(${GLEW_INCLUDE_DIRS})
 
     include_directories(${GLM_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${GLFW_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
 
@@ -82,7 +79,7 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
 
     target_include_directories(agarle PRIVATE "..")
     target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
+    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL OpenMP::OpenMP_CXX TBB::tbb)
 
 else()
 
@@ -92,7 +89,7 @@ else()
 
     target_include_directories(agarle PRIVATE "..")
     target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
+    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL OpenMP::OpenMP_CXX TBB::tbb)
 
     target_compile_options(agarle PUBLIC -fsized-deallocation)
 
@@ -113,7 +110,7 @@ if (GTEST_FOUND)
 
     add_executable(test-envs ${TEST_SRC} ${AGARIO_GRID_ENV_SOURCE})
     target_include_directories(test-envs PUBLIC ".." ${GTEST_INDLUCE_DIRS})
-    target_link_libraries(test-envs glad glfw OpenGL::EGL gtest pthread ${OPENGL_LIBRARIES})
+    target_link_libraries(test-envs glad glfw OpenGL::EGL gtest pthread  OpenMP::OpenMP_CXX TBB::tbb ${OPENGL_LIBRARIES})
 
 else()
     message("Google Test not found")

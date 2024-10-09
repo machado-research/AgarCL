@@ -93,14 +93,9 @@ set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 #find_library(GLFW REQUIRED)
 find_package(glfw3 REQUIRED)
-#NEW
-# find_package(GLEW REQUIRED)
-#NEW
-#NEW
-# include_directories(${GLEW_INCLUDE_DIRS})
 
-#NEW
-# link_directories(${GLEW_LIBRARY_DIRS})
+find_package(OpenMP REQUIRED)
+find_package(TBB REQUIRED)
 
 include_directories(client engine ${OPENGL_INCLUDE_DIR})
 
@@ -125,7 +120,7 @@ set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(glad PUBLIC ${EXT_INCLUDE_DIR})
 
 add_executable(client ${AGARIO_CLIENT_SRC} ${AGARIO_BOT_SRC}  client/main.cpp)
-target_link_libraries(client ${OPENGL_LIBRARIES} OpenGL::EGL glad glfw glm)
+target_link_libraries(client ${OPENGL_LIBRARIES} OpenGL::EGL OpenMP::OpenMP_CXX TBB::tbb glad glfw glm)
 
 include_directories(server)
 set(AGARIO_SERVER_SRC
@@ -167,7 +162,7 @@ if (GTEST_FOUND)
         add_executable(test-engine-renderable ${TEST_SRC} ${AGARIO_SRC})
         target_include_directories(test-engine-renderable PRIVATE ${OPENGL_INCLUDE_DIR})
 
-        target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} OpenGL::EGL glad glm glfw)
+        target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} OpenGL::EGL glad glm glfw OpenMP::OpenMP_CXX TBB::tbb)
         target_compile_definitions(test-engine-renderable PUBLIC RENDERABLE)
 
     else()

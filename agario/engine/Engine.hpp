@@ -141,6 +141,20 @@ namespace agario {
         }
       }
 
+      // pellets
+      auto cells_to_inc = optimized_eat_pellets(cells_per_player);
+      for(auto &cell : cells_to_inc){
+        auto &player = get_player(cell.first);
+        auto it = std::lower_bound(player.cells.begin(), player.cells.end(), cell.second, [](const Cell& c, int id) {
+          return c.id < id;
+        });
+
+        if (it != player.cells.end()) {
+          it->increment_mass(PELLET_MASS);
+        }
+      }
+
+
       //change
       PrecisionCollisionDetection<renderable> pcd({arena_width(), arena_height()}, 100);
       //send the cells for each player
@@ -255,23 +269,24 @@ namespace agario {
 
       bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT));
 
-      // check_pellets_collisions(state.pellets, player);
       player.highest_mass = std::max(player.highest_mass, player.mass());
-      optimized_eat_pellets(player.cells);
+      // optimized_eat_pellets(player.cells);
+
+      // if(optimized_check_virus_collisions(player.cells, created_cells, create_limit, can_eat_virus)){
+      //   player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
+      //   player.viruses_eaten++;
+      // }
+
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
         // player.food_eaten +=eat_pellets(cell);
         player.food_eaten +=eat_food(cell);
 
-      // if (check_virus_collisions(cell, created_cells, create_limit, can_eat_virus)) {
-      //     player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
-      //     player.viruses_eaten++;
-      //   }
-        if(virus_Opt_Collision(cell, player, create_limit, created_cells, can_eat_virus)){
-          player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
-          player.viruses_eaten++;
-        }
+        // if(virus_Opt_Collision(cell, player, create_limit, created_cells, can_eat_virus)){
+        //   player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
+        //   player.viruses_eaten++;
+        // }
       }
 
       create_limit -= created_cells.size();
@@ -281,7 +296,7 @@ namespace agario {
 
       // add any cells that were created
       player.add_cells(created_cells);
-      created_cells.erase(created_cells.begin(), created_cells.end());
+      // created_cells.erase(created_cells.begin(), created_cells.end());
 
       recombine_cells(player);
 
@@ -554,42 +569,13 @@ namespace agario {
     bool overlap = false;
     for(int iter = 0 ; iter < 5 ;iter++){
       overlap = false;
-     // Insert all cells into the spatial map
-      // Define the size of each cell in the spatial map
-      const int   cell_size = 100;
-      const int   mx_cells = 256; //16*16
-      std::unordered_map<int, std::vector<Cell*>> spatial_map;
-
-      // Insert all cells into the spatial map
-      for (Cell &cell : player.cells) {
-        int cell_x = static_cast<int>(cell.x / cell_size);
-        int cell_y = static_cast<int>(cell.y / cell_size);
-        int cell_key = cell_y * mx_cells + cell_x; // Create a unique key for each cell
-        spatial_map[cell_key].push_back(&cell);
-      }
-
-      // Check for collisions using the spatial map
-      for (Cell &cell : player.cells) {
-        int cell_x = static_cast<int>(cell.x / cell_size);
-        int cell_y = static_cast<int>(cell.y / cell_size);
-
-        // Check the neighboring cells
-        for (int dx = -1; dx <= 1; dx++) {
-          for (int dy = -1; dy <= 1; dy++) {
-            int neighbor_key = (cell_y + dy) * mx_cells + (cell_x + dx);
-            if (spatial_map.find(neighbor_key) != spatial_map.end()) {
-              for (Cell* other_cell : spatial_map[neighbor_key]) {
-                if (&cell == other_cell) continue; // Skip self
-
-                // only allow collisions if both are eligible for recombining
-                if (cell.can_recombine() && other_cell->can_recombine()) continue;
-
-                if (cell.touches(*other_cell)) {
-                  overlap = true;
-                  prevent_overlap(cell, *other_cell, elapsed_seconds, player.target);
-                }
-              }
-            }
+      for (int idx_a = 0; idx_a < player.cells.size(); idx_a++) {
+        for (int idx_b = idx_a + 1; idx_b < player.cells.size(); idx_b++) {
+          Cell &cell_a = player.cells[idx_a];
+          Cell &cell_b = player.cells[idx_b];
+          if (cell_a.touches(cell_b)) {
+            overlap = true;
+            prevent_overlap(cell_a, cell_b, elapsed_seconds, player.target);
           }
         }
       }
@@ -774,47 +760,60 @@ namespace agario {
       return num_eaten;
     }
 
-    void optimized_eat_pellets(std::vector<Cell> &cells) {
+    std::vector<std::pair<agario::pid, int>> optimized_eat_pellets(std::vector<std::pair<agario::pid, Cell>>&cells) {
+      // Define the grid size
+      const int grid_size = 510;
+      const int grid_width = (state.config.arena_width + grid_size - 1) / grid_size;
+      const int grid_height = (state.config.arena_height + grid_size - 1) / grid_size;
 
-      std::sort(cells.begin(), cells.end(), [](const Cell &a, const Cell &b) {
-        if(a.x == b.x)
-          return a.y < b.y;
-        return a.x < b.x;
-      });
+      // Create the grid
+      std::vector<std::vector<int>> grid(grid_width * grid_height);
 
-      std::sort(state.pellets.begin(), state.pellets.end(), [](const Pellet &a, const Pellet &b) {
-        if(a.x == b.x)
-          return a.y < b.y;
-        return a.x < b.x;
-      });
+      // Populate the grid with pellet indices
+      for (int i = 0; i < state.pellets.size(); ++i) {
+        const Pellet &pellet = state.pellets[i];
+        int grid_x = static_cast<int>(pellet.x) / grid_size;
+        int grid_y = static_cast<int>(pellet.y) / grid_size;
+        grid[grid_y * grid_width + grid_x].push_back(i);
+      }
 
-      // Use two pointers to find collisions
-      int cell_idx = 0;
-      int pellet_idx = 0;
       std::vector<int> pellets_to_remove;
+      std::vector<std::pair<agario::pid, int>> cells_to_inc;
+      // Check for collisions
+      for (auto &vec : cells) {
+        auto &cell = vec.second;
+        int grid_x = static_cast<int>(cell.x) / grid_size;
+        int grid_y = static_cast<int>(cell.y) / grid_size;
 
-      while (cell_idx < cells.size() && pellet_idx < state.pellets.size()) {
-        Cell &cell = cells[cell_idx];
-        Pellet &pellet = state.pellets[pellet_idx];
-
-        if (cell.can_eat(pellet) && cell.collides_with(pellet)) {
-          cell.increment_mass(PELLET_MASS);
-          pellets_to_remove.push_back(pellet_idx);
-          ++pellet_idx;
-        } else if (cell.x + cell.radius() < pellet.x - pellet.radius()) {
-          ++cell_idx; // Move to the next cell
-        } else {
-          ++pellet_idx; // Move to the next pellet
+        // Check the cell's grid and neighboring grids
+        for (int dx = -1; dx <= 1; ++dx) {
+          for (int dy = -1; dy <= 1; ++dy) {
+            int nx = grid_x + dx;
+            int ny = grid_y + dy;
+            if (nx >= 0 && nx < grid_width && ny >= 0 && ny < grid_height && ny * grid_width + nx < grid.size()) {
+              for (int pellet_idx : grid[ny * grid_width + nx]) {
+                Pellet &pellet = state.pellets[pellet_idx];
+                if (cell.can_eat(pellet) && cell.collides_with(pellet)) {
+            //       // cell.increment_mass(PELLET_MASS);
+                  cells_to_inc.emplace_back(std::make_pair(vec.first, vec.second.id));
+                  pellets_to_remove.push_back(pellet_idx);
+                }
+              }
+            }
+          }
         }
       }
 
-     for(int pos = pellets_to_remove.size()-1; pos >= 0; pos--)
-      {
-          int cur_pos = pellets_to_remove[pos];
-          if(cur_pos <  state.pellets.size()-1 && state.pellets.size() > 1)
-            std::swap(state.pellets[cur_pos], state.pellets.back());
+      // Remove eaten pellets
+      // std::sort(pellets_to_remove.begin(), pellets_to_remove.end(), std::greater<int>());
+      for (int idx : pellets_to_remove) {
+        if (idx < state.pellets.size() - 1 && state.pellets.size() > 1)
+          std::swap(state.pellets[idx], state.pellets.back());
+        if(state.pellets.size() >= 1)
           state.pellets.pop_back();
       }
+
+      return cells_to_inc;
     }
 
     int eat_food(Cell &cell) {
@@ -1006,6 +1005,55 @@ namespace agario {
           state.viruses.pop_back();
           return true; // only collide once
         } else ++it;
+      }
+      return false;
+    }
+
+    bool optimized_check_virus_collisions(std::vector<Cell> &cells, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus) {
+
+      // Define the grid size
+      const int grid_size = 25;
+      const int grid_width = (state.config.arena_width + grid_size - 1) / grid_size;
+      const int grid_height = (state.config.arena_height + grid_size - 1) / grid_size;
+
+      // Create the grid
+      std::vector<std::vector<int>> grid(grid_width * grid_height);
+
+      // Populate the grid with virus indices
+      for (int i = 0; i < state.viruses.size(); ++i) {
+        const Virus &virus = state.viruses[i];
+        int grid_x = static_cast<int>(virus.x) / grid_size;
+        int grid_y = static_cast<int>(virus.y) / grid_size;
+        grid[grid_y * grid_width + grid_x].push_back(i);
+      }
+
+      // Check for collisions
+      for (Cell &cell : cells) {
+        int grid_x = static_cast<int>(cell.x) / grid_size;
+        int grid_y = static_cast<int>(cell.y) / grid_size;
+
+        // Check the cell's grid and neighboring grids
+        for (int dx = -1; dx <= 1; ++dx) {
+          for (int dy = -1; dy <= 1; ++dy) {
+        int nx = grid_x + dx;
+        int ny = grid_y + dy;
+        if (nx >= 0 && nx < grid_width && ny >= 0 && ny < grid_height) {
+          for (int virus_idx : grid[ny * grid_width + nx]) {
+            Virus &virus = state.viruses[virus_idx];
+            if (cell.can_eat(virus) && cell.collides_with(virus)) {
+          if (can_eat_virus)
+            cell.increment_mass(virus.mass());
+          else
+            disrupt(cell, virus, created_cells, create_limit);
+
+          std::swap(virus, state.viruses.back()); // O(1) removal
+          state.viruses.pop_back();
+          return true; // only collide once
+            }
+          }
+        }
+          }
+        }
       }
       return false;
     }

@@ -38,7 +38,7 @@ namespace agario {
   class Renderer {
   public:
     typedef Player<true> Player;
-    
+
     explicit Renderer(std::shared_ptr<Canvas> canvas,
                       agario::distance arena_width,
                       agario::distance arena_height) :
@@ -150,7 +150,7 @@ namespace agario {
     }
     void close_program()
     {
-      shader.cleanup(); 
+      shader.cleanup();
     }
     /**
      * Sets the canvas to render to

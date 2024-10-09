@@ -159,7 +159,7 @@ namespace agario::env {
 
       // stores current frame into buffer containing the next observation
       void _partial_observation(Player &player, int frame_index) override {
-        render_frame(player);
+        // render_frame(player);
         void *data = _observation.frame_data(frame_index);
         // if(frame_index == last_tick)
         frame_buffer->copy(data);
