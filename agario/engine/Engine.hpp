@@ -270,7 +270,6 @@ namespace agario {
       bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT));
 
       player.highest_mass = std::max(player.highest_mass, player.mass());
-      // optimized_eat_pellets(player.cells);
 
       if(optimized_check_virus_collisions(player.cells, created_cells, create_limit, can_eat_virus)){
         player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
@@ -283,7 +282,6 @@ namespace agario {
         // player.food_eaten +=eat_pellets(cell);
         player.food_eaten +=eat_food(cell);
       }
-
       create_limit -= created_cells.size();
       maybe_emit_food(player);
       maybe_split(player, created_cells, create_limit);

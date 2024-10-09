@@ -17,7 +17,7 @@ import numpy as np
 import cProfile
 from abc import ABC, abstractmethod
 import time
-# import tqdm
+import tqdm
 def mass():
     return 0
 
@@ -42,7 +42,7 @@ default_config = {
     'observe_others':  True,
     'observe_viruses': True,
     'observe_pellets': True,
-    'obs_type'       : "grid",   #Two options: screen, grid
+    'obs_type'       : "screen",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     # 'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
@@ -81,9 +81,9 @@ def main():
                 action = (target_space.sample(), np.random.randint(0, 3))
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
-            # env.render()
+            env.render()
         print("SPS: ", global_step / (time.time() - start_time))
-    #     SPS_VALUES.append(global_step / (time.time() - start_time))
+        # SPS_VALUES.append(global_step / (time.time() - start_time))
 
     # with open('SPS_values_full_opt_grid.csv', mode='w') as file:
     #     writer = csv.writer(file)

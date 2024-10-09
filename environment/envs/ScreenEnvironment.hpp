@@ -130,6 +130,7 @@ namespace agario::env {
       }
 
       void render() override {
+        std::cout <<"HEYYYYY RENDERRRING\n";
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, screen_width(), screen_height());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -159,9 +160,8 @@ namespace agario::env {
 
       // stores current frame into buffer containing the next observation
       void _partial_observation(Player &player, int frame_index) override {
-        // render_frame(player);
+        render_frame(player);
         void *data = _observation.frame_data(frame_index);
-        // if(frame_index == last_tick)
         frame_buffer->copy(data);
       }
 
