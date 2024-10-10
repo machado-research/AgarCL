@@ -17,7 +17,7 @@ import numpy as np
 import cProfile
 from abc import ABC, abstractmethod
 import time
-import tqdm
+# import tqdm
 def mass():
     return 0
 
