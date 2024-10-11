@@ -83,12 +83,12 @@ namespace agario {
         this->_step_hook(); // allow subclass to set itself up for the step
 
         auto before = masses<float>();
-
+        std::cout << ticks_per_step() << std::endl;
         for (int tick = 0; tick < ticks_per_step(); tick++)
           engine_.tick(step_dt_);
 
         for (int agent = 0; agent < num_agents(); agent++)
-          this->_partial_observation(agent, ticks_per_step() - 1);
+          this->_partial_observation(agent, 0);
         repsawn_all_players();
 
         // reward could be the current mass or the difference in mass from the last step

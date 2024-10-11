@@ -10,7 +10,7 @@
 #define FOOD_SPEED 100
 #define FOOD_DECEL 80
 
-#define RECOMBINE_TIMER_SEC 30
+#define RECOMBINE_TIMER_SEC 10
 
 // must be `CELL_EAT_MARGIN` times larger
 // than another cell in order to eat it

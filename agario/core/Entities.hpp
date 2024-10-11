@@ -195,7 +195,7 @@ namespace agario {
     void mass_decay(double GAME_RATE_MODIFIER = 1.0) {
       agario::mass new_decayed_mass = mass() * (1 - PLAYER_RATE * GAME_RATE_MODIFIER);
       // set_mass(new_decayed_mass); // if new_decayed_mass is less than CELL_MIN_SIZE, set_mass will set it as CELL_MIN_SIZE
-      _mass = new_decayed_mass;   // In the real game, we enforce each cell to lose mass even if it is less than the minimum: https://agario.fandom.com/wiki/Cell
+      _mass = std::max<agario::mass>(new_decayed_mass, CELL_MIN_SIZE);   // In the real game, we enforce each cell to lose mass even if it is less than the minimum: https://agario.fandom.com/wiki/Cell
     }
 
 

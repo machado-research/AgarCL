@@ -45,6 +45,7 @@ namespace agario::env {
 
 
       std::uint8_t *frame_data(int frame_index) const {
+
         if (frame_index >= _num_frames)
           throw FBOException("Frame index " + std::to_string(frame_index) + " out of bounds");
 

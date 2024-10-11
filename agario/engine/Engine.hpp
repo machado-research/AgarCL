@@ -925,7 +925,7 @@ namespace agario {
 
         for (auto it2 = std::next(it); it2 != player.cells.end();) {
           Cell &other = *it2;
-          if (other.can_recombine() && cell.collides_with(other)) {
+          if (other.can_recombine() && cell.touches(other)) {
             cell.increment_mass(other.mass());
             // swap the cell to the end and pop it off
             std::swap(*it2, player.cells.back());
