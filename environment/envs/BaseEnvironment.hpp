@@ -83,7 +83,6 @@ namespace agario {
         this->_step_hook(); // allow subclass to set itself up for the step
 
         auto before = masses<float>();
-        std::cout << ticks_per_step() << std::endl;
         for (int tick = 0; tick < ticks_per_step(); tick++)
           engine_.tick(step_dt_);
 
