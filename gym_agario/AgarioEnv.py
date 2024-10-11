@@ -193,7 +193,6 @@ class AgarioEnv(gym.Env):
                 'observe_pellets': True,
                 'c_death': 0,
             }
-            print(kwargs)
             env = agarle.GridEnvironment(*args)
             env.configure_observation(kwargs | grid_defaults)
 
