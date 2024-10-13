@@ -125,11 +125,19 @@ namespace agario {
      */
     void tick(const agario::time_delta &elapsed_seconds) {
 
+      // initalize the pellet_grid
+      initialize_pellet_grid();
+      std::vector<int> pellets_to_remove;
+
       for (auto &pair : state.players) {
         auto &player = *pair.second;
         if (!player.dead())
-          tick_player(player, elapsed_seconds);
+          tick_player(player, elapsed_seconds, pellets_to_remove);
       }
+
+      // remove pellets that have been eaten
+      remove_pellets(pellets_to_remove);
+      pellets_grid.clear();
       // to change the hierarchy of: I want pair of player_id and cells: Keep in mind that we will std::move cells
       std::vector<std::pair<agario::pid, Cell>> cells_per_player;
 
@@ -140,20 +148,6 @@ namespace agario {
           cells_per_player.emplace_back(std::make_pair(player.pid(), std::move(cell)));
         }
       }
-
-      // pellets
-      auto cells_to_inc = optimized_eat_pellets(cells_per_player);
-      for(auto &cell : cells_to_inc){
-        auto &player = get_player(cell.first);
-        auto it = std::lower_bound(player.cells.begin(), player.cells.end(), cell.second, [](const Cell& c, int id) {
-          return c.id < id;
-        });
-
-        if (it != player.cells.end()) {
-          it->increment_mass(PELLET_MASS);
-        }
-      }
-
 
       //change
       PrecisionCollisionDetection<renderable> pcd({arena_width(), arena_height()}, 100);
@@ -229,6 +223,10 @@ namespace agario {
     Engine &operator=(Engine &&) = delete; // no move assignment
 
   private:
+    int pellets_grid_size;
+    int pellets_grid_width;
+    int pellets_grid_height;
+    std::vector<std::vector<int>> pellets_grid;
     void add_pellets(int n) {
       agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
         for (int p = 0; p < n; p++)
@@ -251,7 +249,7 @@ namespace agario {
      * @param player the player to tick
      * @param elapsed_seconds the amount of (game) time since the last game tick
      */
-    void tick_player(Player &player, const agario::time_delta &elapsed_seconds) {
+    void tick_player(Player &player, const agario::time_delta &elapsed_seconds, std::vector<int>&pellets_to_remove) {
       player.elapsed_ticks += 1;
 
       if (ticks() % 10 == 0)
@@ -272,6 +270,8 @@ namespace agario {
         player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
         player.viruses_eaten++;
       }
+
+      get_pellets_to_remove_and_increment_cells(player.cells, pellets_to_remove);
 
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
@@ -387,7 +387,7 @@ namespace agario {
       }
       player.set_min_mass_cell(smallest_mass_cell);
       // make sure not to move two of players own cells into one another
-      check_player_self_collisions(player, elapsed_seconds);
+      // check_player_self_collisions(player, elapsed_seconds);
     }
 
     void move_foods(const agario::time_delta &elapsed_seconds) {
@@ -714,60 +714,53 @@ namespace agario {
       return num_eaten;
     }
 
-    std::vector<std::pair<agario::pid, int>> optimized_eat_pellets(std::vector<std::pair<agario::pid, Cell>>&cells) {
-      // Define the grid size
-      const int grid_size = 510;
-      const int grid_width = (state.config.arena_width + grid_size - 1) / grid_size;
-      const int grid_height = (state.config.arena_height + grid_size - 1) / grid_size;
+    void initialize_pellet_grid() {
+      pellets_grid_size = 510;
+      pellets_grid_width = (state.config.arena_width + pellets_grid_size - 1) / pellets_grid_size;
+      pellets_grid_height = (state.config.arena_height + pellets_grid_size - 1) / pellets_grid_size;
+      pellets_grid.resize(pellets_grid_width * pellets_grid_height);
 
-      // Create the grid
-      std::vector<std::vector<int>> grid(grid_width * grid_height);
-
-      // Populate the grid with pellet indices
       for (int i = 0; i < state.pellets.size(); ++i) {
-        const Pellet &pellet = state.pellets[i];
-        int grid_x = static_cast<int>(pellet.x) / grid_size;
-        int grid_y = static_cast<int>(pellet.y) / grid_size;
-        grid[grid_y * grid_width + grid_x].push_back(i);
+      const Pellet &pellet = state.pellets[i];
+      int grid_x = static_cast<int>(pellet.x) / pellets_grid_size;
+      int grid_y = static_cast<int>(pellet.y) / pellets_grid_size;
+      pellets_grid[grid_y * pellets_grid_width + grid_x].push_back(i);
       }
+    }
 
-      std::vector<int> pellets_to_remove;
-      std::vector<std::pair<agario::pid, int>> cells_to_inc;
-      // Check for collisions
-      for (auto &vec : cells) {
-        auto &cell = vec.second;
-        int grid_x = static_cast<int>(cell.x) / grid_size;
-        int grid_y = static_cast<int>(cell.y) / grid_size;
+    void get_pellets_to_remove_and_increment_cells(std::vector<Cell>& cells,
+                                                   std::vector<int>& pellets_to_remove
+                                                              ) {
 
-        // Check the cell's grid and neighboring grids
+      for (auto &cell : cells) {
+      int grid_x = static_cast<int>(cell.x) / pellets_grid_size;
+      int grid_y = static_cast<int>(cell.y) / pellets_grid_size;
+
         for (int dx = -1; dx <= 1; ++dx) {
           for (int dy = -1; dy <= 1; ++dy) {
-            int nx = grid_x + dx;
-            int ny = grid_y + dy;
-            if (nx >= 0 && nx < grid_width && ny >= 0 && ny < grid_height && ny * grid_width + nx < grid.size()) {
-              for (int pellet_idx : grid[ny * grid_width + nx]) {
-                Pellet &pellet = state.pellets[pellet_idx];
+          int nx = grid_x + dx;
+          int ny = grid_y + dy;
+            if (nx >= 0 && nx < pellets_grid_width && ny >= 0 && ny < pellets_grid_height && ny * pellets_grid_width + nx < pellets_grid.size()) {
+              for (int pellet_idx : pellets_grid[ny * pellets_grid_width + nx]) {
+              Pellet &pellet = state.pellets[pellet_idx];
                 if (cell.can_eat(pellet) && cell.collides_with(pellet)) {
-            //       // cell.increment_mass(PELLET_MASS);
-                  cells_to_inc.emplace_back(std::make_pair(vec.first, vec.second.id));
                   pellets_to_remove.push_back(pellet_idx);
+                  cell.increment_mass(PELLET_MASS);
                 }
               }
             }
           }
         }
       }
+    }
 
-      // Remove eaten pellets
-      // std::sort(pellets_to_remove.begin(), pellets_to_remove.end(), std::greater<int>());
+    void remove_pellets(const std::vector<int>& pellets_to_remove) {
       for (int idx : pellets_to_remove) {
         if (idx < state.pellets.size() - 1 && state.pellets.size() > 1)
           std::swap(state.pellets[idx], state.pellets.back());
-        if(state.pellets.size() >= 1)
+        if (state.pellets.size() >= 1)
           state.pellets.pop_back();
       }
-
-      return cells_to_inc;
     }
 
     int eat_food(Cell &cell) {
