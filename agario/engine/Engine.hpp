@@ -34,7 +34,6 @@ namespace agario {
     using GameState = GameState<renderable>;
 
     agario::GameState<renderable> state;
-    std::unordered_map<int, std::vector<std::pair<int, float>>> vec;
 
     Engine(distance arena_width, distance arena_height,
            int num_pellets = DEFAULT_NUM_PELLETS,
@@ -201,19 +200,6 @@ namespace agario {
 
     }
 
-    void update_vec()
-    {
-       for (int id = 0; id < state.viruses.size(); id++) {
-                const auto& node = state.viruses[id];
-                int row_id = get_row(node.x, state.config.arena_width);
-                vec[row_id].emplace_back(std::make_pair(id, node.y));
-            }
-            for (auto& val : vec) {
-                std::sort(val.second.begin(), val.second.end(), [](const auto& a, const auto& b) {
-                    return a.second < b.second;
-                });
-            }
-    }
 
     void seed(unsigned s) {
       this->state.rng.seed(s);
@@ -286,7 +272,6 @@ namespace agario {
       create_limit -= created_cells.size();
       maybe_emit_food(player);
       maybe_split(player, created_cells, create_limit);
-      // player.colorize_cells(prev_player_cells);
 
       // add any cells that were created
       player.add_cells(created_cells);
@@ -308,8 +293,6 @@ namespace agario {
      * @param cell the cell to check for anti-team activation
      * @param player the player to check for anti-team activation
      */
-
-
     void maybe_activate_anti_team(Player &player) {
       auto fall_off_time = player.elapsed_ticks - (60 * ANTI_TEAM_ACTIVATION_TIME);
 
@@ -322,8 +305,6 @@ namespace agario {
         ),
         player.virus_eaten_ticks.end()
       );
-
-
       auto n_eaten = player.virus_eaten_ticks.size();
       if (n_eaten == 0) {
         return;
@@ -446,7 +427,6 @@ namespace agario {
               virus.set_mass(virus.mass() + FOOD_MASS);
             }
             return true;
-
         }
       }
       return false;

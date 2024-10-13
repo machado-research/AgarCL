@@ -68,6 +68,7 @@ def main():
     num_agents =  default_config['num_agents']
     env = gym.make(args.env, **env_config)
     env.reset()
+    env.seed(0)
     states = []
     SPS_VALUES = []
     global_step = 0
