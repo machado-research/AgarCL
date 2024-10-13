@@ -111,7 +111,7 @@ namespace agario::env {
         int c_death=0
       ):
         Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death),
-        _observation(frames_per_step, screen_width, screen_height),
+        _observation(1, screen_width, screen_height),
         frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height)),
         renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height())
       {

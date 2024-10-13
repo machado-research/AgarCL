@@ -30,7 +30,7 @@ import csv
 
 # Default configuration for the environment
 default_config = {
-    'ticks_per_step':  2,
+    'ticks_per_step':  1,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      500,
     'num_pellets':     500,

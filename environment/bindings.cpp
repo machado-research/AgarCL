@@ -133,8 +133,6 @@ PYBIND11_MODULE(agarle, module) {
 
 #ifdef INCLUDE_SCREEN_ENV
 
-  // todo: convert ScreenEnvironment to multi-environment
-
  using ScreenEnvironment = agario::env::ScreenEnvironment<renderable>;
 
  py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
