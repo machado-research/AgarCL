@@ -127,17 +127,20 @@ namespace agario {
 
       // initalize the pellet_grid
       initialize_pellet_grid();
+      initialize_virus_grid();
       std::vector<int> pellets_to_remove;
-
+      std::vector<int> viruses_to_remove;
       for (auto &pair : state.players) {
         auto &player = *pair.second;
         if (!player.dead())
-          tick_player(player, elapsed_seconds, pellets_to_remove);
+          tick_player(player, elapsed_seconds, pellets_to_remove, viruses_to_remove);
       }
 
       // remove pellets that have been eaten
       remove_pellets(pellets_to_remove);
+      remove_viruses(viruses_to_remove);
       pellets_grid.clear();
+      virus_grid.clear();
       // to change the hierarchy of: I want pair of player_id and cells: Keep in mind that we will std::move cells
       std::vector<std::pair<agario::pid, Cell>> cells_per_player;
 
@@ -223,10 +226,11 @@ namespace agario {
     Engine &operator=(Engine &&) = delete; // no move assignment
 
   private:
-    int pellets_grid_size;
-    int pellets_grid_width;
-    int pellets_grid_height;
+    int pellets_grid_size;  int virus_grid_size;
+    int pellets_grid_width; int virus_grid_width;
+    int pellets_grid_height; int virus_grid_height;
     std::vector<std::vector<int>> pellets_grid;
+    std::vector<std::vector<int>> virus_grid;
     void add_pellets(int n) {
       agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
         for (int p = 0; p < n; p++)
@@ -249,7 +253,7 @@ namespace agario {
      * @param player the player to tick
      * @param elapsed_seconds the amount of (game) time since the last game tick
      */
-    void tick_player(Player &player, const agario::time_delta &elapsed_seconds, std::vector<int>&pellets_to_remove) {
+    void tick_player(Player &player, const agario::time_delta &elapsed_seconds, std::vector<int>&pellets_to_remove, std::vector<int>& viruses_to_remove) {
       player.elapsed_ticks += 1;
 
       if (ticks() % 10 == 0)
@@ -266,7 +270,7 @@ namespace agario {
 
       player.highest_mass = std::max(player.highest_mass, player.mass());
 
-      if(optimized_check_virus_collisions(player.cells, created_cells, create_limit, can_eat_virus)){
+      if(optimized_check_virus_collisions(player.cells, created_cells, create_limit, can_eat_virus, viruses_to_remove)){
         player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
         player.viruses_eaten++;
       }
@@ -387,7 +391,7 @@ namespace agario {
       }
       player.set_min_mass_cell(smallest_mass_cell);
       // make sure not to move two of players own cells into one another
-      // check_player_self_collisions(player, elapsed_seconds);
+      check_player_self_collisions(player, elapsed_seconds);
     }
 
     void move_foods(const agario::time_delta &elapsed_seconds) {
@@ -956,55 +960,60 @@ namespace agario {
       return false;
     }
 
-    bool optimized_check_virus_collisions(std::vector<Cell> &cells, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus) {
+    void initialize_virus_grid()
+    {
+      virus_grid_size = 25;
+      virus_grid_width = (state.config.arena_width + virus_grid_size - 1) / virus_grid_size;
+      virus_grid_height = (state.config.arena_height + virus_grid_size - 1) / virus_grid_size;
+      virus_grid.resize(virus_grid_width * virus_grid_height);
 
-      // Define the grid size
-      const int grid_size = 25;
-      const int grid_width = (state.config.arena_width + grid_size - 1) / grid_size;
-      const int grid_height = (state.config.arena_height + grid_size - 1) / grid_size;
-
-      // Create the grid
-      std::vector<std::vector<int>> grid(grid_width * grid_height);
-
-      // Populate the grid with virus indices
       for (int i = 0; i < state.viruses.size(); ++i) {
         const Virus &virus = state.viruses[i];
-        int grid_x = static_cast<int>(virus.x) / grid_size;
-        int grid_y = static_cast<int>(virus.y) / grid_size;
-        grid[grid_y * grid_width + grid_x].push_back(i);
+        int grid_x = static_cast<int>(virus.x) / virus_grid_size;
+        int grid_y = static_cast<int>(virus.y) / virus_grid_size;
+        virus_grid[grid_y * virus_grid_width + grid_x].push_back(i);
       }
+
+    }
+
+    bool optimized_check_virus_collisions(std::vector<Cell> &cells, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus, std::vector<int>& viruses_to_remove) {
 
       // Check for collisions
       for (Cell &cell : cells) {
-        int grid_x = static_cast<int>(cell.x) / grid_size;
-        int grid_y = static_cast<int>(cell.y) / grid_size;
+        int grid_x = static_cast<int>(cell.x) / virus_grid_size;
+        int grid_y = static_cast<int>(cell.y) / virus_grid_size;
 
         // Check the cell's grid and neighboring grids
         for (int dx = -1; dx <= 1; ++dx) {
           for (int dy = -1; dy <= 1; ++dy) {
-        int nx = grid_x + dx;
-        int ny = grid_y + dy;
-        if (nx >= 0 && nx < grid_width && ny >= 0 && ny < grid_height) {
-          for (int virus_idx : grid[ny * grid_width + nx]) {
-            Virus &virus = state.viruses[virus_idx];
-            if (cell.can_eat(virus) && cell.collides_with(virus)) {
-          if (can_eat_virus)
-            cell.increment_mass(virus.mass());
-          else
-            disrupt(cell, virus, created_cells, create_limit);
-
-          std::swap(virus, state.viruses.back()); // O(1) removal
-          state.viruses.pop_back();
-          return true; // only collide once
+            int nx = grid_x + dx;
+            int ny = grid_y + dy;
+            if (nx >= 0 && nx < virus_grid_width && ny >= 0 && ny < virus_grid_height) {
+              for (int virus_idx : virus_grid[ny * virus_grid_width + nx]) {
+                Virus &virus = state.viruses[virus_idx];
+                if (cell.can_eat(virus) && cell.collides_with(virus)) {
+              if (can_eat_virus)
+                cell.increment_mass(virus.mass());
+              else
+                disrupt(cell, virus, created_cells, create_limit);
+              viruses_to_remove.push_back(virus_idx);
+              return true; // only collide once
+                }
+              }
             }
-          }
-        }
           }
         }
       }
       return false;
     }
-
+    void remove_viruses(const std::vector<int>& viruses_to_remove) {
+      for (int idx : viruses_to_remove) {
+        if (idx < state.viruses.size() - 1 && state.viruses.size() > 1)
+          std::swap(state.viruses[idx], state.viruses.back());
+        if (state.viruses.size() >= 1)
+          state.viruses.pop_back();
+      }
+    }
     /* called when `cell` collides with `virus` and is popped/disrupted.
      * The new cells that are created are added to `created_cells */
     void disrupt(Cell &cell, Virus &virus, std::vector<Cell> &created_cells, int create_limit) {

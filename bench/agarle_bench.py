@@ -30,19 +30,19 @@ import csv
 
 # Default configuration for the environment
 default_config = {
-    'ticks_per_step':  4,
+    'ticks_per_step':  2,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      500,
     'num_pellets':     500,
     'num_viruses':     25,
-    'num_bots':        20,
+    'num_bots':        5,
     'pellet_regen':    True,
     'grid_size':       84,
     'observe_cells':   True,
     'observe_others':  True,
     'observe_viruses': True,
     'observe_pellets': True,
-    'obs_type'       : "grid",   #Two options: screen, grid
+    'obs_type'       : "screen",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     # 'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,

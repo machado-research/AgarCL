@@ -10,7 +10,7 @@
 #include <tuple>
 
 // 60 frames per second: the default amount of time between frames of the game
-#define DEFAULT_DT (1.0 / 60)
+#define DEFAULT_DT (1.0 / 20)
 
 namespace agario {
   namespace env {
@@ -168,9 +168,9 @@ namespace agario {
         // the following loop is needed to "initialize" the observation object
         // with the newly reset state so that a call to `get_state` directly
         // after `reset` will return a state representing the fresh beginning
-        for (int frame_index = 0; frame_index < ticks_per_step(); frame_index++)
+        // for (int frame_index = 0; frame_index < ticks_per_step(); frame_index++)
           for (int agent_index = 0; agent_index < num_agents(); agent_index++)
-            this->_partial_observation(agent_index, frame_index);
+            this->_partial_observation(agent_index, 0);
       }
 
       [[nodiscard]] std::vector<bool> dones() const { return dones_; }
