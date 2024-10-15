@@ -73,17 +73,18 @@ def main():
     SPS_VALUES = []
     global_step = 0
     start_time = time.time()
-    for iter in range(100):#tqdm.tqdm(range(1000), desc="Benchmarking Progress"):
-        for _ in range(args.num_steps):
-            agent_actions = []
-            global_step += 1
-            for i in range(num_agents):
-                target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
-                action = (target_space.sample(), np.random.randint(0, 3))
-                agent_actions.append(action)
-            state, reward, done, truncations, step_num = env.step(agent_actions)
-            # env.render()
-        print("SPS: ", global_step / (time.time() - start_time))
+    env.save('test')
+    # for iter in range(100):#tqdm.tqdm(range(1000), desc="Benchmarking Progress"):
+    #     for _ in range(args.num_steps):
+    #         agent_actions = []
+    #         global_step += 1
+    #         for i in range(num_agents):
+    #             target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
+    #             action = (target_space.sample(), np.random.randint(0, 3))
+    #             agent_actions.append(action)
+    #         state, reward, done, truncations, step_num = env.step(agent_actions)
+    #         # env.render()
+    #     print("SPS: ", global_step / (time.time() - start_time))
         # SPS_VALUES.append(global_step / (time.time() - start_time))
 
     # with open('SPS_values_full_opt_screen_6sec.csv', mode='w') as file:

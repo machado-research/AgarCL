@@ -1,0 +1,143 @@
+num_agents: 1
+ticks_per_step: 1
+num_bots: 5
+reward_type: 1
+players:
+    target_x: 0
+    target_y: 0
+  - pid: 11
+    cells:
+      id:  1063
+      - x: 152.107
+        y: 324.193
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 10
+    cells:
+      id:  1062
+      - x: 229.234
+        y: 295.988
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 9
+    cells:
+      id:  1061
+      - x: 257.152
+        y: 82.931
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 8
+    cells:
+      id:  1060
+      - x: 21.5534
+        y: 85.2563
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 7
+    cells:
+      id:  1059
+      - x: 338.548
+        y: 15.5801
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 6
+    cells:
+      id:  1058
+      - x: 404.762
+        y: 129.36
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+    is_bot: 0
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0

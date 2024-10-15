@@ -1045,6 +1045,7 @@ namespace agario {
 
     template<typename T>
     T random(T max) { return random<T>(0, max); }
+
   };
 
 }

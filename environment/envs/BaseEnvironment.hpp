@@ -6,7 +6,8 @@
 #include <agario/core/Ball.hpp>
 #include <agario/bots/bots.hpp>
 #include "agario/engine/GameState.hpp"
-
+ #include <fstream>
+#include <dependencies/json.hpp>
 #include <tuple>
 
 // 60 frames per second: the default amount of time between frames of the game
@@ -111,6 +112,55 @@ namespace agario {
         }
         return masses_;
       }
+
+      void save(const std::string &filename) const {
+        std::ofstream file(filename);
+        if (!file.is_open()) {
+          throw EnvironmentException("Unable to open file for saving: " + filename);
+        }
+
+        file << "num_agents: " << num_agents_ << "\n";
+        file << "ticks_per_step: " << ticks_per_step_ << "\n";
+        file << "num_bots: " << num_bots_ << "\n";
+        file << "reward_type: " << reward_type_ << "\n";
+
+        file << "players:\n";
+
+        for (const auto &[pid, player] : engine_.players()) {
+          file << "    target_x: " << player->target.x << "\n";
+          file << "    target_y: " << player->target.y << "\n";
+          file << "  - pid: " << pid << "\n";
+          file << "    cells:\n";
+          for (const auto &cell : player->cells) {
+            file << "      id:  "<< cell.id << "\n";
+            file << "      - x: " << cell.x << "\n";
+            file << "        y: " << cell.y << "\n";
+            file << "        mass: " << cell.mass() << "\n";
+            file << "        velocity_x: " << cell.velocity.dx << "\n";
+            file << "        velocity_y: " << cell.velocity.dy << "\n";
+          }
+          file << "    is_bot: " << player->is_bot << "\n";
+          file << "    dead: " << player->dead() << "\n";
+          file << "    split_cooldown: " << player->split_cooldown << "\n";
+          file << "    feed_cooldown: " << player->feed_cooldown << "\n";
+            file << "    virus_eaten_ticks: ";
+            for (const auto &tick : player->virus_eaten_ticks) {
+            file << tick << " ";
+            }
+            file << "\n";
+          file << "    anti_team_decay: " << player->anti_team_decay << "\n";
+          file << "    elapsed_ticks: " << player->elapsed_ticks << "\n";
+          file << "    last_decay_tick: " << player->last_decay_tick << "\n";
+          file << "    food_eaten: " << player->food_eaten << "\n";
+          file << "    highest_mass: " << player->highest_mass << "\n";
+          file << "    cells_eaten: " << player->cells_eaten << "\n";
+          file << "    viruses_eaten: " << player->viruses_eaten << "\n";
+          file << "    top_position: " << player->top_position << "\n";
+        }
+
+        file.close();
+      }
+
 
       /* take an action for each agent */
       void take_actions(const std::vector<Action> &actions) {
