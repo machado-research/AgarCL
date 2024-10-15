@@ -8,8 +8,8 @@ players:
   - pid: 11
     cells:
       id:  1063
-      - x: 152.107
-        y: 324.193
+      - x: 288.633
+        y: 185.672
         mass: 25
         velocity_x: 0
         velocity_y: 0
@@ -31,8 +31,8 @@ players:
   - pid: 10
     cells:
       id:  1062
-      - x: 229.234
-        y: 295.988
+      - x: 57.9337
+        y: 95.1174
         mass: 25
         velocity_x: 0
         velocity_y: 0
@@ -54,8 +54,8 @@ players:
   - pid: 9
     cells:
       id:  1061
-      - x: 257.152
-        y: 82.931
+      - x: 395.53
+        y: 86.5605
         mass: 25
         velocity_x: 0
         velocity_y: 0
@@ -77,8 +77,8 @@ players:
   - pid: 8
     cells:
       id:  1060
-      - x: 21.5534
-        y: 85.2563
+      - x: 121.951
+        y: 139.059
         mass: 25
         velocity_x: 0
         velocity_y: 0
@@ -100,8 +100,8 @@ players:
   - pid: 7
     cells:
       id:  1059
-      - x: 338.548
-        y: 15.5801
+      - x: 305.346
+        y: 121.531
         mass: 25
         velocity_x: 0
         velocity_y: 0
@@ -123,8 +123,8 @@ players:
   - pid: 6
     cells:
       id:  1058
-      - x: 404.762
-        y: 129.36
+      - x: 190.537
+        y: 183.644
         mass: 25
         velocity_x: 0
         velocity_y: 0
