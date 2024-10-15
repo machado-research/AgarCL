@@ -17,6 +17,7 @@
 #include "agario/utils/collision_detection.hpp"
 #include <thread>
 #include <chrono>
+#include <fstream>
 namespace agario {
 
   class EngineException : public std::runtime_error {
@@ -1061,6 +1062,118 @@ namespace agario {
 
     template<typename T>
     T random(T max) { return random<T>(0, max); }
-  };
+  public:
+    void load(const std::string &filename) {
+      std::ifstream file(filename);
+      if (!file.is_open()) {
+        throw EngineException("Unable to open file for loading: " + filename);
+      }
 
-}
+      std::string line;
+      while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string key;
+        if (line.find("num_agents:") != std::string::npos) {
+          int num_agents;
+          iss >> key >> num_agents;
+        } else if (line.find("ticks_per_step:") != std::string::npos) {
+          int ticks_per_step;
+          iss >> key >> ticks_per_step;
+        } else if (line.find("num_bots:") != std::string::npos) {
+          int num_bots;
+          iss >> key >> num_bots;
+        } else if (line.find("reward_type:") != std::string::npos) {
+          std::string reward_type;
+          iss >> key >> reward_type;
+        } else if (line.find("players:") != std::string::npos) {
+          while (std::getline(file, line) && line.find("  - pid:") != std::string::npos) {
+            agario::pid pid;
+            iss = std::istringstream(line);
+            iss >> key >> pid;
+            auto player = std::make_shared<Player>(pid);
+            state.players[pid] = player;
+
+            while (std::getline(file, line) && line.find("    cells:") == std::string::npos) {
+              if (line.find("    target_x:") != std::string::npos) {
+                iss = std::istringstream(line);
+                float target_x;
+                iss >> key >> target_x;
+              } else if (line.find("    target_y:") != std::string::npos) {
+                iss = std::istringstream(line);
+                float target_y;
+                iss >> key >> target_y;
+              } else if (line.find("    is_bot:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->is_bot;
+              } else if (line.find("    dead:") != std::string::npos) {
+                iss = std::istringstream(line);
+                int dead;
+                iss >> key >> dead;
+              } else if (line.find("    split_cooldown:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->split_cooldown;
+              } else if (line.find("    feed_cooldown:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->feed_cooldown;
+              } else if (line.find("    virus_eaten_ticks:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key;
+                int tick;
+                while (iss >> tick) {
+                  player->virus_eaten_ticks.push_back(tick);
+                }
+              } else if (line.find("    anti_team_decay:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->anti_team_decay;
+              } else if (line.find("    elapsed_ticks:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->elapsed_ticks;
+              } else if (line.find("    last_decay_tick:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->last_decay_tick;
+              } else if (line.find("    food_eaten:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->food_eaten;
+              } else if (line.find("    highest_mass:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->highest_mass;
+              } else if (line.find("    cells_eaten:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->cells_eaten;
+              } else if (line.find("    viruses_eaten:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->viruses_eaten;
+              } else if (line.find("    top_position:") != std::string::npos) {
+                iss = std::istringstream(line);
+                iss >> key >> player->top_position;
+              }
+            }
+
+            // while (std::getline(file, line) && line.find("      id:") != std::string::npos) {
+            //   Cell cell;
+            //   iss = std::istringstream(line);
+            //   iss >> key >> cell.id;
+            //   std::getline(file, line);
+            //   iss = std::istringstream(line);
+            //   iss >> key >> cell.x;
+            //   std::getline(file, line);
+            //   iss = std::istringstream(line);
+            //   iss >> key >> cell.y;
+            //   std::getline(file, line);
+            //   iss = std::istringstream(line);
+            //   iss >> key >> cell.mass_;
+            //   std::getline(file, line);
+            //   iss = std::istringstream(line);
+            //   iss >> key >> cell.velocity.dx;
+            //   std::getline(file, line);
+            //   iss = std::istringstream(line);
+            //   iss >> key >> cell.velocity.dy;
+            //   player->cells.push_back(cell);
+            // }
+          }
+        }
+      }
+      file.close();
+    }
+  };
+} // namespace agario

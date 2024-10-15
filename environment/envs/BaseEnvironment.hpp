@@ -8,6 +8,7 @@
 #include "agario/engine/GameState.hpp"
 
 #include <tuple>
+#include <fstream>
 
 // 30 frames per second: the default amount of time between frames of the game
 #define DEFAULT_DT (1.0 / 30)
@@ -145,11 +146,11 @@ namespace agario {
           file << "    dead: " << player->dead() << "\n";
           file << "    split_cooldown: " << player->split_cooldown << "\n";
           file << "    feed_cooldown: " << player->feed_cooldown << "\n";
-            file << "    virus_eaten_ticks: ";
-            for (const auto &tick : player->virus_eaten_ticks) {
+          file << "    virus_eaten_ticks: ";
+          for (const auto &tick : player->virus_eaten_ticks) {
             file << tick << " ";
-            }
-            file << "\n";
+          }
+          file << "\n";
           file << "    anti_team_decay: " << player->anti_team_decay << "\n";
           file << "    elapsed_ticks: " << player->elapsed_ticks << "\n";
           file << "    last_decay_tick: " << player->last_decay_tick << "\n";
@@ -163,6 +164,9 @@ namespace agario {
         file.close();
       }
 
+      void load(const std::string &filename) {
+        engine_.load(filename);
+      }
 
       /* take an action for each agent */
       void take_actions(const std::vector<Action> &actions) {

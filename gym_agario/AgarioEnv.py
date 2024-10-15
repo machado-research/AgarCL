@@ -153,6 +153,9 @@ class AgarioEnv(gym.Env):
     def close(self):
         self._env.close()
 
+    def load(self, filename):
+        self._env.load(filename)
+
     def save(self, filename):
         self._env.save(filename)
 
