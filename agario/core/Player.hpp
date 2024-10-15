@@ -22,7 +22,8 @@ class Player {
   public:
     typedef Cell<renderable> Cell;
 
-    std::vector<Cell> cells;
+    static std::vector<Cell> cells;
+    static std::unordered_map<agario::pid,std::vector<Cell>> player_cells;
     agario::action action;
     Location target;
     agario::tick split_cooldown = 0;
