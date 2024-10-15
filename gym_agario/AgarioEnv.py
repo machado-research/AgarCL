@@ -153,6 +153,9 @@ class AgarioEnv(gym.Env):
     def close(self):
         self._env.close()
 
+    def save(self, filename):
+        self._env.save(filename)
+
     def _make_observations(self):
         """ creates an observation object from the underlying environment
         representing the current state of the game
