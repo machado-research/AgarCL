@@ -1065,6 +1065,7 @@ namespace agario {
   public:
     void load(const std::string &filename) {
       std::ifstream file(filename);
+      std::cout <<"LOADING the state of Environment...........\n";
       if (!file.is_open()) {
         throw EngineException("Unable to open file for loading: " + filename);
       }
@@ -1086,13 +1087,20 @@ namespace agario {
           std::string reward_type;
           iss >> key >> reward_type;
         } else if (line.find("players:") != std::string::npos) {
+          float target_x, target_y;
+          std::getline(file, line);
+          iss = std::istringstream(line);
+          iss >> key >> target_x;
+          std::getline(file, line);
+          iss = std::istringstream(line);
+          iss >> key >> target_y;
           while (std::getline(file, line) && line.find("  - pid:") != std::string::npos) {
             agario::pid pid;
             iss = std::istringstream(line);
             iss >> key >> pid;
             auto player = std::make_shared<Player>(pid);
             state.players[pid] = player;
-
+            player->target = Location(target_x, target_y);
             while (std::getline(file, line) && line.find("    cells:") == std::string::npos) {
               if (line.find("    target_x:") != std::string::npos) {
                 iss = std::istringstream(line);
@@ -1149,27 +1157,42 @@ namespace agario {
               }
             }
 
-            // while (std::getline(file, line) && line.find("      id:") != std::string::npos) {
-            //   Cell cell;
-            //   iss = std::istringstream(line);
-            //   iss >> key >> cell.id;
-            //   std::getline(file, line);
-            //   iss = std::istringstream(line);
-            //   iss >> key >> cell.x;
-            //   std::getline(file, line);
-            //   iss = std::istringstream(line);
-            //   iss >> key >> cell.y;
-            //   std::getline(file, line);
-            //   iss = std::istringstream(line);
-            //   iss >> key >> cell.mass_;
-            //   std::getline(file, line);
-            //   iss = std::istringstream(line);
-            //   iss >> key >> cell.velocity.dx;
-            //   std::getline(file, line);
-            //   iss = std::istringstream(line);
-            //   iss >> key >> cell.velocity.dy;
-            //   player->cells.push_back(cell);
-            // }
+            while (std::getline(file, line) && line.find("      id:") != std::string::npos) {
+                iss = std::istringstream(line);
+                int id ;
+                iss >> key >> id;
+                float x,y;
+                if (std::getline(file, line) && line.find("x:") != std::string::npos) {
+                    std::istringstream iss(line);
+                    std::string temp;
+                    char colon;
+                    iss >> temp >> colon >> colon >> x;
+                }
+                std::getline(file, line);
+                iss = std::istringstream(line);
+                iss >> key >> y;
+
+                std::getline(file, line);
+                iss = std::istringstream(line);
+                agario::mass mass;
+                iss >> key >> mass;
+
+
+                std::getline(file, line);
+                iss = std::istringstream(line);
+                float dx, dy;
+                iss >> key >> dx;
+                std::getline(file, line);
+                iss = std::istringstream(line);
+                iss >> key >> dy;
+
+                Velocity vel;
+                Cell cell(Location(x, y), vel, mass);
+                cell.id = id;
+                cell.velocity.dx = dx;
+                cell.velocity.dy = dy;
+                player->cells.push_back(std::move(cell));
+            }
           }
         }
       }
