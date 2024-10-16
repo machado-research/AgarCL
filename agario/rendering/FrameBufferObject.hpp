@@ -7,8 +7,21 @@
 #include <iostream>
 
 #ifdef USE_EGL
+
+#define GL_GLEXT_PROTOTYPES 1
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+
+// void assertEGLError(const std::string& msg) {
+// 	EGLint error = eglGetError();
+
+// 	if (error != EGL_SUCCESS) {
+// 		stringstream s;
+// 		s << "EGL error 0x" << std::hex << error << " at " << msg;
+// 		throw runtime_error(s.str());
+// 	}
+// }
+
 static const EGLint configAttribs[] = {
         EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
         EGL_BLUE_SIZE, 8,
@@ -19,10 +32,10 @@ static const EGLint configAttribs[] = {
         EGL_NONE
 };
 
-static const int pbufferWidth = 9;
-static const int pbufferHeight = 9;
+static const int pbufferWidth = 96;
+static const int pbufferHeight = 96;
 
-static const EGLint pbufferAttribs[] = {
+static EGLint pbufferAttribs[] = {
       EGL_WIDTH, pbufferWidth,
       EGL_HEIGHT, pbufferHeight,
       EGL_NONE,
@@ -45,6 +58,8 @@ public:
     _width(width), _height(height),
     fbo(0), rbo_depth(0), rbo_color(0),
     window(nullptr) {
+    pbufferAttribs[1] = _width;
+    pbufferAttribs[3] = _height;
 #ifdef USE_EGL
      _initialize_egl();
      _check_egl_context_creation();
