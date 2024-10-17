@@ -1,0 +1,37 @@
+- Finish Ram Environment and Screen Environment tests
+- More extensive tests for GridEnvironment
+
+Refactoring
+  - Make shader interface template / variadic
+  - Refactor Engine to make it easier to test
+    - Maybe make a physics module with public methods
+
+Game Mechanics
+  - small cells can push big cells (they shouldn't)
+  - Feeding viruses cause virus splitting
+  - names on players
+  - respawn bots
+
+Bugs
+  - viruses appear inside players => splitting them
+  - splitting into arena corner breaks the game
+  - ticks_per_step = 1 results in crash
+  - num_frames is always 2 even when I pass 1
+
+Performance
+- Build out performance benchmarks
+- Improve performance of C++ interface
+    - Add method for setting the buffer in which to populate state
+- better algorithms for collision detection
+    - Sort food positions by x position (faster?)
+
+
+- Convert to modern OpenGL that supports headless rendering easily
+- Get rid of dock icon in ScreenEnvironment
+- auto clone pybind11 and cxxopts repositories during build
+- Make agarle pip installable
+- Fix compilation under GCC
+
+- Documentation
+- Automated CI
+- Client Server
