@@ -1156,6 +1156,7 @@ namespace agario {
                 iss >> key >> player->top_position;
               }
             }
+            std::string color;
 
             while (std::getline(file, line) && line.find("      id:") != std::string::npos) {
                 iss = std::istringstream(line);
@@ -1186,16 +1187,52 @@ namespace agario {
                 iss = std::istringstream(line);
                 iss >> key >> dy;
 
+                std::getline(file, line);
+                iss = std::istringstream(line);
+
+                iss >> key >> color;
+
                 Velocity vel;
                 Cell cell(Location(x, y), vel, mass);
                 cell.id = id;
                 cell.velocity.dx = dx;
                 cell.velocity.dy = dy;
+
                 player->cells.push_back(std::move(cell));
             }
+
+            player->colorize_cells(0);
+            }
           }
-        }
-      }
+          else if (line.find("pellets:") != std::string::npos) {
+            while (std::getline(file, line) && line.find("  - x:") != std::string::npos) {
+            float x, y;
+            iss = std::istringstream(line);
+            char colon;
+            iss >> key >>colon >> colon>> x;
+            std::getline(file, line);
+            iss = std::istringstream(line);
+            iss >> key >> y;
+            state.pellets.emplace_back(Location(x, y));
+            }
+          }
+          else if(line.find("viruses:") != std::string::npos) {
+            std::cout <<"HEYYYY\n";
+            while (std::getline(file, line) && line.find("  - x:") != std::string::npos) {
+              float x, y;
+              iss = std::istringstream(line);
+              char colon;
+              iss >> key >>colon >> colon>> x;
+              std::getline(file, line);
+              iss = std::istringstream(line);
+              iss >> key >> y;
+              state.viruses.emplace_back(Location(x, y));
+              std::cout <<"Viruses: "<< x << " "<< y << '\n';
+
+            }
+          }
+
+          }
       file.close();
     }
   };

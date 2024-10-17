@@ -167,7 +167,6 @@ namespace agario {
         for (const auto &pellet : engine_.state.pellets) {
           file << "  - x: " << pellet.x << "\n";
           file << "    y: " << pellet.y << "\n";
-          file << "    mass: " << pellet.mass() << "\n";
         }
 
         file << "viruses:\n";
