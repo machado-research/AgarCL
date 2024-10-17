@@ -1,0 +1,136 @@
+# syntax=docker/dockerfile:1
+FROM ubuntu:22.04
+# GitHub token
+ARG GITHUB_TOKEN=$GITHUB_TOKEN
+ENV EGL_PLATFORM=surfaceless
+
+# Set environment variables
+ENV CPLUS_INCLUDE_PATH=/usr/local/include
+ENV LIBRARY_PATH=/usr/local/lib
+ENV CPATH=/usr/local/include
+RUN apt-get update && apt-get install -y sudo
+
+# Create a non-root user and add them to the sudo group, allow passwordless sudo
+RUN useradd -m -s /bin/bash newuser && \
+    echo 'newuser:password' | chpasswd && \
+    usermod -aG sudo newuser && \
+    echo 'newuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+
+RUN apt-get update && apt-get install -y sudo
+
+# Install app dependencies and clean up
+RUN  apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    git \
+    xvfb \
+    cmake \
+    python3-venv \
+    libglm-dev \
+    libglobjects-dev \
+    cmake \
+    libgtest-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    libglfw3-dev \
+    freeglut3-dev \
+    libstdc++-12-dev \
+    wget \
+    libc6-dev \
+    libpci3 \
+    libelf-dev \
+    libglvnd-dev \
+    libxau6 \
+    libxdmcp6 \
+    libxcb1 \
+    libxext6 \
+    libx11-6 \
+    libxv1 \
+    libxtst6 \
+    libdrm2 \
+    libegl1 \
+    libgl1 \
+    libopengl0 \
+    libgles1 \
+    libgles2 \
+    libglvnd0 \
+    libglx0 \
+    libglu1 \
+    libsm6 \
+    libegl-mesa0 \
+    libegl1-mesa-dev \
+    libgles2-mesa-dev \
+    libgl1-mesa-dri \
+    libglx-mesa0 \
+    mesa-utils && \
+    sudo apt-get clean && \
+    sudo rm -rf /var/lib/apt/lists/*
+
+# install bazel, needed for google-benchmark installation
+RUN wget https://github.com/bazelbuild/bazelisk/releases/download/v1.15.0/bazelisk-linux-amd64 && \
+    chmod +x bazelisk-linux-amd64 && \
+    sudo mv bazelisk-linux-amd64 /usr/local/bin/bazel
+WORKDIR /home/newuser
+
+# Set clang++ as the default C++ compiler
+RUN sudo apt-get remove -y gcc
+RUN sudo apt-get update -y
+RUN sudo apt-get install -y clang
+RUN sudo apt-get install -y libgbm-dev libdrm-dev
+ENV CXX=clang++
+
+# Clone AgarLE-benchmark and install dependencies
+RUN git clone https://${GITHUB_TOKEN}@github.com/machado-research/AgarLE-benchmark.git && \
+    cd AgarLE-benchmark && \
+    git fetch --all && \
+    git checkout -b reward_stats origin/reward_stats && \
+    git submodule init && \
+    git config submodule.modules/agar.url https://${GITHUB_TOKEN}@github.com/machado-research/AgarLE.git && \
+    git submodule update && \
+    cd modules/agar/ && \
+    git fetch --all && \
+    git checkout -b egl origin/egl && \
+    git submodule init && \
+    git submodule update
+RUN sudo apt-get update -y
+
+# Install GLM
+WORKDIR /home/newuser/AgarLE-benchmark/modules/agar
+RUN mkdir -p build && cd build && \
+    git clone https://github.com/g-truc/glm && \
+    cd glm && \
+    cmake -DGLM_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -B build . && \
+    cmake --build build --target all && \
+    cmake --build build --target install
+
+# Install Cxxopts
+WORKDIR /home/newuser/AgarLE-benchmark/modules/agar/build
+RUN git clone https://github.com/jarro2783/cxxopts.git && \
+    cd cxxopts && \
+    cmake . && make
+
+
+# Install Benchmarking Tools
+WORKDIR /home/newuser/AgarLE-benchmark/modules/agar
+RUN cd build && \
+    git clone https://github.com/google/benchmark.git && \
+    cd benchmark && \
+    mkdir build && cd build
+WORKDIR /home/newuser/AgarLE-benchmark/modules/agar/build/benchmark/build
+RUN cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../ && \
+    cmake --build ../build --config Release && \
+    cmake --build ../build --config Release --target install
+WORKDIR /home/newuser/AgarLE-benchmark
+RUN python3 -m pip install --upgrade pip
+# && \
+    # sudo pip3 install -r requirements.txt
+# RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+WORKDIR /home/newuser/AgarLE-benchmark/modules/agar
+RUN python3 setup.py install
+USER newuser
+
+RUN sudo chown -R newuser:newuser /home/newuser/AgarLE-benchmark
+
+#additional files
+RUN sudo apt install nano
