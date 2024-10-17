@@ -43,9 +43,9 @@ def main(config):
       video_writer.append_data(rendered[j])
       # print(f"Frame {i * env.num_frames + j}:")
       # print(rendered[j])
-      imageio.imwrite(f'/home/ayman/thesis/AgarLE/frame_{i * env.num_frames + j}.png', rendered[j])
-      with open(f'/home/ayman/thesis/AgarLE/frame_{i * env.num_frames + j}.txt', 'w') as text_file:
-          text_file.write(str(rendered[j]))
+      # imageio.imwrite(f'/home/ayman/thesis/AgarLE/frame_{i * env.num_frames + j}.png', rendered[j])
+      # with open(f'/home/ayman/thesis/AgarLE/frame_{i * env.num_frames + j}.txt', 'w') as text_file:
+      #     text_file.write(str(rendered[j]))
 
   video_writer.close()
   env.close()
