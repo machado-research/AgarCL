@@ -7,6 +7,8 @@ import numpy as np
 import os
 
 import imageio
+import imageio_ffmpeg
+import numpy as np
 
 def gen_random_actions():
   max_val, min_val = 1, -1

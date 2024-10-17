@@ -431,7 +431,6 @@ namespace agario::env {
         last_player = &player;
         last_frame_index = frame_index;
       }
-
       void render() override {
 #ifdef RENDERABLE
 

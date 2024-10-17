@@ -149,6 +149,8 @@ class AgarioEnv(gym.Env):
             if self.obs_type == "grid":
                 return  self._env.get_frame()
 
+    def save(self, filename):
+        self._env.save(filename)
 
     def close(self):
         self._env.close()
@@ -184,7 +186,8 @@ class AgarioEnv(gym.Env):
         args = self._get_env_args(kwargs)
         if obs_type == "grid":
             grid_defaults = {
-                'num_frames': 2,
+                'num_frames': 1,
+                'ticks_per_step': 4,
                 'grid_size': 128,
                 'observe_cells': True,
                 'observe_others': True,
@@ -192,7 +195,6 @@ class AgarioEnv(gym.Env):
                 'observe_pellets': True,
                 'c_death': 0,
             }
-
             env = agarle.GridEnvironment(*args)
             env.configure_observation(kwargs | grid_defaults)
 
@@ -312,7 +314,7 @@ class AgarioEnv(gym.Env):
         if type(self.ticks_per_step) is not int or self.ticks_per_step <= 0:
             raise ValueError(f"ticks_per_step must be a positive integer")
 
-        return self.num_agents, self.num_frames, self.arena_size, \
+        return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
                self.num_viruses, self.num_bots, self.reward_type
 

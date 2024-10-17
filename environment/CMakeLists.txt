@@ -29,7 +29,7 @@ endif ()
 
 
 # Allow for USE_EGL
-option(USE_EGL "Make environments headlessly renderable" ON) # Disabled by default
+option(USE_EGL "Make environments headlessly renderable" OFF) # Disabled by default
 if (USE_EGL)
     message("Headlessly renderable")
     add_definitions(-DUSE_EGL)
@@ -60,14 +60,8 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
     message("Including ScreenEnvironment in compilation")
     # define the preprocessor macro to include the relevant code
     add_definitions(-DINCLUDE_SCREEN_ENV)
-
-    # find_library(GLFW REQUIRED)
     find_package(glfw3 3.3 REQUIRED)
-    #NEW
-    # find_package(GLEW REQUIRED)
 
-    #NEW
-    # include_directories(${GLEW_INCLUDE_DIRS})
 
     include_directories(${GLM_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${GLFW_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
 

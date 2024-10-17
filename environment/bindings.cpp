@@ -109,8 +109,8 @@ PYBIND11_MODULE(agarle, module) {
     .def("render", &GridEnvironment::render)
     .def("step", &GridEnvironment::step)
     .def("get_state", &get_state<GridEnvironment>)
-    .def("close", &GridEnvironment::close);
-
+    .def("close", &GridEnvironment::close)
+    .def("save", &GridEnvironment::save);
   /* ================ Ram Environment ================ */
   // using RamEnvironment = agario::env::RamEnvironment<renderable>;
 
@@ -132,8 +132,6 @@ PYBIND11_MODULE(agarle, module) {
   /* we only include this conditionally if OpenGL was found available for linking */
 
 #ifdef INCLUDE_SCREEN_ENV
-
-  // todo: convert ScreenEnvironment to multi-environment
 
  using ScreenEnvironment = agario::env::ScreenEnvironment<renderable>;
 
@@ -162,7 +160,8 @@ PYBIND11_MODULE(agarle, module) {
       obs.append(arr);
       return obs;
     })
-    .def("close", &ScreenEnvironment::close);
+    .def("close", &ScreenEnvironment::close)
+    .def("save", &ScreenEnvironment::save);
   module.attr("has_screen_env") = py::bool_(true);
 
 #else

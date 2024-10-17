@@ -30,7 +30,7 @@ make_includable(rendering/shaders/fragment.glsl rendering/shaders/_fragment.glsl
 
 
 # Allow for USE_EGL
-option(USE_EGL "Make environments headlessly renderable" ON) # Disabled by default
+option(USE_EGL "Make environments headlessly renderable" OFF) # Disabled by default
 if (USE_EGL)
     message("Headlessly renderable")
     add_definitions(-DUSE_EGL)
@@ -93,14 +93,6 @@ set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 #find_library(GLFW REQUIRED)
 find_package(glfw3 REQUIRED)
-#NEW
-# find_package(GLEW REQUIRED)
-#NEW
-#NEW
-# include_directories(${GLEW_INCLUDE_DIRS})
-
-#NEW
-# link_directories(${GLEW_LIBRARY_DIRS})
 
 include_directories(client engine ${OPENGL_INCLUDE_DIR})
 
