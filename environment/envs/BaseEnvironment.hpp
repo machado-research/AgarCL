@@ -133,6 +133,7 @@ namespace agario {
           file << "    target_x: " << player->target.x << "\n";
           file << "    target_y: " << player->target.y << "\n";
           file << "  - pid: " << pid << "\n";
+          agario::color player_color = player->color();
           file << "    cells:\n";
           for (const auto &cell : player->cells) {
             file << "      id:  "<< cell.id << "\n";
@@ -141,6 +142,7 @@ namespace agario {
             file << "        mass: " << cell.mass() << "\n";
             file << "        velocity_x: " << cell.velocity.dx << "\n";
             file << "        velocity_y: " << cell.velocity.dy << "\n";
+            file << "        color: " << player_color << "\n";
           }
           file << "    is_bot: " << player->is_bot << "\n";
           file << "    dead: " << player->dead() << "\n";
@@ -159,6 +161,19 @@ namespace agario {
           file << "    cells_eaten: " << player->cells_eaten << "\n";
           file << "    viruses_eaten: " << player->viruses_eaten << "\n";
           file << "    top_position: " << player->top_position << "\n";
+        }
+
+        file << "pellets:\n";
+        for (const auto &pellet : engine_.state.pellets) {
+          file << "  - x: " << pellet.x << "\n";
+          file << "    y: " << pellet.y << "\n";
+          file << "    mass: " << pellet.mass() << "\n";
+        }
+
+        file << "viruses:\n";
+        for (const auto &virus : engine_.state.viruses) {
+          file << "  - x: " << virus.x << "\n";
+          file << "    y: " << virus.y << "\n";
         }
 
         file.close();

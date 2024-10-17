@@ -1,0 +1,2337 @@
+num_agents: 1
+ticks_per_step: 1
+num_bots: 30
+reward_type: 1
+players:
+    target_x: 0
+    target_y: 0
+  - pid: 61
+    cells:
+      id:  1137
+      - x: 35.4499
+        y: 379.515
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 60
+    cells:
+      id:  1136
+      - x: 94.9755
+        y: 399.506
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 59
+    cells:
+      id:  1135
+      - x: 110.27
+        y: 147.417
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 58
+    cells:
+      id:  1134
+      - x: 326.51
+        y: 430.98
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 57
+    cells:
+      id:  1133
+      - x: 9.51819
+        y: 332.221
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 56
+    cells:
+      id:  1132
+      - x: 334.363
+        y: 247.436
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 55
+    cells:
+      id:  1131
+      - x: 363.773
+        y: 464.478
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 54
+    cells:
+      id:  1130
+      - x: 49.1839
+        y: 491.758
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 53
+    cells:
+      id:  1129
+      - x: 419.213
+        y: 269.302
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 52
+    cells:
+      id:  1128
+      - x: 308.881
+        y: 6.99426
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 51
+    cells:
+      id:  1127
+      - x: 193.711
+        y: 229.606
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 50
+    cells:
+      id:  1126
+      - x: 61.2652
+        y: 49.4317
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 49
+    cells:
+      id:  1125
+      - x: 278.551
+        y: 495.492
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 48
+    cells:
+      id:  1124
+      - x: 325.357
+        y: 376.134
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 47
+    cells:
+      id:  1123
+      - x: 256.349
+        y: 153.285
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 46
+    cells:
+      id:  1122
+      - x: 402.27
+        y: 465.204
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 45
+    cells:
+      id:  1121
+      - x: 449.311
+        y: 192.068
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 44
+    cells:
+      id:  1120
+      - x: 94.3638
+        y: 22.5781
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 43
+    cells:
+      id:  1119
+      - x: 261.513
+        y: 131.409
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 42
+    cells:
+      id:  1118
+      - x: 8.35106
+        y: 80.3413
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 41
+    cells:
+      id:  1117
+      - x: 6.65289
+        y: 155.422
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 40
+    cells:
+      id:  1116
+      - x: 315.611
+        y: 33.6597
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 39
+    cells:
+      id:  1115
+      - x: 82.6547
+        y: 300.453
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 38
+    cells:
+      id:  1114
+      - x: 113.502
+        y: 334.255
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 37
+    cells:
+      id:  1113
+      - x: 88.0624
+        y: 67.588
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 36
+    cells:
+      id:  1112
+      - x: 382.227
+        y: 18.9184
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 35
+    cells:
+      id:  1111
+      - x: 327.442
+        y: 246.447
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 1
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 34
+    cells:
+      id:  1110
+      - x: 203.572
+        y: 495.042
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 0
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 33
+    cells:
+      id:  1109
+      - x: 343.589
+        y: 91.4771
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 5
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 32
+    cells:
+      id:  1108
+      - x: 299.893
+        y: 471.786
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 4
+    is_bot: 1
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+    target_x: 0
+    target_y: 0
+  - pid: 31
+    cells:
+      id:  1107
+      - x: 215.789
+        y: 449.726
+        mass: 25
+        velocity_x: 0
+        velocity_y: 0
+        color: 0
+    is_bot: 0
+    dead: 0
+    split_cooldown: 0
+    feed_cooldown: 0
+    virus_eaten_ticks: 
+    anti_team_decay: 1
+    elapsed_ticks: 0
+    last_decay_tick: 0
+    food_eaten: 0
+    highest_mass: 25
+    cells_eaten: 0
+    viruses_eaten: 0
+    top_position: 0
+pellets:
+  - x: 56.1275
+    y: 365.518
+    mass: 1
+  - x: 421.588
+    y: 435.204
+    mass: 1
+  - x: 131.757
+    y: 0.6607
+    mass: 1
+  - x: 340.638
+    y: 285.777
+    mass: 1
+  - x: 122.773
+    y: 85.6757
+    mass: 1
+  - x: 428.35
+    y: 2.36637
+    mass: 1
+  - x: 317.271
+    y: 327.229
+    mass: 1
+  - x: 242.267
+    y: 185.367
+    mass: 1
+  - x: 454.325
+    y: 124.05
+    mass: 1
+  - x: 371.471
+    y: 143.607
+    mass: 1
+  - x: 167.24
+    y: 385.918
+    mass: 1
+  - x: 169.08
+    y: 212.995
+    mass: 1
+  - x: 250.901
+    y: 125.46
+    mass: 1
+  - x: 128.601
+    y: 320.349
+    mass: 1
+  - x: 71.5537
+    y: 206.669
+    mass: 1
+  - x: 483.774
+    y: 418.573
+    mass: 1
+  - x: 383.158
+    y: 304.468
+    mass: 1
+  - x: 45.6109
+    y: 122.797
+    mass: 1
+  - x: 184.4
+    y: 349.102
+    mass: 1
+  - x: 108.646
+    y: 400.006
+    mass: 1
+  - x: 289.945
+    y: 414.661
+    mass: 1
+  - x: 102.386
+    y: 432.01
+    mass: 1
+  - x: 214.315
+    y: 99.6186
+    mass: 1
+  - x: 411.766
+    y: 344.698
+    mass: 1
+  - x: 273.918
+    y: 25.1463
+    mass: 1
+  - x: 177.063
+    y: 137.505
+    mass: 1
+  - x: 71.7917
+    y: 82.2185
+    mass: 1
+  - x: 481.025
+    y: 188.662
+    mass: 1
+  - x: 472.1
+    y: 52.8058
+    mass: 1
+  - x: 169.15
+    y: 455.153
+    mass: 1
+  - x: 451.688
+    y: 458.087
+    mass: 1
+  - x: 62.0864
+    y: 397.597
+    mass: 1
+  - x: 196.556
+    y: 33.9024
+    mass: 1
+  - x: 190.55
+    y: 392.044
+    mass: 1
+  - x: 488.438
+    y: 296.765
+    mass: 1
+  - x: 454.757
+    y: 216.915
+    mass: 1
+  - x: 434.081
+    y: 424.542
+    mass: 1
+  - x: 198.685
+    y: 474.139
+    mass: 1
+  - x: 46.1088
+    y: 412.72
+    mass: 1
+  - x: 427.145
+    y: 1.82977
+    mass: 1
+  - x: 25.1649
+    y: 113.81
+    mass: 1
+  - x: 316.069
+    y: 245.167
+    mass: 1
+  - x: 493.639
+    y: 224.226
+    mass: 1
+  - x: 250.485
+    y: 147.609
+    mass: 1
+  - x: 229.451
+    y: 240.12
+    mass: 1
+  - x: 242.244
+    y: 204.42
+    mass: 1
+  - x: 101.363
+    y: 156.013
+    mass: 1
+  - x: 232.871
+    y: 94.7787
+    mass: 1
+  - x: 427.858
+    y: 249.5
+    mass: 1
+  - x: 345.579
+    y: 237.001
+    mass: 1
+  - x: 495.646
+    y: 471.735
+    mass: 1
+  - x: 23.3196
+    y: 340.243
+    mass: 1
+  - x: 163.991
+    y: 329.66
+    mass: 1
+  - x: 170.501
+    y: 66.9522
+    mass: 1
+  - x: 55.6556
+    y: 196.204
+    mass: 1
+  - x: 241.515
+    y: 434.243
+    mass: 1
+  - x: 140.415
+    y: 329.402
+    mass: 1
+  - x: 186.893
+    y: 193.897
+    mass: 1
+  - x: 357.512
+    y: 429.223
+    mass: 1
+  - x: 63.3485
+    y: 216.791
+    mass: 1
+  - x: 430.733
+    y: 411.629
+    mass: 1
+  - x: 157.376
+    y: 385.257
+    mass: 1
+  - x: 13.9408
+    y: 133.649
+    mass: 1
+  - x: 305.9
+    y: 227.641
+    mass: 1
+  - x: 433.961
+    y: 110.261
+    mass: 1
+  - x: 323.542
+    y: 79.8793
+    mass: 1
+  - x: 207.459
+    y: 264.067
+    mass: 1
+  - x: 92.8174
+    y: 140.822
+    mass: 1
+  - x: 94.9268
+    y: 14.2427
+    mass: 1
+  - x: 176.147
+    y: 424.941
+    mass: 1
+  - x: 483.844
+    y: 119.397
+    mass: 1
+  - x: 218.733
+    y: 278.063
+    mass: 1
+  - x: 317.81
+    y: 145.017
+    mass: 1
+  - x: 38.7612
+    y: 269.172
+    mass: 1
+  - x: 111.781
+    y: 487.167
+    mass: 1
+  - x: 395.567
+    y: 27.2005
+    mass: 1
+  - x: 429.762
+    y: 120.778
+    mass: 1
+  - x: 181.363
+    y: 401.288
+    mass: 1
+  - x: 47.0105
+    y: 264.28
+    mass: 1
+  - x: 112.931
+    y: 38.674
+    mass: 1
+  - x: 494.352
+    y: 3.88379
+    mass: 1
+  - x: 94.7167
+    y: 131.752
+    mass: 1
+  - x: 142.442
+    y: 213.555
+    mass: 1
+  - x: 296.357
+    y: 225.606
+    mass: 1
+  - x: 164.482
+    y: 95.9511
+    mass: 1
+  - x: 37.5992
+    y: 234.401
+    mass: 1
+  - x: 418.706
+    y: 363.069
+    mass: 1
+  - x: 207.112
+    y: 410.845
+    mass: 1
+  - x: 341.115
+    y: 282.565
+    mass: 1
+  - x: 26.8259
+    y: 186.049
+    mass: 1
+  - x: 287.044
+    y: 295.821
+    mass: 1
+  - x: 340.063
+    y: 64.6031
+    mass: 1
+  - x: 416.644
+    y: 386.578
+    mass: 1
+  - x: 32.955
+    y: 355.564
+    mass: 1
+  - x: 264.546
+    y: 90.236
+    mass: 1
+  - x: 285.619
+    y: 435.595
+    mass: 1
+  - x: 36.1348
+    y: 128.817
+    mass: 1
+  - x: 387.83
+    y: 395.238
+    mass: 1
+  - x: 399.527
+    y: 465.213
+    mass: 1
+  - x: 264.652
+    y: 393.192
+    mass: 1
+  - x: 241.698
+    y: 286.838
+    mass: 1
+  - x: 109.045
+    y: 292.368
+    mass: 1
+  - x: 272.769
+    y: 429.254
+    mass: 1
+  - x: 362.262
+    y: 68.5358
+    mass: 1
+  - x: 40.0353
+    y: 118.793
+    mass: 1
+  - x: 396.698
+    y: 393.655
+    mass: 1
+  - x: 268.648
+    y: 156.361
+    mass: 1
+  - x: 128.059
+    y: 322.246
+    mass: 1
+  - x: 421.228
+    y: 273.843
+    mass: 1
+  - x: 209.494
+    y: 423.312
+    mass: 1
+  - x: 6.78357
+    y: 43.3256
+    mass: 1
+  - x: 399.511
+    y: 34.6502
+    mass: 1
+  - x: 218.522
+    y: 303.88
+    mass: 1
+  - x: 453.825
+    y: 291.546
+    mass: 1
+  - x: 369.113
+    y: 432.775
+    mass: 1
+  - x: 279.005
+    y: 115.773
+    mass: 1
+  - x: 271.458
+    y: 478.918
+    mass: 1
+  - x: 237.719
+    y: 1.35412
+    mass: 1
+  - x: 13.0842
+    y: 399.875
+    mass: 1
+  - x: 97.4442
+    y: 343.782
+    mass: 1
+  - x: 168.705
+    y: 328.668
+    mass: 1
+  - x: 100.004
+    y: 212.674
+    mass: 1
+  - x: 284.551
+    y: 50.1101
+    mass: 1
+  - x: 324.367
+    y: 110.687
+    mass: 1
+  - x: 343.285
+    y: 208.549
+    mass: 1
+  - x: 37.3719
+    y: 149.077
+    mass: 1
+  - x: 331.649
+    y: 208.109
+    mass: 1
+  - x: 392.449
+    y: 446.93
+    mass: 1
+  - x: 227.887
+    y: 7.61892
+    mass: 1
+  - x: 100.814
+    y: 228.722
+    mass: 1
+  - x: 388.745
+    y: 401.713
+    mass: 1
+  - x: 359.398
+    y: 79.8873
+    mass: 1
+  - x: 420.573
+    y: 293.539
+    mass: 1
+  - x: 481.084
+    y: 117.979
+    mass: 1
+  - x: 278.409
+    y: 219.309
+    mass: 1
+  - x: 133.599
+    y: 102.268
+    mass: 1
+  - x: 367.35
+    y: 236.131
+    mass: 1
+  - x: 250.938
+    y: 132.081
+    mass: 1
+  - x: 382.74
+    y: 279.537
+    mass: 1
+  - x: 313.422
+    y: 61.3569
+    mass: 1
+  - x: 117.456
+    y: 227.974
+    mass: 1
+  - x: 309.493
+    y: 334.183
+    mass: 1
+  - x: 466.917
+    y: 8.2349
+    mass: 1
+  - x: 41.9552
+    y: 263.707
+    mass: 1
+  - x: 376.159
+    y: 267.47
+    mass: 1
+  - x: 109.463
+    y: 456.644
+    mass: 1
+  - x: 9.24055
+    y: 219.327
+    mass: 1
+  - x: 290.996
+    y: 151.507
+    mass: 1
+  - x: 123.349
+    y: 49.2186
+    mass: 1
+  - x: 312.985
+    y: 459.506
+    mass: 1
+  - x: 49.2285
+    y: 235.616
+    mass: 1
+  - x: 332.037
+    y: 482.532
+    mass: 1
+  - x: 147.046
+    y: 8.87686
+    mass: 1
+  - x: 288.931
+    y: 378.071
+    mass: 1
+  - x: 386.789
+    y: 350.426
+    mass: 1
+  - x: 281.209
+    y: 449.299
+    mass: 1
+  - x: 453.355
+    y: 469.778
+    mass: 1
+  - x: 448.687
+    y: 279.158
+    mass: 1
+  - x: 61.516
+    y: 65.5457
+    mass: 1
+  - x: 306.259
+    y: 407.824
+    mass: 1
+  - x: 33.5177
+    y: 9.20436
+    mass: 1
+  - x: 253.178
+    y: 491.644
+    mass: 1
+  - x: 294.563
+    y: 152.795
+    mass: 1
+  - x: 459.952
+    y: 53.0361
+    mass: 1
+  - x: 396.527
+    y: 172.347
+    mass: 1
+  - x: 17.3969
+    y: 114.682
+    mass: 1
+  - x: 349.834
+    y: 307.133
+    mass: 1
+  - x: 354.662
+    y: 100.25
+    mass: 1
+  - x: 208.04
+    y: 36.031
+    mass: 1
+  - x: 457.822
+    y: 406.25
+    mass: 1
+  - x: 452.718
+    y: 316.612
+    mass: 1
+  - x: 335.316
+    y: 132.688
+    mass: 1
+  - x: 447.809
+    y: 296.202
+    mass: 1
+  - x: 434.018
+    y: 264.25
+    mass: 1
+  - x: 133.453
+    y: 412.08
+    mass: 1
+  - x: 354.512
+    y: 318.553
+    mass: 1
+  - x: 352.758
+    y: 396.958
+    mass: 1
+  - x: 343.625
+    y: 260.562
+    mass: 1
+  - x: 407.738
+    y: 428.451
+    mass: 1
+  - x: 46.4012
+    y: 477.751
+    mass: 1
+  - x: 215.103
+    y: 498.487
+    mass: 1
+  - x: 73.3549
+    y: 221.461
+    mass: 1
+  - x: 437.241
+    y: 252.729
+    mass: 1
+  - x: 211.546
+    y: 390.367
+    mass: 1
+  - x: 489.87
+    y: 159.103
+    mass: 1
+  - x: 240.027
+    y: 252.737
+    mass: 1
+  - x: 466.844
+    y: 496.757
+    mass: 1
+  - x: 213.591
+    y: 429.552
+    mass: 1
+  - x: 189.475
+    y: 368.685
+    mass: 1
+  - x: 410.361
+    y: 385.736
+    mass: 1
+  - x: 171.3
+    y: 202.947
+    mass: 1
+  - x: 149.68
+    y: 494.692
+    mass: 1
+  - x: 480.139
+    y: 91.8079
+    mass: 1
+  - x: 318.494
+    y: 7.8918
+    mass: 1
+  - x: 218.506
+    y: 149.425
+    mass: 1
+  - x: 295.338
+    y: 422.496
+    mass: 1
+  - x: 385.325
+    y: 487.061
+    mass: 1
+  - x: 187.793
+    y: 78.3366
+    mass: 1
+  - x: 87.2578
+    y: 291.407
+    mass: 1
+  - x: 264.273
+    y: 419.681
+    mass: 1
+  - x: 311.351
+    y: 495.206
+    mass: 1
+  - x: 376.681
+    y: 320.074
+    mass: 1
+  - x: 229.556
+    y: 200.408
+    mass: 1
+  - x: 261.095
+    y: 42.1053
+    mass: 1
+  - x: 197.144
+    y: 219.721
+    mass: 1
+  - x: 156.226
+    y: 265.816
+    mass: 1
+  - x: 297.409
+    y: 387.639
+    mass: 1
+  - x: 345.196
+    y: 300.622
+    mass: 1
+  - x: 127.015
+    y: 345.81
+    mass: 1
+  - x: 260.581
+    y: 79.5211
+    mass: 1
+  - x: 468.958
+    y: 251.59
+    mass: 1
+  - x: 105.84
+    y: 37.1369
+    mass: 1
+  - x: 219.506
+    y: 468.536
+    mass: 1
+  - x: 293.399
+    y: 463.732
+    mass: 1
+  - x: 242.434
+    y: 88.1839
+    mass: 1
+  - x: 400.285
+    y: 120.968
+    mass: 1
+  - x: 373.929
+    y: 198.975
+    mass: 1
+  - x: 270.975
+    y: 75.8934
+    mass: 1
+  - x: 111.1
+    y: 321.024
+    mass: 1
+  - x: 179.313
+    y: 175.664
+    mass: 1
+  - x: 104.228
+    y: 109.625
+    mass: 1
+  - x: 398.249
+    y: 244.986
+    mass: 1
+  - x: 400.212
+    y: 273.526
+    mass: 1
+  - x: 419.275
+    y: 94.1863
+    mass: 1
+  - x: 364.007
+    y: 380.694
+    mass: 1
+  - x: 282.412
+    y: 389.267
+    mass: 1
+  - x: 454.068
+    y: 138.78
+    mass: 1
+  - x: 484.011
+    y: 172.689
+    mass: 1
+  - x: 19.0956
+    y: 186.697
+    mass: 1
+  - x: 153.82
+    y: 114.693
+    mass: 1
+  - x: 427.343
+    y: 188.325
+    mass: 1
+  - x: 495.544
+    y: 230.599
+    mass: 1
+  - x: 306.255
+    y: 10.6658
+    mass: 1
+  - x: 418.19
+    y: 434.249
+    mass: 1
+  - x: 306.236
+    y: 339.381
+    mass: 1
+  - x: 281.729
+    y: 8.08692
+    mass: 1
+  - x: 323.227
+    y: 143.813
+    mass: 1
+  - x: 378.304
+    y: 204.598
+    mass: 1
+  - x: 442.046
+    y: 458.934
+    mass: 1
+  - x: 87.0262
+    y: 77.7545
+    mass: 1
+  - x: 248.599
+    y: 255.769
+    mass: 1
+  - x: 234.195
+    y: 250.053
+    mass: 1
+  - x: 419.512
+    y: 59.6562
+    mass: 1
+  - x: 112.294
+    y: 144.282
+    mass: 1
+  - x: 47.4049
+    y: 108.031
+    mass: 1
+  - x: 307.044
+    y: 177.786
+    mass: 1
+  - x: 472.676
+    y: 444.783
+    mass: 1
+  - x: 238.843
+    y: 263.451
+    mass: 1
+  - x: 162.733
+    y: 268.27
+    mass: 1
+  - x: 250.144
+    y: 335.828
+    mass: 1
+  - x: 308.823
+    y: 11.4834
+    mass: 1
+  - x: 487.109
+    y: 13.1299
+    mass: 1
+  - x: 111.704
+    y: 14.5824
+    mass: 1
+  - x: 102.499
+    y: 456.406
+    mass: 1
+  - x: 28.6226
+    y: 444.831
+    mass: 1
+  - x: 146.692
+    y: 258.92
+    mass: 1
+  - x: 87.2542
+    y: 132.213
+    mass: 1
+  - x: 389.076
+    y: 131.836
+    mass: 1
+  - x: 392.295
+    y: 217.92
+    mass: 1
+  - x: 312.862
+    y: 256.406
+    mass: 1
+  - x: 101.911
+    y: 330.82
+    mass: 1
+  - x: 478.803
+    y: 485.867
+    mass: 1
+  - x: 20.0296
+    y: 434.654
+    mass: 1
+  - x: 482.408
+    y: 86.8653
+    mass: 1
+  - x: 331.602
+    y: 321.787
+    mass: 1
+  - x: 325.314
+    y: 227.525
+    mass: 1
+  - x: 269.923
+    y: 466.356
+    mass: 1
+  - x: 185.022
+    y: 471.745
+    mass: 1
+  - x: 70.4265
+    y: 410.958
+    mass: 1
+  - x: 43.0974
+    y: 149.392
+    mass: 1
+  - x: 174.496
+    y: 93.3701
+    mass: 1
+  - x: 225.792
+    y: 381.331
+    mass: 1
+  - x: 229.916
+    y: 169.668
+    mass: 1
+  - x: 292.955
+    y: 495.176
+    mass: 1
+  - x: 62.1293
+    y: 460.128
+    mass: 1
+  - x: 437.412
+    y: 259.013
+    mass: 1
+  - x: 306.906
+    y: 109.56
+    mass: 1
+  - x: 267.636
+    y: 292.054
+    mass: 1
+  - x: 277.529
+    y: 38.3366
+    mass: 1
+  - x: 360.282
+    y: 50.1352
+    mass: 1
+  - x: 234.472
+    y: 172.717
+    mass: 1
+  - x: 342.023
+    y: 491.531
+    mass: 1
+  - x: 36.388
+    y: 385.626
+    mass: 1
+  - x: 111.726
+    y: 438.681
+    mass: 1
+  - x: 83.175
+    y: 168.871
+    mass: 1
+  - x: 367.854
+    y: 280.444
+    mass: 1
+  - x: 256.363
+    y: 91.6134
+    mass: 1
+  - x: 183.246
+    y: 86.1941
+    mass: 1
+  - x: 278.799
+    y: 447.666
+    mass: 1
+  - x: 193.039
+    y: 272.782
+    mass: 1
+  - x: 355.95
+    y: 385.523
+    mass: 1
+  - x: 249.117
+    y: 52.2619
+    mass: 1
+  - x: 174.959
+    y: 260.463
+    mass: 1
+  - x: 358.47
+    y: 367.138
+    mass: 1
+  - x: 450.268
+    y: 186.322
+    mass: 1
+  - x: 288.658
+    y: 445.286
+    mass: 1
+  - x: 375.964
+    y: 35.0147
+    mass: 1
+  - x: 322.223
+    y: 356.058
+    mass: 1
+  - x: 106.171
+    y: 287.871
+    mass: 1
+  - x: 488.69
+    y: 148.438
+    mass: 1
+  - x: 314.712
+    y: 375.185
+    mass: 1
+  - x: 440.025
+    y: 19.4838
+    mass: 1
+  - x: 396.65
+    y: 104.839
+    mass: 1
+  - x: 453.883
+    y: 408.889
+    mass: 1
+  - x: 220.554
+    y: 141.479
+    mass: 1
+  - x: 345.997
+    y: 52.4999
+    mass: 1
+  - x: 329.646
+    y: 400.162
+    mass: 1
+  - x: 369.117
+    y: 294.859
+    mass: 1
+  - x: 9.3022
+    y: 364.811
+    mass: 1
+  - x: 466.279
+    y: 12.5662
+    mass: 1
+  - x: 105.233
+    y: 440.974
+    mass: 1
+  - x: 233.489
+    y: 91.5204
+    mass: 1
+  - x: 419.504
+    y: 138.333
+    mass: 1
+  - x: 95.742
+    y: 292.467
+    mass: 1
+  - x: 155.75
+    y: 278.29
+    mass: 1
+  - x: 65.0497
+    y: 204.876
+    mass: 1
+  - x: 77.501
+    y: 273.148
+    mass: 1
+  - x: 147.457
+    y: 287.922
+    mass: 1
+  - x: 454.849
+    y: 399.25
+    mass: 1
+  - x: 470.788
+    y: 123.689
+    mass: 1
+  - x: 2.7306
+    y: 237.272
+    mass: 1
+  - x: 38.1315
+    y: 370.231
+    mass: 1
+  - x: 482.316
+    y: 229.021
+    mass: 1
+  - x: 168.916
+    y: 147.119
+    mass: 1
+  - x: 166.064
+    y: 411.401
+    mass: 1
+  - x: 381.128
+    y: 251.897
+    mass: 1
+  - x: 305.594
+    y: 472.381
+    mass: 1
+  - x: 19.871
+    y: 275.894
+    mass: 1
+  - x: 137.169
+    y: 314.405
+    mass: 1
+  - x: 142.604
+    y: 371.911
+    mass: 1
+  - x: 285.695
+    y: 147.977
+    mass: 1
+  - x: 225.657
+    y: 135.039
+    mass: 1
+  - x: 439.03
+    y: 219.266
+    mass: 1
+  - x: 115.588
+    y: 344.778
+    mass: 1
+  - x: 492.385
+    y: 355.761
+    mass: 1
+  - x: 469.769
+    y: 76.6222
+    mass: 1
+  - x: 311.118
+    y: 465.091
+    mass: 1
+  - x: 429.708
+    y: 190.42
+    mass: 1
+  - x: 80.4756
+    y: 458.034
+    mass: 1
+  - x: 73.3416
+    y: 283.738
+    mass: 1
+  - x: 41.8611
+    y: 493.728
+    mass: 1
+  - x: 334.052
+    y: 454.655
+    mass: 1
+  - x: 340.452
+    y: 210.625
+    mass: 1
+  - x: 270.963
+    y: 168.626
+    mass: 1
+  - x: 35.7327
+    y: 438.031
+    mass: 1
+  - x: 412.569
+    y: 478.42
+    mass: 1
+  - x: 379.062
+    y: 274.002
+    mass: 1
+  - x: 41.5291
+    y: 305.566
+    mass: 1
+  - x: 350.87
+    y: 18.8127
+    mass: 1
+  - x: 57.1197
+    y: 495.875
+    mass: 1
+  - x: 296.611
+    y: 119.083
+    mass: 1
+  - x: 187.775
+    y: 157.828
+    mass: 1
+  - x: 291.09
+    y: 469.405
+    mass: 1
+  - x: 66.8697
+    y: 140.848
+    mass: 1
+  - x: 61.3305
+    y: 244.346
+    mass: 1
+  - x: 86.101
+    y: 105.786
+    mass: 1
+  - x: 450.817
+    y: 424.254
+    mass: 1
+  - x: 300.949
+    y: 278.35
+    mass: 1
+  - x: 95.4353
+    y: 410.991
+    mass: 1
+  - x: 145.078
+    y: 486.644
+    mass: 1
+  - x: 448.481
+    y: 437.943
+    mass: 1
+  - x: 401.128
+    y: 281.889
+    mass: 1
+  - x: 210.372
+    y: 389.02
+    mass: 1
+  - x: 236.526
+    y: 335.055
+    mass: 1
+  - x: 168.995
+    y: 39.1474
+    mass: 1
+  - x: 493.196
+    y: 313.003
+    mass: 1
+  - x: 233.994
+    y: 120.573
+    mass: 1
+  - x: 200.016
+    y: 405.544
+    mass: 1
+  - x: 242.498
+    y: 66.4733
+    mass: 1
+  - x: 475.173
+    y: 49.7062
+    mass: 1
+  - x: 370.337
+    y: 186.144
+    mass: 1
+  - x: 249.211
+    y: 373.012
+    mass: 1
+  - x: 294.853
+    y: 143.038
+    mass: 1
+  - x: 49.3157
+    y: 405.731
+    mass: 1
+  - x: 193.378
+    y: 189.474
+    mass: 1
+  - x: 55.2235
+    y: 285.563
+    mass: 1
+  - x: 490.322
+    y: 50.0682
+    mass: 1
+  - x: 131.206
+    y: 339.779
+    mass: 1
+  - x: 53.2971
+    y: 479.12
+    mass: 1
+  - x: 365.294
+    y: 346.984
+    mass: 1
+  - x: 391.162
+    y: 224.355
+    mass: 1
+  - x: 224.849
+    y: 478.392
+    mass: 1
+  - x: 237.24
+    y: 257.542
+    mass: 1
+  - x: 113.819
+    y: 474.603
+    mass: 1
+  - x: 229.016
+    y: 102.264
+    mass: 1
+  - x: 268.338
+    y: 287.958
+    mass: 1
+  - x: 484.908
+    y: 98.8914
+    mass: 1
+  - x: 372.146
+    y: 197.248
+    mass: 1
+  - x: 91.7269
+    y: 75.4124
+    mass: 1
+  - x: 247.112
+    y: 450.094
+    mass: 1
+  - x: 155.994
+    y: 110.118
+    mass: 1
+  - x: 350.116
+    y: 321.517
+    mass: 1
+  - x: 13.2006
+    y: 81.9655
+    mass: 1
+  - x: 297.025
+    y: 147.593
+    mass: 1
+  - x: 17.895
+    y: 86.5012
+    mass: 1
+  - x: 472.804
+    y: 112.088
+    mass: 1
+  - x: 177.925
+    y: 189.22
+    mass: 1
+  - x: 436.63
+    y: 329.209
+    mass: 1
+  - x: 453.667
+    y: 419.402
+    mass: 1
+  - x: 68.7639
+    y: 145.205
+    mass: 1
+  - x: 493.565
+    y: 79.3086
+    mass: 1
+  - x: 361.438
+    y: 89.1335
+    mass: 1
+  - x: 427.268
+    y: 383.672
+    mass: 1
+  - x: 167.514
+    y: 490.171
+    mass: 1
+  - x: 220.313
+    y: 319.417
+    mass: 1
+  - x: 88.3512
+    y: 492.658
+    mass: 1
+  - x: 154.89
+    y: 88.9188
+    mass: 1
+  - x: 240.264
+    y: 270.399
+    mass: 1
+  - x: 225.353
+    y: 91.1384
+    mass: 1
+  - x: 85.4965
+    y: 275.488
+    mass: 1
+  - x: 231.509
+    y: 485.138
+    mass: 1
+  - x: 8.10787
+    y: 300.485
+    mass: 1
+  - x: 217.314
+    y: 226.009
+    mass: 1
+  - x: 430.369
+    y: 359.121
+    mass: 1
+  - x: 90.8836
+    y: 90.6896
+    mass: 1
+  - x: 490.671
+    y: 298.267
+    mass: 1
+  - x: 334.03
+    y: 62.0597
+    mass: 1
+  - x: 464.372
+    y: 340.159
+    mass: 1
+  - x: 124.604
+    y: 354.322
+    mass: 1
+  - x: 179.805
+    y: 131.907
+    mass: 1
+  - x: 340.478
+    y: 191.894
+    mass: 1
+  - x: 136.365
+    y: 382.504
+    mass: 1
+  - x: 333.732
+    y: 228.645
+    mass: 1
+  - x: 229.568
+    y: 49.8453
+    mass: 1
+  - x: 469.853
+    y: 205.418
+    mass: 1
+  - x: 375.391
+    y: 200.549
+    mass: 1
+  - x: 208.369
+    y: 150.311
+    mass: 1
+  - x: 11.8119
+    y: 67.7747
+    mass: 1
+  - x: 481.987
+    y: 47.4749
+    mass: 1
+  - x: 402.974
+    y: 427.183
+    mass: 1
+  - x: 70.3121
+    y: 302.078
+    mass: 1
+  - x: 10.5678
+    y: 294.263
+    mass: 1
+  - x: 343.861
+    y: 386.287
+    mass: 1
+  - x: 366.245
+    y: 77.3278
+    mass: 1
+  - x: 101.027
+    y: 185.868
+    mass: 1
+  - x: 246.332
+    y: 374.732
+    mass: 1
+  - x: 76.6253
+    y: 422.607
+    mass: 1
+  - x: 430.312
+    y: 235.131
+    mass: 1
+  - x: 25.0537
+    y: 356.595
+    mass: 1
+  - x: 237.147
+    y: 176.539
+    mass: 1
+  - x: 434.981
+    y: 79.1982
+    mass: 1
+  - x: 335.505
+    y: 446.997
+    mass: 1
+  - x: 496.42
+    y: 234.587
+    mass: 1
+  - x: 409.74
+    y: 483.364
+    mass: 1
+  - x: 189.568
+    y: 332.906
+    mass: 1
+  - x: 103.602
+    y: 107.109
+    mass: 1
+  - x: 195.974
+    y: 71.9258
+    mass: 1
+  - x: 296.38
+    y: 220.602
+    mass: 1
+  - x: 188.362
+    y: 367.964
+    mass: 1
+  - x: 194.889
+    y: 448.113
+    mass: 1
+  - x: 183.655
+    y: 411.876
+    mass: 1
+  - x: 287.662
+    y: 227.351
+    mass: 1
+  - x: 365.775
+    y: 261.131
+    mass: 1
+  - x: 315.904
+    y: 89.4838
+    mass: 1
+  - x: 388.515
+    y: 74.3157
+    mass: 1
+  - x: 467.651
+    y: 421.741
+    mass: 1
+  - x: 243.817
+    y: 322.148
+    mass: 1
+  - x: 283.95
+    y: 491.143
+    mass: 1
+  - x: 168.347
+    y: 252.669
+    mass: 1
+  - x: 221.417
+    y: 470.921
+    mass: 1
+  - x: 348.677
+    y: 127.482
+    mass: 1
+  - x: 214.972
+    y: 147.316
+    mass: 1
+  - x: 443.991
+    y: 61.902
+    mass: 1
+  - x: 333.807
+    y: 470.677
+    mass: 1
+  - x: 131.071
+    y: 84.6525
+    mass: 1
+  - x: 382.449
+    y: 16.248
+    mass: 1
+  - x: 339.851
+    y: 121.797
+    mass: 1
+  - x: 156.265
+    y: 253.297
+    mass: 1
+  - x: 425.492
+    y: 342.171
+    mass: 1
+  - x: 464.303
+    y: 138.747
+    mass: 1
+  - x: 85.9466
+    y: 335.306
+    mass: 1
+  - x: 43.9596
+    y: 47.561
+    mass: 1
+  - x: 177.402
+    y: 428.152
+    mass: 1
+  - x: 69.4779
+    y: 456.594
+    mass: 1
+  - x: 37.1019
+    y: 235.184
+    mass: 1
+  - x: 219.429
+    y: 463.11
+    mass: 1
+  - x: 456.834
+    y: 209.617
+    mass: 1
+  - x: 312.05
+    y: 193.275
+    mass: 1
+  - x: 57.5653
+    y: 411.578
+    mass: 1
+  - x: 280.616
+    y: 493.149
+    mass: 1
+  - x: 331.118
+    y: 182.081
+    mass: 1
+  - x: 439.586
+    y: 31.7889
+    mass: 1
+  - x: 434.43
+    y: 490.744
+    mass: 1
+  - x: 374.676
+    y: 241.677
+    mass: 1
+  - x: 461.312
+    y: 103.565
+    mass: 1
+  - x: 250.336
+    y: 306.332
+    mass: 1
+  - x: 399.353
+    y: 409.115
+    mass: 1
+  - x: 496.769
+    y: 196.624
+    mass: 1
+  - x: 2.09384
+    y: 468.445
+    mass: 1
+  - x: 149.359
+    y: 213.391
+    mass: 1
+  - x: 17.725
+    y: 84.1195
+    mass: 1
+  - x: 49.2537
+    y: 214.469
+    mass: 1
+  - x: 291.654
+    y: 2.71014
+    mass: 1
+  - x: 473.535
+    y: 386.685
+    mass: 1
+  - x: 489.538
+    y: 88.8776
+    mass: 1
+  - x: 495.293
+    y: 138.691
+    mass: 1
+  - x: 166.547
+    y: 88.9345
+    mass: 1
+  - x: 396.928
+    y: 460.915
+    mass: 1
+  - x: 240.589
+    y: 143.882
+    mass: 1
+  - x: 123.253
+    y: 469.374
+    mass: 1
+  - x: 332.605
+    y: 374.028
+    mass: 1
+  - x: 339.026
+    y: 37.7051
+    mass: 1
+  - x: 476.554
+    y: 227.42
+    mass: 1
+  - x: 279.341
+    y: 285.384
+    mass: 1
+  - x: 423.13
+    y: 223.286
+    mass: 1
+  - x: 247.5
+    y: 202.85
+    mass: 1
+  - x: 6.79411
+    y: 497.947
+    mass: 1
+  - x: 344.473
+    y: 185.2
+    mass: 1
+  - x: 328.968
+    y: 370.687
+    mass: 1
+  - x: 375.827
+    y: 232.388
+    mass: 1
+  - x: 433.694
+    y: 195.548
+    mass: 1
+  - x: 327.336
+    y: 70.8241
+    mass: 1
+viruses:
+  - x: 136.914
+    y: 97.371
+  - x: 50.6023
+    y: 161.615
+  - x: 290.5
+    y: 82.5597
+  - x: 409.248
+    y: 306.801
+  - x: 25.6073
+    y: 322.557
+  - x: 436.215
+    y: 239.119
+  - x: 132.32
+    y: 95.6137
+  - x: 52.0114
+    y: 251.729
+  - x: 292.586
+    y: 198.227
+  - x: 224.151
+    y: 320.128
+  - x: 396.454
+    y: 102.628
+  - x: 298.733
+    y: 165.294
+  - x: 219.376
+    y: 191.891
+  - x: 363.265
+    y: 457.423
+  - x: 95.7643
+    y: 318.343
+  - x: 416.653
+    y: 148.469
+  - x: 145.036
+    y: 255.961
+  - x: 106.657
+    y: 188.775
+  - x: 423.507
+    y: 256.244
+  - x: 298.481
+    y: 159.451
+  - x: 172.688
+    y: 453.467
+  - x: 67.1874
+    y: 331.968
+  - x: 134.332
+    y: 174.093
+  - x: 205.498
+    y: 283.623
+  - x: 129.091
+    y: 220.877

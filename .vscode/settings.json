@@ -89,7 +89,8 @@
         "locale": "cpp",
         "queue": "cpp",
         "ranges": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "cfenv": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "files.trimTrailingWhitespace": true,

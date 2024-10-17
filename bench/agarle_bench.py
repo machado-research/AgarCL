@@ -30,7 +30,7 @@ import csv
 
 # Default configuration for the environment
 default_config = {
-    'ticks_per_step':  4,
+    'ticks_per_step':  1,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      500,
     'num_pellets':     512,
@@ -84,7 +84,7 @@ def main():
     #         # env.render()
     #     print("SPS: ", global_step / (time.time() - start_time))
     #     SPS_VALUES.append(global_step / (time.time() - start_time))
-    env.load('test')
+    env.save('test')
     # with open('SPS_values_full_opt_grid.csv', mode='w') as file:
     #     writer = csv.writer(file)
     #     writer.writerow(SPS_VALUES)
