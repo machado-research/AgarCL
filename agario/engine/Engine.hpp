@@ -1216,7 +1216,7 @@ namespace agario {
             state.pellets.emplace_back(Location(x, y));
             }
           }
-          else if(line.find("viruses:") != std::string::npos) {
+          if(line.find("viruses:") != std::string::npos) {
             std::cout <<"HEYYYY\n";
             while (std::getline(file, line) && line.find("  - x:") != std::string::npos) {
               float x, y;
