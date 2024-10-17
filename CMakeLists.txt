@@ -4,7 +4,7 @@ cmake_policy(SET CMP0048 NEW)
 project(AgarLE
         VERSION 0.1
         DESCRIPTION "Agar.io Learning Environment"
-        HOMEPAGE_URL "https://github.com/jondeaton/AgarLE"
+        HOMEPAGE_URL "https://github.com/machado-research/AgarLE"
         LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
