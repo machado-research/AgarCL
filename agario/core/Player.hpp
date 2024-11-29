@@ -145,9 +145,9 @@ class Player {
 
     template <typename T, bool enable = renderable>
     typename std::enable_if<enable, void>::type
-    draw(T &shader) {
+    draw(T &shader, int type) {
       for (auto &cell : cells)
-        cell.draw(shader);
+        cell.draw(shader, type);
     }
 
     /* override this function to define a bot's behavior */
@@ -159,8 +159,8 @@ class Player {
     template <bool r = renderable>
     typename std::enable_if<r, void>::type
     colorize_cells(int start_idx) {
-      for(int i = start_idx ; i < cells.size(); i++)
-        cells[i].set_color(color());
+      // for(int i = start_idx ; i < cells.size(); i++)
+      //   cells[i].set_color(color());
     }
 
     template <bool r = renderable>

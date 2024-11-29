@@ -32,17 +32,18 @@ import csv
 default_config = {
     'ticks_per_step':  3,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      500,
-    'num_pellets':     500,
-    'num_viruses':     25,
-    'num_bots':        5,
+    'arena_size':      256,
+    'num_pellets':     100,
+    'num_viruses':     30,
+    'num_bots':        25,
     'pellet_regen':    True,
     'grid_size':       84,
-    'observe_cells':   True,
-    'observe_others':  True,
-    'observe_viruses': True,
-    'observe_pellets': True,
-    'obs_type'       : "grid",   #Two options: screen, grid
+    'screen_len':      84,
+    'observe_cells':   False,
+    'observe_others':  False,
+    'observe_viruses': False,
+    'observe_pellets': False,
+    'obs_type'       : "screen",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
@@ -73,30 +74,63 @@ def main():
     SPS_VALUES = []
     global_step = 0
     start_time = time.time()
-    # env.save('test')
-    for iter in range(100):#tqdm.tqdm(range(1000), desc="Benchmarking Progress"):
+    total_reward = 0
+    num_episodes = 1
+
+    import matplotlib.pyplot as plt
+
+    episode_rewards = []
+
+    for iter in range(num_episodes):  # tqdm.tqdm(range(1000), desc="Benchmarking Progress"):
+        episode_reward = 0
         for _ in range(args.num_steps):
             agent_actions = []
             global_step += 1
             for i in range(num_agents):
                 target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
-                action = (target_space.sample(), np.random.randint(0, 3))
+                action = (target_space.sample(), 0)
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
-            env.render()
-        # print("SPS: ", global_step / (time.time() - start_time))
-        # SPS_VALUES.append(global_step / (time.time() - start_time))
+            # Save the state matrix to disk
+            with open(f'/home/ayman/thesis/AgarLE/bench/state_matrix_step_{global_step}.txt', 'w') as f:
+                for row in state:
+                    f.write(' '.join(map(str, row)) + '\n')
 
-    # with open('SPS_values_full_opt_screen_6sec.csv', mode='w') as file:
-    #     writer = csv.writer(file)
-    #     writer.writerow(SPS_VALUES)
+            # Reshape the state to (84, 84) and save as an image
+            state_image = np.array(state).reshape(84, 84, 3)
+            plt.imshow(state_image)
+            plt.title(f'State at step {global_step}')
+            plt.savefig(f'/home/ayman/thesis/AgarLE/bench/state_image_step_{global_step}.png')
+            plt.close()
+            break
+            import pdb; pdb.set_trace()
+            if(done):
+                print("HEEEY")
+                break
+            # env.render()
+            if done:
+                env.reset()
+                break
+        total_reward += episode_reward
+        episode_rewards.append(episode_reward)
+        print(f"Episode {iter+1} reward: {episode_reward}")
+    average_reward = total_reward / num_episodes
+    print(f"Average reward over {num_episodes} episodes: {average_reward}")
+
+    # Plotting the rewards
+    # plt.plot(episode_rewards)
+    # plt.xlabel('Episode')
+    # plt.ylabel('Reward')
+    # plt.title('Reward per Episode')
+    # plt.show()
+
 
     env.close()
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=1, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=3001, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")

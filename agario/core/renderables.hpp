@@ -41,14 +41,14 @@ namespace agario {
         case agario::color::green:
           color_array = green_color;
           break;
-        case agario::color::orange:
-          color_array = orange_color;
-          break;
-        case agario::color::purple:
-          color_array = purple_color;
-          break;
-        case agario::color::yellow:
-          color_array = yellow_color;
+        // case agario::color::orange:
+        //   color_array = orange_color;
+        //   break;
+        // case agario::color::purple:
+        //   color_array = purple_color;
+        //   break;
+        // case agario::color::yellow:
+        //   color_array = yellow_color;
           break;
         default:
           throw RenderingException("Not a color");
@@ -100,13 +100,19 @@ namespace agario {
 
     void set_color(agario::color c) {
       color = c;
-      circle.set_color(c);
+      // circle.set_color(c);
     }
 
-    void draw(Shader &shader) {
+    void draw(Shader &shader, int type) {
       if (!_initialized) _initialize();
 
-      shader.setVec4("color", circle.color[0], circle.color[1], circle.color[2], 1.0);
+      if(type == 0) // pellets
+        shader.setVec4("color", 1.00f, 0.00f, 0.00f, 1.0);
+      else if(type == 1) //viruses
+        shader.setVec4("color", 0.00f, 1.00f, 0.00f, 1.0);
+      else if(type == 2) //players
+        shader.setVec4("color", 0.00f, 0.00f, 1.00f, 1.0);
+
 
       // world location
       auto location = glm::vec3(x, y, 0);
@@ -142,7 +148,7 @@ namespace agario {
     void _initialize() {
       _create_vertices();
 
-      circle.set_color(color);
+      // circle.set_color(color);
 
       glGenVertexArrays(1, &circle.vao);
       glGenBuffers(1, &circle.vbo);
