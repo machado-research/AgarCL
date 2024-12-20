@@ -164,6 +164,7 @@ namespace agario {
         for (int i = 0; i < num_agents_; i++) {
           auto name = "agent" + std::to_string(i);
           auto pid = engine_.template add_player<Player>(name);
+          engine_.state.main_agent_pid = pid;
           pids_.emplace_back(pid);
           dones_[i] = false;
         }

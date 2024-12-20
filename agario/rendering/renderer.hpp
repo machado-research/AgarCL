@@ -130,22 +130,30 @@ namespace agario {
 
       make_projections(player);
 
-      glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+      glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
       glClear(GL_COLOR_BUFFER_BIT);
 
       grid.draw(shader);
 
       for (auto &pellet : state.pellets)
-        pellet.draw(shader);
+        pellet.draw(shader, 0);
 
       for (auto &food : state.foods)
-        food.draw(shader);
+        food.draw(shader, 0);
 
-      for (auto &pair : state.players)
-        pair.second->draw(shader);
+      // main agent pid is the first player in the map
+      auto main_agent = state.players[state.main_agent_pid];
+      main_agent->draw(shader, 3);
+      std::cout << "Drawing main agent" << state.main_agent_pid << std::endl;
+
+      //other players
+      for (auto &pair : state.players){
+        if(pair.first != state.main_agent_pid)
+          pair.second->draw(shader, 1);
+      }
 
       for (auto &virus : state.viruses)
-        virus.draw(shader);
+        virus.draw(shader, 2);
 
     }
     void close_program()

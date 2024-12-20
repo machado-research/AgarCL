@@ -41,14 +41,14 @@ namespace agario {
         case agario::color::green:
           color_array = green_color;
           break;
-        case agario::color::orange:
-          color_array = orange_color;
-          break;
-        case agario::color::purple:
-          color_array = purple_color;
-          break;
-        case agario::color::yellow:
-          color_array = yellow_color;
+        // case agario::color::orange:
+        //   color_array = orange_color;
+        //   break;
+        // case agario::color::purple:
+        //   color_array = purple_color;
+        //   break;
+        // case agario::color::yellow:
+        //   color_array = yellow_color;
           break;
         default:
           throw RenderingException("Not a color");
@@ -100,13 +100,21 @@ namespace agario {
 
     void set_color(agario::color c) {
       color = c;
-      circle.set_color(c);
+      // circle.set_color(c);
     }
 
-    void draw(Shader &shader) {
+    void draw(Shader &shader, int type) {
       if (!_initialized) _initialize();
 
-      shader.setVec4("color", circle.color[0], circle.color[1], circle.color[2], 1.0);
+      if(type == 0) // pellets
+        shader.setVec4("color", 1.00f, 0.00f, 0.00f, 1.0);
+      else if(type == 1) //Players
+        shader.setVec4("color", 0.00f, 1.00f, 0.00f, 1.0);
+      else if(type == 2) //Viruses
+        shader.setVec4("color", 0.00f, 0.00f, 1.00f, 1.0);
+      else if(type == 3) //Main Player
+        shader.setVec4("color", 0.9f, 0.0f, 0.0f, 1.0);
+
 
       // world location
       auto location = glm::vec3(x, y, 0);
@@ -142,7 +150,7 @@ namespace agario {
     void _initialize() {
       _create_vertices();
 
-      circle.set_color(color);
+      // circle.set_color(color);
 
       glGenVertexArrays(1, &circle.vao);
       glGenBuffers(1, &circle.vbo);
@@ -258,8 +266,8 @@ namespace agario {
       _create_vertices();
 
       color[0] = 0.1;
-      color[1] = 0.1;
-      color[2] = 0.1;
+      color[1] = 0.0;
+      color[2] = 0.0;
 
       glGenVertexArrays(1, &vao);
       glGenBuffers(1, &vbo);
@@ -282,6 +290,7 @@ namespace agario {
 
     void _create_vertical_verts(GLfloat verts[]) {
       GLfloat spacing = 1.0 / (NLines - 1);
+      std::cout << spacing<< " "<< NLines << std::endl;
       for (unsigned i = 0; i < NLines; i++) {
         GLfloat x = i * spacing;
         verts[6 * i] = x;
