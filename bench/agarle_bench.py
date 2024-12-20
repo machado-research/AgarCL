@@ -32,10 +32,10 @@ import csv
 default_config = {
     'ticks_per_step':  3,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      256,
+    'arena_size':      100,
     'num_pellets':     100,
-    'num_viruses':     30,
-    'num_bots':        25,
+    'num_viruses':     0,
+    'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       84,
     'screen_len':      84,
@@ -91,26 +91,23 @@ def main():
                 action = (target_space.sample(), 0)
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
+            state = np.array(state).reshape(84, 84, 4)
             # Save the state matrix to disk
-            with open(f'/home/ayman/thesis/AgarLE/bench/state_matrix_step_{global_step}.txt', 'w') as f:
-                for row in state:
-                    f.write(' '.join(map(str, row)) + '\n')
+            for channel in range(4):
+                with open(f'/home/ayman/thesis/AgarLE/bench/state_matrix_step_{global_step}_channel_{channel}.txt', 'w') as f:
+                    for i in range(84):
+                        for j in range(84):
+                            f.write(f"{state[i][j][channel]} ")
+                        f.write('\n')
 
             # Reshape the state to (84, 84) and save as an image
-            state_image = np.array(state).reshape(84, 84, 3)
+            state_image = np.array(state).reshape(84, 84, 4)
             plt.imshow(state_image)
             plt.title(f'State at step {global_step}')
             plt.savefig(f'/home/ayman/thesis/AgarLE/bench/state_image_step_{global_step}.png')
             plt.close()
             break
-            import pdb; pdb.set_trace()
-            if(done):
-                print("HEEEY")
-                break
-            # env.render()
-            if done:
-                env.reset()
-                break
+
         total_reward += episode_reward
         episode_rewards.append(episode_reward)
         print(f"Episode {iter+1} reward: {episode_reward}")

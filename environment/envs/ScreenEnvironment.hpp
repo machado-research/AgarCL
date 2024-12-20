@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#define PIXEL_LEN 3
+#define PIXEL_LEN 4
 
 // todo: needs to be converted over to multi-environment
 
@@ -44,6 +44,30 @@ namespace agario::env {
       }
 
 
+      void post_processing_frame_data(std::uint8_t *&data) {
+        auto end_index = _width * _height * PIXEL_LEN;
+        for(int i = 0 ; i < end_index - PIXEL_LEN  - 1 ; i+=PIXEL_LEN)
+        {
+          // data[i+3] = 0;
+          if(data[i] == 26 || data[i] == 230)
+          {
+            data[i] = 0;
+            data[i + 3] = 26;
+          }
+          if(data[i+1] == 26 || data[i+1] == 230)
+          {
+            data[i + 1] = 0;
+            data[i+3] = 26;
+          }
+          if(data[i+2] == 26 || data[i+2] == 230)
+          {
+            data[i + 2] = 0;
+            data[i + 3] = 26;
+          }
+
+
+        }
+      }
       std::uint8_t *frame_data(int frame_index) const {
 
         if (frame_index >= _num_frames)
@@ -61,10 +85,10 @@ namespace agario::env {
 
       [[nodiscard]] std::vector<ssize_t> strides() const {
         return {
-          _width * _height * PIXEL_LEN * dtype_size,
-                   _height * PIXEL_LEN * dtype_size,
-                             PIXEL_LEN * dtype_size,
-                                         dtype_size
+          _width * _height *  PIXEL_LEN  * dtype_size,
+                   _height *  PIXEL_LEN  * dtype_size,
+                              PIXEL_LEN  * dtype_size,
+                                           dtype_size
         };
       }
 
@@ -163,13 +187,16 @@ namespace agario::env {
         render_frame(player);
         void *data = _observation.frame_data(frame_index);
         frame_buffer->copy(data);
+        auto *frame_data_ptr = static_cast<std::uint8_t *>(data);
+        _observation.post_processing_frame_data(frame_data_ptr);
+
+
       }
 
 
       void _partial_observation(int agent_index, int tick_index) override{
         auto &player = this->engine_.player(this->pids_[agent_index]);
         _partial_observation(player, tick_index);
-
         if (player.dead())
         {
           // to do: modify for respawn == True

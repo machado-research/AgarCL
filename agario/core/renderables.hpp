@@ -108,10 +108,12 @@ namespace agario {
 
       if(type == 0) // pellets
         shader.setVec4("color", 1.00f, 0.00f, 0.00f, 1.0);
-      else if(type == 1) //viruses
+      else if(type == 1) //Players
         shader.setVec4("color", 0.00f, 1.00f, 0.00f, 1.0);
-      else if(type == 2) //players
+      else if(type == 2) //Viruses
         shader.setVec4("color", 0.00f, 0.00f, 1.00f, 1.0);
+      else if(type == 3) //Main Player
+        shader.setVec4("color", 0.9f, 0.9f, 0.9f, 1.0);
 
 
       // world location

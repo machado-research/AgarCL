@@ -44,7 +44,7 @@ namespace agario {
     std::vector<agario::Pellet<renderable>> pellets;
     std::vector<agario::Food<renderable>> foods;
     std::vector<agario::Virus<renderable>> viruses;
-
+    agario::pid main_agent_pid;
     std::mt19937_64 rng;
     agario::tick ticks = 0;
     agario::pid next_pid = 0;
