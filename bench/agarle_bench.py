@@ -76,7 +76,7 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 1
+    num_episodes = 1000
 
     import matplotlib.pyplot as plt
 
@@ -99,7 +99,7 @@ def main():
         episode_elapsed_time = time.time() - episode_start_time
         episode_SPS = episode_steps / episode_elapsed_time
         SPS_VALUES.append(episode_SPS)
-        print(f"Episode {iter} finished in {episode_elapsed_time:.2f} seconds")
+        print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
     # Plotting SPS values
     plt.figure()
@@ -116,7 +116,7 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=3001, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")
