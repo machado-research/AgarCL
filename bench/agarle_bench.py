@@ -34,7 +34,7 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      100,
     'num_pellets':     100,
-    'num_viruses':     0,
+    'num_viruses':     8,
     'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       84,
@@ -102,10 +102,16 @@ def main():
 
             # Reshape the state to (84, 84) and save as an image
             state_image = np.array(state).reshape(84, 84, 4)
-            plt.imshow(state_image)
+            state_image_gray = np.mean(state_image, axis=2)  # Aggregate across the 4 channels
+            plt.imshow(state_image_gray, cmap='gray')       # Use grayscale colormap
             plt.title(f'State at step {global_step}')
             plt.savefig(f'/home/ayman/thesis/AgarLE/bench/state_image_step_{global_step}.png')
             plt.close()
+
+            # plt.imshow(state_image)
+            # plt.title(f'State at step {global_step}')
+            # plt.savefig(f'/home/ayman/thesis/AgarLE/bench/state_image_step_{global_step}.png')
+            # plt.close()
             break
 
         total_reward += episode_reward

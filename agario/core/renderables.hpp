@@ -113,7 +113,7 @@ namespace agario {
       else if(type == 2) //Viruses
         shader.setVec4("color", 0.00f, 0.00f, 1.00f, 1.0);
       else if(type == 3) //Main Player
-        shader.setVec4("color", 0.9f, 0.9f, 0.9f, 1.0);
+        shader.setVec4("color", 0.9f, 0.0f, 0.0f, 1.0);
 
 
       // world location
@@ -266,8 +266,8 @@ namespace agario {
       _create_vertices();
 
       color[0] = 0.1;
-      color[1] = 0.1;
-      color[2] = 0.1;
+      color[1] = 0.0;
+      color[2] = 0.0;
 
       glGenVertexArrays(1, &vao);
       glGenBuffers(1, &vbo);
@@ -290,6 +290,7 @@ namespace agario {
 
     void _create_vertical_verts(GLfloat verts[]) {
       GLfloat spacing = 1.0 / (NLines - 1);
+      std::cout << spacing<< " "<< NLines << std::endl;
       for (unsigned i = 0; i < NLines; i++) {
         GLfloat x = i * spacing;
         verts[6 * i] = x;

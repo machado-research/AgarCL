@@ -46,27 +46,44 @@ namespace agario::env {
 
       void post_processing_frame_data(std::uint8_t *&data) {
         auto end_index = _width * _height * PIXEL_LEN;
-        for(int i = 0 ; i < end_index - PIXEL_LEN  - 1 ; i+=PIXEL_LEN)
+
+        for(int i = 0 ; i < end_index; i++)
         {
+          // we have 4 channels : 0 1 2 3 (r g b a) (i%4) => (0,1,2,3)
           // data[i+3] = 0;
-          if(data[i] == 26 || data[i] == 230)
+          // 26 is the value of GridLines
+          if(i%4 == 3 && data[i] != 26 && data[i] != 230)
           {
-            data[i] = 0;
-            data[i + 3] = 26;
-          }
-          if(data[i+1] == 26 || data[i+1] == 230)
-          {
-            data[i + 1] = 0;
-            data[i+3] = 26;
-          }
-          if(data[i+2] == 26 || data[i+2] == 230)
-          {
-            data[i + 2] = 0;
-            data[i + 3] = 26;
+            // two conditions: Above me is a gridLine. If so, make me a gridLine too. Vertical GridLine
+            int above_Gline_index = i - _width * PIXEL_LEN;
+            int above_above_Gline_index = above_Gline_index - _width * PIXEL_LEN;
+            if(above_above_Gline_index >= 0 && data[above_Gline_index] !=0 && data[above_above_Gline_index]==26)
+              data[i] = 26;
+            else
+              data[i] = 0; // make it transparent
           }
 
+          if(data[i] != 0 && i%4 != 3)
+          {
+              if(data[i] == 26 || data[i] == 230)
+              {
+                data[i + (3 - i%4)] = data[i];
+                data[i] = 0;
+              }
+              else
+              {
+                //It is a virus, Enemy, or a pellet => check if the previous pixel is a gridLine, simply make data[i + (3 - i%4)] = 26
+                // Horizontal GridLine
+                int prev_Gline_index = i - i%4 - 1;
+                int prev_prev_Gline_index = prev_Gline_index - 4;
 
+                if(prev_prev_Gline_index >= 0 && data[prev_prev_Gline_index] == 26 && data[prev_Gline_index] == 26)
+                  data[i + (3 - i%4)] = 26;
+              }
+          }
         }
+
+
       }
       std::uint8_t *frame_data(int frame_index) const {
 
