@@ -27,15 +27,16 @@ def diff():
 import random
 from typing import Tuple, List
 import csv
+import tqdm
 
 # Default configuration for the environment
 default_config = {
     'ticks_per_step':  3,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      100,
-    'num_pellets':     100,
-    'num_viruses':     8,
-    'num_bots':        0,
+    'arena_size':      500,
+    'num_pellets':     200,
+    'num_viruses':     10,
+    'num_bots':        10,
     'pellet_regen':    True,
     'grid_size':       84,
     'screen_len':      84,
@@ -45,7 +46,7 @@ default_config = {
     'observe_pellets': False,
     'obs_type'       : "screen",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
-    'render_mode'    : "human", # Two options: "human", "rgb_array"
+    'render_mode'    : "rgb_array", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
     'num_agents'     :  1,
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
@@ -81,51 +82,33 @@ def main():
 
     episode_rewards = []
 
-    for iter in range(num_episodes):  # tqdm.tqdm(range(1000), desc="Benchmarking Progress"):
+    for iter in tqdm.tqdm(range(num_episodes), desc="Benchmarking Progress"):
         episode_reward = 0
+        episode_start_time = time.time()
+        episode_steps = 0
         for _ in range(args.num_steps):
             agent_actions = []
             global_step += 1
+            episode_steps += 1
             for i in range(num_agents):
                 target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
                 action = (target_space.sample(), 0)
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
-            state = np.array(state).reshape(84, 84, 4)
-            # Save the state matrix to disk
-            for channel in range(4):
-                with open(f'/home/ayman/thesis/AgarLE/bench/state_matrix_step_{global_step}_channel_{channel}.txt', 'w') as f:
-                    for i in range(84):
-                        for j in range(84):
-                            f.write(f"{state[i][j][channel]} ")
-                        f.write('\n')
+            # Calculate SPS (Steps Per Second) for the episode
+        episode_elapsed_time = time.time() - episode_start_time
+        episode_SPS = episode_steps / episode_elapsed_time
+        SPS_VALUES.append(episode_SPS)
+        print(f"Episode {iter} finished in {episode_elapsed_time:.2f} seconds")
 
-            # Reshape the state to (84, 84) and save as an image
-            state_image = np.array(state).reshape(84, 84, 4)
-            state_image_gray = np.mean(state_image, axis=2)  # Aggregate across the 4 channels
-            plt.imshow(state_image_gray, cmap='gray')       # Use grayscale colormap
-            plt.title(f'State at step {global_step}')
-            plt.savefig(f'/home/ayman/thesis/AgarLE/bench/state_image_step_{global_step}.png')
-            plt.close()
-
-            # plt.imshow(state_image)
-            # plt.title(f'State at step {global_step}')
-            # plt.savefig(f'/home/ayman/thesis/AgarLE/bench/state_image_step_{global_step}.png')
-            # plt.close()
-            break
-
-        total_reward += episode_reward
-        episode_rewards.append(episode_reward)
-        print(f"Episode {iter+1} reward: {episode_reward}")
-    average_reward = total_reward / num_episodes
-    print(f"Average reward over {num_episodes} episodes: {average_reward}")
-
-    # Plotting the rewards
-    # plt.plot(episode_rewards)
-    # plt.xlabel('Episode')
-    # plt.ylabel('Reward')
-    # plt.title('Reward per Episode')
-    # plt.show()
+    # Plotting SPS values
+    plt.figure()
+    plt.plot(SPS_VALUES)
+    plt.xlabel('Step')
+    plt.ylabel('SPS (Steps Per Second)')
+    plt.title('Steps Per Second over Time')
+    plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
+    plt.close()
 
 
     env.close()

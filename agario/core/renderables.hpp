@@ -290,7 +290,6 @@ namespace agario {
 
     void _create_vertical_verts(GLfloat verts[]) {
       GLfloat spacing = 1.0 / (NLines - 1);
-      std::cout << spacing<< " "<< NLines << std::endl;
       for (unsigned i = 0; i < NLines; i++) {
         GLfloat x = i * spacing;
         verts[6 * i] = x;

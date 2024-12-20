@@ -23,7 +23,7 @@
 #include "agario/rendering/Canvas.hpp"
 #include "agario/rendering/shader.hpp"
 
-#define NUM_GRID_LINES 11
+#define NUM_GRID_LINES 8
 
 const char* vertex_shader_src =
 #include "shaders/_vertex.glsl"
@@ -144,8 +144,6 @@ namespace agario {
       // main agent pid is the first player in the map
       auto main_agent = state.players[state.main_agent_pid];
       main_agent->draw(shader, 3);
-      std::cout << "Drawing main agent" << state.main_agent_pid << std::endl;
-
       //other players
       for (auto &pair : state.players){
         if(pair.first != state.main_agent_pid)
