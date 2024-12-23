@@ -114,13 +114,15 @@ class AgarioEnv(gym.Env):
 
         # set the "truncation" status of each agent to 'False'
         truncations = [False] * len(dones)
-
+        if(self.steps % 3000 == 0 and self.steps != 0):
+            dones = [True] * len(dones)
         # unwrap observations, rewards, dones if not mult-agent
         if not self.multi_agent:
             self.observations = self.observations[0]
             rewards = rewards[0]
             dones = dones[0]
             truncations = truncations[0]
+
 
         self.steps += 1
         return self.observations, rewards, dones, truncations, {'steps': self.steps}
@@ -274,8 +276,8 @@ class AgarioEnv(gym.Env):
         num_frames = 1
         arena_size = 1000
         num_pellets = 1000
-        num_viruses = 25
-        num_bots = 25
+        num_viruses = 0
+        num_bots = 0
         pellet_regen = True
         allow_respawn = True
         reward_type   = 1 #means diff
