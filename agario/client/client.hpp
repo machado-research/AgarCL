@@ -52,6 +52,7 @@ namespace agario {
     template<typename... Args>
     void set_player(agario::pid pid) {
       player_pid = pid;
+      engine.state.main_agent_pid = pid;
     }
 
     agario::pid add_player(const std::string &name) {
