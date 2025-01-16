@@ -105,15 +105,15 @@ namespace agario {
       // player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), CELL_MIN_SIZE);
       if (!state.pellets.empty()) {
         // auto random_index = random<agario::distance>(0, state.pellets.size() - 1);
-        auto random_index = 0;
-        auto loc = state.pellets[random_index].location();
-        loc.x += 10;
-        loc.y += 10;
-        player.add_cell(loc, CELL_MIN_SIZE);
-        // player.add_cell(state.pellets[random_index].location(), CELL_MIN_SIZE);
-      } else {
+      //   auto random_index = 0;
+      //   auto loc = state.pellets[random_index].location();
+      //   loc.x += 100;
+      //   loc.y += 100;
+      //   player.add_cell(loc, CELL_MIN_SIZE);
+      //   // player.add_cell(state.pellets[random_index].location(), CELL_MIN_SIZE);
+      // } else {
         player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), CELL_MIN_SIZE);
-      }
+      // }
     }
 
     agario::Location random_location() {
