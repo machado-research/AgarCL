@@ -107,8 +107,10 @@ namespace agario {
         // auto random_index = random<agario::distance>(0, state.pellets.size() - 1);
         auto random_index = 0;
         auto loc = state.pellets[random_index].location();
-        loc.x += 100;
-        loc.y += 100;
+        loc.x += 2*agario::radius_conversion(CELL_MIN_SIZE);
+        loc.y += 2*agario::radius_conversion(CELL_MIN_SIZE);
+        loc.x = std::min(loc.x, arena_width() - agario::radius_conversion(CELL_MIN_SIZE));
+        loc.y = std::min(loc.y, arena_height() - agario::radius_conversion(CELL_MIN_SIZE));
         player.add_cell(loc, CELL_MIN_SIZE);
         // player.add_cell(state.pellets[random_index].location(), CELL_MIN_SIZE);
       } else {
