@@ -58,9 +58,10 @@ public:
     _width(width), _height(height),
     fbo(0), rbo_depth(0), rbo_color(0),
     window(nullptr) {
+
+#ifdef USE_EGL
     pbufferAttribs[1] = _width;
     pbufferAttribs[3] = _height;
-#ifdef USE_EGL
      _initialize_egl();
      _check_egl_context_creation();
 #else
