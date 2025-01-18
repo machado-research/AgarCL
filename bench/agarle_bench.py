@@ -31,12 +31,12 @@ import tqdm
 
 # Default configuration for the environment
 default_config = {
-    'ticks_per_step':  3,
+    'ticks_per_step':  4,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      500,
+    'arena_size':      250,
     'num_pellets':     200,
     'num_viruses':     10,
-    'num_bots':        10,
+    'num_bots':        8,
     'pellet_regen':    True,
     'grid_size':       84,
     'screen_len':      84,
@@ -101,14 +101,14 @@ def main():
         SPS_VALUES.append(episode_SPS)
         print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
-    # Plotting SPS values
-    plt.figure()
-    plt.plot(SPS_VALUES)
-    plt.xlabel('Step')
-    plt.ylabel('SPS (Steps Per Second)')
-    plt.title('Steps Per Second over Time')
-    plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
-    plt.close()
+
+
+    with open('sps_values.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Episode', 'SPS'])
+        for i, sps in enumerate(SPS_VALUES):
+            writer.writerow([i, sps])
+
 
 
     env.close()

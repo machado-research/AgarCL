@@ -190,11 +190,12 @@ namespace agario {
 
       move_foods(elapsed_seconds);
 
-      if(state.ticks%420 == 0){
+      if(state.ticks%300 == 0){ //every 10 seconds
         if (state.config.pellet_regen) {
           add_pellets(state.config.target_num_pellets - state.pellets.size());
         }
-        add_viruses(state.config.target_num_viruses - state.viruses.size());
+        if(state.ticks%90 == 0) // every 3 seconds
+           add_viruses(state.config.target_num_viruses - state.viruses.size());
       }
       state.ticks++;
 
