@@ -99,24 +99,19 @@ def main():
         episode_elapsed_time = time.time() - episode_start_time
         episode_SPS = episode_steps / episode_elapsed_time
         SPS_VALUES.append(episode_SPS)
-        print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
-    # Plotting SPS values
-    plt.figure()
-    plt.plot(SPS_VALUES)
-    plt.xlabel('Step')
-    plt.ylabel('SPS (Steps Per Second)')
-    plt.title('Steps Per Second over Time')
-    plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
-    plt.close()
-
-
+    screen_len = default_config['screen_len']
+    with open(f'sps_values_{screen_len}_{args.seed}_CPUs.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Episode', 'SPS'])
+        for i, sps in enumerate(SPS_VALUES):
+            writer.writerow([i, sps])
     env.close()
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=1, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     parser.add_argument("--seed", default=0, type=int , help="Seed for running the environment")
     env_options = parser.add_argument_group("Environment")
