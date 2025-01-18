@@ -70,7 +70,7 @@ def main():
     num_agents =  default_config['num_agents']
     env = gym.make(args.env, **env_config)
     env.reset()
-    env.seed(0)
+    env.seed(args.seed)
     states = []
     SPS_VALUES = []
     global_step = 0
@@ -101,14 +101,14 @@ def main():
         SPS_VALUES.append(episode_SPS)
         print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
-
-
-    with open('sps_values.csv', 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['Episode', 'SPS'])
-        for i, sps in enumerate(SPS_VALUES):
-            writer.writerow([i, sps])
-
+    # Plotting SPS values
+    plt.figure()
+    plt.plot(SPS_VALUES)
+    plt.xlabel('Step')
+    plt.ylabel('SPS (Steps Per Second)')
+    plt.title('Steps Per Second over Time')
+    plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
+    plt.close()
 
 
     env.close()
@@ -118,6 +118,7 @@ def parse_args():
 
     parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
+    parser.add_argument("--seed", default=0, type=int , help="Seed for running the environment")
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")
     for param in default_config:
