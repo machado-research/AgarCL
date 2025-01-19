@@ -33,10 +33,10 @@ import tqdm
 default_config = {
     'ticks_per_step':  3,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      500,
+    'arena_size':      250,
     'num_pellets':     200,
-    'num_viruses':     10,
-    'num_bots':        10,
+    'num_viruses':     0,
+    'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       84,
     'screen_len':      84,
