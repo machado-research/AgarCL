@@ -2,7 +2,7 @@
 
 #define SEED 42
 
-#define CELL_MIN_SIZE 1000
+#define CELL_MIN_SIZE 25
 #define CELL_MAX_SPEED 300
 #define CELL_SPLIT_MINIMUM 35
 #define SPLIT_DECELERATION 80

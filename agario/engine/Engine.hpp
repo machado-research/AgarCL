@@ -232,11 +232,6 @@ namespace agario {
     std::vector<std::vector<int>> virus_grid;
     void add_pellets(int n) {
 
-      // agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
-
-      // for(int i = 0; i < n; i++) {
-      //   state.pellets.emplace_back(random_location(pellet_radius));
-      // }
       agario::distance square_size = std::min(arena_height(), arena_width()) / 2; // Size of the square
       agario::distance spacing = 1; // Space between pellets
       int points_per_side = static_cast<int>(square_size / spacing); // Points per side of the square
