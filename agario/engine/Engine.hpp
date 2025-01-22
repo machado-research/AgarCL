@@ -232,7 +232,11 @@ namespace agario {
     std::vector<std::vector<int>> virus_grid;
     void add_pellets(int n) {
 
-      agario::distance square_size = std::min(arena_height(), arena_width()) / 2; // Size of the square
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_real_distribution<> dis(0.8, 3);
+
+      agario::distance square_size = std::min(arena_height(), arena_width()) / 2 * dis(gen); // Randomized size of the square
       agario::distance spacing = 1; // Space between pellets
       int points_per_side = static_cast<int>(square_size / spacing); // Points per side of the square
 
@@ -245,7 +249,7 @@ namespace agario {
           auto top_x = center_x - half_square_size + i * spacing;
           auto top_y = center_y - half_square_size;
           if (top_x >= 0 && top_x <= arena_width() && top_y >= 0 && top_y <= arena_height()) {
-              state.pellets.emplace_back(Location(top_x, top_y));
+          state.pellets.emplace_back(Location(top_x, top_y));
           }
       }
 
@@ -254,7 +258,7 @@ namespace agario {
           auto right_x = center_x + half_square_size;
           auto right_y = center_y - half_square_size + i * spacing;
           if (right_x >= 0 && right_x <= arena_width() && right_y >= 0 && right_y <= arena_height()) {
-              state.pellets.emplace_back(Location(right_x, right_y));
+          state.pellets.emplace_back(Location(right_x, right_y));
           }
       }
 
@@ -263,7 +267,7 @@ namespace agario {
           auto bottom_x = center_x + half_square_size - i * spacing;
           auto bottom_y = center_y + half_square_size;
           if (bottom_x >= 0 && bottom_x <= arena_width() && bottom_y >= 0 && bottom_y <= arena_height()) {
-              state.pellets.emplace_back(Location(bottom_x, bottom_y));
+          state.pellets.emplace_back(Location(bottom_x, bottom_y));
           }
       }
 
@@ -272,7 +276,7 @@ namespace agario {
           auto left_x = center_x - half_square_size;
           auto left_y = center_y + half_square_size - i * spacing;
           if (left_x >= 0 && left_x <= arena_width() && left_y >= 0 && left_y <= arena_height()) {
-              state.pellets.emplace_back(Location(left_x, left_y));
+          state.pellets.emplace_back(Location(left_x, left_y));
           }
       }
     }
