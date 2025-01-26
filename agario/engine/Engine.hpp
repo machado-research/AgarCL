@@ -276,7 +276,7 @@ namespace agario {
       maybe_split(player, created_cells, create_limit);
 
       // add any cells that were created
-      player.add_cells(created_cells);
+      player.add_cells(created_cells, !state.config.multi_channel_observation);
       // created_cells.erase(created_cells.begin(), created_cells.end());
 
       recombine_cells(player);

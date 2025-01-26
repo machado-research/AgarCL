@@ -165,10 +165,13 @@ class Player {
 
     template <bool r = renderable>
     typename std::enable_if<r, void>::type
-    add_cells(std::vector<Cell> &new_cells) {
-      for (auto &cell : new_cells)
-        cell.set_color(color());
+    add_cells(std::vector<Cell> &new_cells, bool is_colorized) {
 
+      if (is_colorized == true)
+      {
+        for (auto &cell : new_cells)
+          cell.set_color(color());
+      }
       cells.insert(std::end(cells),
                    std::make_move_iterator(new_cells.begin()),
                    std::make_move_iterator(new_cells.end()));
@@ -176,7 +179,7 @@ class Player {
 
     template <bool r = renderable>
     typename std::enable_if<!r, void>::type
-    add_cells(std::vector<Cell> &new_cells) {
+    add_cells(std::vector<Cell> &new_cells, bool is_colorized) {
       cells.insert(std::end(cells),
                    std::make_move_iterator(new_cells.begin()),
                    std::make_move_iterator(new_cells.end()));

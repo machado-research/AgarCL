@@ -101,12 +101,12 @@ def main():
         episode_SPS = episode_steps / episode_elapsed_time
         SPS_VALUES.append(episode_SPS)
 
-    screen_len = default_config['screen_len']
-    with open(f'sps_values_{screen_len}_{args.seed}_CPUs.csv', 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['Episode', 'SPS'])
-        for i, sps in enumerate(SPS_VALUES):
-            writer.writerow([i, sps])
+    # screen_len = default_config['screen_len']
+    # with open(f'sps_values_{screen_len}_{args.seed}_CPUs.csv', 'w', newline='') as csvfile:
+    #     writer = csv.writer(csvfile)
+    #     writer.writerow(['Episode', 'SPS'])
+    #     for i, sps in enumerate(SPS_VALUES):
+    #         writer.writerow([i, sps])
     env.close()
 
 def parse_args():
