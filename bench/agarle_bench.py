@@ -50,7 +50,7 @@ default_config = {
     # 'multi_agent'    :  True,
     'num_agents'     :  1,
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
-    'multi_channel_observation' : False,
+    'multi_channel_observation' : True,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'

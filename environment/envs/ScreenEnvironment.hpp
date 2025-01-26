@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#define PIXEL_LEN 4
+#define PIXEL_LEN 3
 
 // todo: needs to be converted over to multi-environment
 
@@ -23,8 +23,8 @@ namespace agario::env {
 
     class ScreenObservation {
     public:
-      explicit ScreenObservation(int num_frames, screen_len width, screen_len height) :
-        _num_frames(num_frames), _width(width), _height(height) {
+      explicit ScreenObservation(int num_frames, screen_len width, screen_len height, bool multi_channel_observation) :
+        _num_frames(num_frames), _width(width), _height(height), multi_channel_observation(multi_channel_observation) {
         std::cout << "ScreenObservation constructor called with num_frames: " << num_frames
                   << ", width: " << width << ", height: " << height << std::endl;
         _frame_data = new std::uint8_t[length()];
@@ -36,7 +36,7 @@ namespace agario::env {
 
 
       [[nodiscard]] std::size_t length() const {
-        return  _num_frames * _width * _height * PIXEL_LEN;
+        return  _num_frames * _width * _height * (PIXEL_LEN + multi_channel_observation);
       }
 
       void clear() {
@@ -45,7 +45,7 @@ namespace agario::env {
 
 
       void post_processing_frame_data(std::uint8_t *&data) {
-        auto end_index = _width * _height * PIXEL_LEN;
+        auto end_index = _width * _height * (PIXEL_LEN + multi_channel_observation);
 
         for(int i = 0 ; i < end_index; i++)
         {
@@ -55,8 +55,8 @@ namespace agario::env {
           if(i%4 == 3 && data[i] != 26 && data[i] != 230)
           {
             // two conditions: Above me is a gridLine. If so, make me a gridLine too. Vertical GridLine
-            int above_Gline_index = i - _width * PIXEL_LEN;
-            int above_above_Gline_index = above_Gline_index - _width * PIXEL_LEN;
+            int above_Gline_index = i - _width * (PIXEL_LEN + multi_channel_observation);
+            int above_above_Gline_index = above_Gline_index - _width * (PIXEL_LEN + multi_channel_observation);
             if(above_above_Gline_index >= 0 && data[above_Gline_index] !=0 && data[above_above_Gline_index]==26)
               data[i] = 26;
             else
@@ -90,21 +90,21 @@ namespace agario::env {
         if (frame_index >= _num_frames)
           throw FBOException("Frame index " + std::to_string(frame_index) + " out of bounds");
 
-        auto data_index = frame_index * _width * _height * PIXEL_LEN;
+        auto data_index = frame_index * _width * _height * (PIXEL_LEN + multi_channel_observation);
         return &_frame_data[data_index];
       }
 
       [[nodiscard]] int num_frames() const { return _num_frames; }
 
       [[nodiscard]] std::vector<int> shape() const {
-        return {_num_frames, _width, _height, PIXEL_LEN};
+        return {_num_frames, _width, _height, (PIXEL_LEN + multi_channel_observation)};
       }
 
       [[nodiscard]] std::vector<ssize_t> strides() const {
         return {
-          _width * _height *  PIXEL_LEN  * dtype_size,
-                   _height *  PIXEL_LEN  * dtype_size,
-                              PIXEL_LEN  * dtype_size,
+          _width * _height *  (PIXEL_LEN + multi_channel_observation)  * dtype_size,
+                   _height *  (PIXEL_LEN + multi_channel_observation)  * dtype_size,
+                              (PIXEL_LEN + multi_channel_observation)  * dtype_size,
                                            dtype_size
         };
       }
@@ -123,6 +123,7 @@ namespace agario::env {
       const int _height;
       static constexpr ssize_t dtype_size = sizeof(std::uint8_t);
       std::uint8_t *_frame_data;
+      bool multi_channel_observation = false;
     };
 
     template<bool renderable>
@@ -153,10 +154,11 @@ namespace agario::env {
         bool multi_channel_observation = false
       ):
         Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death, multi_channel_observation),
-        _observation(1, screen_width, screen_height),
-        frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height)),
+        _observation(1, screen_width, screen_height, multi_channel_observation),
+        frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height, multi_channel_observation)),
         renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height())
       {
+        multi_channel_obs = multi_channel_observation;
         if (!frame_buffer) {
           std::cerr << "Error: frame_buffer is null in ScreenEnvironment constructor" << std::endl;
         }
@@ -195,6 +197,11 @@ namespace agario::env {
       ScreenObservation _observation;
       std::shared_ptr<FrameBufferObject> frame_buffer;
       agario::Renderer renderer;
+      bool multi_channel_obs = false;
+
+      void multi_channel_render_frame(Player &player) {
+        renderer.multi_channel_render_screen(player, this->engine_.game_state());
+      }
 
       void render_frame(Player &player) {
         renderer.render_screen(player, this->engine_.game_state());
@@ -202,12 +209,21 @@ namespace agario::env {
 
       // stores current frame into buffer containing the next observation
       void _partial_observation(Player &player, int frame_index) override {
-        render_frame(player);
-        void *data = _observation.frame_data(frame_index);
-        frame_buffer->copy(data);
-        auto *frame_data_ptr = static_cast<std::uint8_t *>(data);
-        _observation.post_processing_frame_data(frame_data_ptr);
 
+        if(multi_channel_obs == true)
+        {
+          multi_channel_render_frame(player);
+          void *data = _observation.frame_data(frame_index);
+          frame_buffer->copy(data);
+          auto *frame_data_ptr = static_cast<std::uint8_t *>(data);
+          _observation.post_processing_frame_data(frame_data_ptr);
+        }
+        else
+        {
+          render_frame(player);
+          void *data = _observation.frame_data(frame_index);
+          frame_buffer->copy(data);
+        }
 
       }
 

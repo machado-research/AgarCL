@@ -54,8 +54,8 @@ public:
 
   static constexpr GLenum target = GL_RENDERBUFFER;
 
-  FrameBufferObject(screen_len width, screen_len height) :
-    _width(width), _height(height),
+  FrameBufferObject(screen_len width, screen_len height, bool multi_channel_observation) :
+    _width(width), _height(height), is_RGBA(multi_channel_observation),
     fbo(0), rbo_depth(0), rbo_color(0),
     window(nullptr) {
 
@@ -101,7 +101,7 @@ public:
     exception_on_gl_error("ReadBuffer");
 #endif
     // glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glReadPixels(0, 0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, data); // for rgb_array render mode
+    glReadPixels(0, 0, _width, _height, (is_RGBA == true ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, data); // for rgb_array render mode
 
 #ifdef USE_EGL
     exception_on_egl_error("ReadPixels");
@@ -136,6 +136,7 @@ public:
 private:
   const screen_len _width;
   const screen_len _height;
+  const bool is_RGBA; // if true, then the data is in RGBA format, otherwise it's in RGB format
 
   GLuint fbo;
   GLuint rbo_depth;

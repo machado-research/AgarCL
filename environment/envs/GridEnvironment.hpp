@@ -371,7 +371,7 @@ namespace agario::env {
         Super(num_agents, ticks_per_step, arena_size, pellet_regen,
               num_pellets, num_viruses, num_bots,reward_type),
         frame_observation(ticks_per_step, 512, 512),
-        frame_buffer(std::make_shared<FrameBufferObject>(512, 512)) {
+        frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {
 
 #ifdef RENDERABLE
         renderer = std::make_unique<agario::Renderer>(frame_buffer,
