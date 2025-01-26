@@ -45,11 +45,12 @@ namespace agario {
         int num_viruses,
         int num_bots,
         bool reward_type,
-        int c_death = 0
+        int c_death = 0,
+        bool multi_channel_observation = false
       ):
         num_agents_(num_agents),
         dones_(num_agents),
-        engine_(arena_size, arena_size, num_pellets, num_viruses, pellet_regen),
+        engine_(arena_size, arena_size, num_pellets, num_viruses, pellet_regen, multi_channel_observation),
         ticks_per_step_(ticks_per_step),
         num_bots_(num_bots),
         reward_type_(reward_type),

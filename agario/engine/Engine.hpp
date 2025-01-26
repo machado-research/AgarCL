@@ -38,8 +38,9 @@ namespace agario {
     Engine(distance arena_width, distance arena_height,
            int num_pellets = DEFAULT_NUM_PELLETS,
            int num_viruses = DEFAULT_NUM_VIRUSES,
-           bool pellet_regen = true) :
-      state(agario::GameConfig(arena_width, arena_height, num_pellets, num_viruses, pellet_regen))
+           bool pellet_regen = true,
+           bool multi_channel_observation = false) :
+      state(agario::GameConfig(arena_width, arena_height, num_pellets, num_viruses, pellet_regen, multi_channel_observation))
     {
       std::srand(std::chrono::system_clock::now().time_since_epoch().count());
     }

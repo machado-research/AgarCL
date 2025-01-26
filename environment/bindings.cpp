@@ -77,7 +77,7 @@ PYBIND11_MODULE(agarle, module) {
   using GridEnvironment = agario::env::GridEnvironment<int, renderable>;
 
   py::class_<GridEnvironment>(module, "GridEnvironment")
-    .def(py::init<int, int, int, bool, int, int, int, bool>())
+    .def(py::init<int, int, int, bool, int, int, int, bool, int>())
     .def("seed", &GridEnvironment::seed)
     .def("configure_observation", [](GridEnvironment &env, const py::dict &config) {
 
@@ -137,7 +137,7 @@ PYBIND11_MODULE(agarle, module) {
 
  py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
 
-   .def(pybind11::init<int, int, int, bool, int, int, int, bool, screen_len, screen_len, bool, int>())
+   .def(pybind11::init<int, int, int, bool, int, int, int, int, int, screen_len, screen_len, bool, bool>())
    .def("seed", &ScreenEnvironment::seed)
    .def("observation_shape", &ScreenEnvironment::observation_shape)
    .def("dones", &ScreenEnvironment::dones)
