@@ -220,10 +220,10 @@ class AgarioEnv(gym.Env):
 
             screen_len = kwargs.get("screen_len", 84)
             allow_respawn = kwargs.get("allow_respawn", True)
-            multi_channel_observation = kwargs.get("multi_channel_observation", True)
+            agent_view = kwargs.get("agent_view", True)
 
             args += (screen_len, screen_len)
-            args += (allow_respawn, multi_channel_observation)
+            args += (allow_respawn, agent_view)
             env = agarle.ScreenEnvironment(*args)
             observation_space = spaces.Box(low=0, high=255, shape=env.observation_shape(), dtype=np.uint8)
 

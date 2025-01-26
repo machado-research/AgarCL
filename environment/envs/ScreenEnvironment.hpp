@@ -23,8 +23,8 @@ namespace agario::env {
 
     class ScreenObservation {
     public:
-      explicit ScreenObservation(int num_frames, screen_len width, screen_len height, bool multi_channel_observation) :
-        _num_frames(num_frames), _width(width), _height(height), multi_channel_observation(multi_channel_observation) {
+      explicit ScreenObservation(int num_frames, screen_len width, screen_len height, bool agent_view) :
+        _num_frames(num_frames), _width(width), _height(height), agent_view(agent_view) {
         std::cout << "ScreenObservation constructor called with num_frames: " << num_frames
                   << ", width: " << width << ", height: " << height << std::endl;
         _frame_data = new std::uint8_t[length()];
@@ -36,7 +36,7 @@ namespace agario::env {
 
 
       [[nodiscard]] std::size_t length() const {
-        return  _num_frames * _width * _height * (PIXEL_LEN + multi_channel_observation);
+        return  _num_frames * _width * _height * (PIXEL_LEN + agent_view);
       }
 
       void clear() {
@@ -45,7 +45,7 @@ namespace agario::env {
 
 
       void post_processing_frame_data(std::uint8_t *&data) {
-        auto end_index = _width * _height * (PIXEL_LEN + multi_channel_observation);
+        auto end_index = _width * _height * (PIXEL_LEN + agent_view);
 
         for(int i = 0 ; i < end_index; i++)
         {
@@ -55,8 +55,8 @@ namespace agario::env {
           if(i%4 == 3 && data[i] != 26 && data[i] != 230)
           {
             // two conditions: Above me is a gridLine. If so, make me a gridLine too. Vertical GridLine
-            int above_Gline_index = i - _width * (PIXEL_LEN + multi_channel_observation);
-            int above_above_Gline_index = above_Gline_index - _width * (PIXEL_LEN + multi_channel_observation);
+            int above_Gline_index = i - _width * (PIXEL_LEN + agent_view);
+            int above_above_Gline_index = above_Gline_index - _width * (PIXEL_LEN + agent_view);
             if(above_above_Gline_index >= 0 && data[above_Gline_index] !=0 && data[above_above_Gline_index]==26)
               data[i] = 26;
             else
@@ -90,21 +90,21 @@ namespace agario::env {
         if (frame_index >= _num_frames)
           throw FBOException("Frame index " + std::to_string(frame_index) + " out of bounds");
 
-        auto data_index = frame_index * _width * _height * (PIXEL_LEN + multi_channel_observation);
+        auto data_index = frame_index * _width * _height * (PIXEL_LEN + agent_view);
         return &_frame_data[data_index];
       }
 
       [[nodiscard]] int num_frames() const { return _num_frames; }
 
       [[nodiscard]] std::vector<int> shape() const {
-        return {_num_frames, _width, _height, (PIXEL_LEN + multi_channel_observation)};
+        return {_num_frames, _width, _height, (PIXEL_LEN + agent_view)};
       }
 
       [[nodiscard]] std::vector<ssize_t> strides() const {
         return {
-          _width * _height *  (PIXEL_LEN + multi_channel_observation)  * dtype_size,
-                   _height *  (PIXEL_LEN + multi_channel_observation)  * dtype_size,
-                              (PIXEL_LEN + multi_channel_observation)  * dtype_size,
+          _width * _height *  (PIXEL_LEN + agent_view)  * dtype_size,
+                   _height *  (PIXEL_LEN + agent_view)  * dtype_size,
+                              (PIXEL_LEN + agent_view)  * dtype_size,
                                            dtype_size
         };
       }
@@ -123,7 +123,7 @@ namespace agario::env {
       const int _height;
       static constexpr ssize_t dtype_size = sizeof(std::uint8_t);
       std::uint8_t *_frame_data;
-      bool multi_channel_observation = false;
+      bool agent_view = false;
     };
 
     template<bool renderable>
@@ -151,14 +151,14 @@ namespace agario::env {
         screen_len screen_width,
         screen_len screen_height,
         bool respawn,
-        bool multi_channel_observation = false
+        bool agent_view = false
       ):
-        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death, multi_channel_observation),
-        _observation(1, screen_width, screen_height, multi_channel_observation),
-        frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height, multi_channel_observation)),
+        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death, agent_view),
+        _observation(1, screen_width, screen_height, agent_view),
+        frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height, agent_view)),
         renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height())
       {
-        multi_channel_obs = multi_channel_observation;
+        multi_channel_obs = agent_view;
         if (!frame_buffer) {
           std::cerr << "Error: frame_buffer is null in ScreenEnvironment constructor" << std::endl;
         }
