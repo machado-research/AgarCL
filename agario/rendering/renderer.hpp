@@ -125,7 +125,7 @@ namespace agario {
      * @param player player to reneder the game for
      * @param state current state of the game
      */
-    void render_screen(Player &player, agario::GameState<true> &state) {
+    void multi_channel_render_screen(Player &player, agario::GameState<true> &state) {
       shader.use();
 
       make_projections(player);
@@ -152,8 +152,38 @@ namespace agario {
 
       for (auto &virus : state.viruses)
         virus.draw(shader, 2);
+    }
+
+/**
+     * renders a single frame of the game from the perspective
+     * of the given player.
+     * @param player player to reneder the game for
+     * @param state current state of the game
+     */
+    void render_screen(Player &player, agario::GameState<true> &state) {
+      shader.use();
+
+      make_projections(player);
+
+      glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+      glClear(GL_COLOR_BUFFER_BIT);
+
+      grid.draw(shader);
+
+      for (auto &pellet : state.pellets)
+        pellet.draw(shader);
+
+      for (auto &food : state.foods)
+        food.draw(shader);
+
+      for (auto &pair : state.players)
+        pair.second->draw(shader);
+
+      for (auto &virus : state.viruses)
+        virus.draw(shader);
 
     }
+
     void close_program()
     {
       shader.cleanup();

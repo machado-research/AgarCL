@@ -41,14 +41,14 @@ namespace agario {
         case agario::color::green:
           color_array = green_color;
           break;
-        // case agario::color::orange:
-        //   color_array = orange_color;
-        //   break;
-        // case agario::color::purple:
-        //   color_array = purple_color;
-        //   break;
-        // case agario::color::yellow:
-        //   color_array = yellow_color;
+        case agario::color::orange:
+          color_array = orange_color;
+          break;
+        case agario::color::purple:
+          color_array = purple_color;
+          break;
+        case agario::color::yellow:
+          color_array = yellow_color;
           break;
         default:
           throw RenderingException("Not a color");
@@ -100,7 +100,7 @@ namespace agario {
 
     void set_color(agario::color c) {
       color = c;
-      // circle.set_color(c);
+      circle.set_color(c);
     }
 
     void draw(Shader &shader, int type) {
@@ -115,6 +115,28 @@ namespace agario {
       else if(type == 3) //Main Player
         shader.setVec4("color", 0.9f, 0.0f, 0.0f, 1.0);
 
+
+      // world location
+      auto location = glm::vec3(x, y, 0);
+      glm::mat4 position_transform(1);
+      position_transform = glm::translate(position_transform, location);
+
+      // scaling
+      glm::mat4 scale_transform(1);
+      scale_transform = glm::scale(scale_transform, glm::vec3(radius(), radius(), 0));
+
+      shader.setMat4("model_transform", position_transform * scale_transform);
+
+      // draw them!
+      glBindVertexArray(circle.vao);
+      glDrawArrays(GL_TRIANGLE_FAN, 0, NVertices);
+      glBindVertexArray(0);
+    }
+
+    void draw(Shader &shader) {
+      if (!_initialized) _initialize();
+
+      shader.setVec4("color", circle.color[0], circle.color[1], circle.color[2], 1.0);
 
       // world location
       auto location = glm::vec3(x, y, 0);
@@ -150,7 +172,7 @@ namespace agario {
     void _initialize() {
       _create_vertices();
 
-      // circle.set_color(color);
+      circle.set_color(color);
 
       glGenVertexArrays(1, &circle.vao);
       glGenBuffers(1, &circle.vbo);
