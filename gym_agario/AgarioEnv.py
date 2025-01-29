@@ -134,7 +134,7 @@ class AgarioEnv(gym.Env):
         self.steps = 0
         self._env.reset()
         obs = self._make_observations()
-        return obs if self.multi_agent else obs[0]
+        return obs if self.multi_agent else obs[0], {}
 
     def render(self):
         # to do: if statements should be changed to self.render_mode, where:
