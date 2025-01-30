@@ -232,11 +232,11 @@ namespace agario {
     std::vector<std::vector<int>> virus_grid;
     void add_pellets(int n) {
 
-      std::random_device rd;
-      std::mt19937 gen(rd());
-      std::uniform_real_distribution<> dis(0.8, 3);
+      // std::random_device rd;
+      // std::mt19937 gen(rd());
+      // std::uniform_real_distribution<> dis(0.8, 2);
 
-      agario::distance square_size = std::min(arena_height(), arena_width()) / 2 * dis(gen); // Randomized size of the square
+      agario::distance square_size = std::min(arena_height(), arena_width()) / 2; // Randomized size of the square
       agario::distance spacing = 1; // Space between pellets
       int points_per_side = static_cast<int>(square_size / spacing); // Points per side of the square
 
