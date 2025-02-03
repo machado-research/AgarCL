@@ -114,7 +114,7 @@ class AgarioEnv(gym.Env):
 
         # set the "truncation" status of each agent to 'False'
         truncations = [False] * len(dones)
-        if(self.steps % 500 == 0 and self.steps != 0):
+        if(self.steps >= 500):
             dones = [True] * len(dones)
         # unwrap observations, rewards, dones if not mult-agent
         if not self.multi_agent:
@@ -125,7 +125,7 @@ class AgarioEnv(gym.Env):
 
 
         self.steps += 1
-        return self.observations, rewards, dones, truncations, {'steps': self.steps}
+        return self.observations, rewards, dones, truncations, {'steps': self.steps, 'untransformed_rewards': rewards}
 
     def reset(self, **kwargs):
         """ resets the environment
