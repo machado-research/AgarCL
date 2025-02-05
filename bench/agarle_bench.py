@@ -76,7 +76,7 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 1000
+    num_episodes = 1
 
     import matplotlib.pyplot as plt
 
@@ -95,6 +95,9 @@ def main():
                 action = (target_space.sample(), 0)
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
+            print(f"reward: {reward}, step_num: {step_num}, Done: {done}")
+            if(done == True):
+                import pdb; pdb.set_trace()
             # Calculate SPS (Steps Per Second) for the episode
         episode_elapsed_time = time.time() - episode_start_time
         episode_SPS = episode_steps / episode_elapsed_time
