@@ -55,10 +55,10 @@ namespace agario::env {
 
     class PlayerState {
         public:
-            explicit PlayerState(int player_id, vecpii food_positions, vecpii thorn_positions, vecpii spore_positions, vecpii clone_positions, string team_name, double score, bool can_eject, bool can_split ):
+            explicit PlayerState(int player_id, vecpii food_positions, vecpii virus_positions, vecpii spore_positions, vecpii clone_positions, string team_name, double score, bool can_eject, bool can_split ):
             player_id(player_id),
             food_positions(food_positions),
-            thorn_positions(thorn_positions),
+            virus_positions(virus_positions),
             spore_positions(spore_positions),
             clone_positions(clone_positions),
             team_name(team_name),
@@ -83,8 +83,8 @@ namespace agario::env {
                 this->food_positions = food_positions;
             }
 
-            void update_thorn_positions(vecpii thorn_positions) {
-                this->thorn_positions = thorn_positions;
+            void update_virus_positions(vecpii virus_positions) {
+                this->virus_positions = virus_positions;
             }
 
             void update_spore_positions(vecpii spore_positions) {
@@ -98,7 +98,7 @@ namespace agario::env {
         private:
             int player_id;
             vecpii food_positions;
-            vecpii thorn_positions;
+            vecpii virus_positions;
             vecpii spore_positions;
             vecpii clone_positions;
             string team_name;
@@ -138,7 +138,7 @@ namespace agario::env {
              // Update a player's state with the given parameters.
             void update_player_state(int player_id,
                                     const vecpii &food_positions,
-                                    const vecpii &thorn_positions,
+                                    const vecpii &virus_positions,
                                     const vecpii &spore_positions,
                                     const vecpii &clone_positions,
                                     const string &team_name,
@@ -146,7 +146,7 @@ namespace agario::env {
                                     bool can_eject,
                                     bool can_split)
             {
-                PlayerState ps(player_id, food_positions, thorn_positions, spore_positions, clone_positions,
+                PlayerState ps(player_id, food_positions, virus_positions, spore_positions, clone_positions,
                             team_name, score, can_eject, can_split);
                 player_states.update_player_state(player_id, ps);
             }
