@@ -40,7 +40,8 @@ endif ()
 set(AGARIO_ENVS_SOURCE
         envs/BaseEnvironment.hpp
         envs/GridEnvironment.hpp
-        envs/RamEnvironment.hpp)
+        envs/RamEnvironment.hpp
+        envs/GoBiggerEnvironment.hpp)
 
 set(AGARIO_SCREEN_ENV_SOURCE
         envs/BaseEnvironment.hpp
@@ -76,7 +77,7 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
 
     target_include_directories(agarle PRIVATE "..")
     target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
+    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw )
 
 else()
 

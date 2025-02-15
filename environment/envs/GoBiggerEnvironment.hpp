@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-#include <algorithms>
 #include <unordered_map>
 
 #include <agario/engine/Engine.hpp>
@@ -22,11 +21,7 @@
 
 #define DEFAULT_GRID_SIZE 128
 # define PIXEL_LEN 3
-
-
-
 namespace agario::env {
-
 
     using vecpii = std::vector<std::pair<int, int>>;
 
@@ -39,9 +34,29 @@ namespace agario::env {
             last_frame_count(last_frame),
             team_num(team_num) { }
 
-
             void update_last_frame_count(int frame_count) {
                 last_frame_count = frame_count;
+            }
+
+            // Getters
+            int get_map_width() {
+                return map_width;
+            }
+
+            int get_map_height() {
+                return map_height;
+            }
+
+            int get_frame_limit() {
+                return frame_limit;
+            }
+
+            int get_team_num() {
+                return team_num;
+            }
+
+            int get_last_frame_count() {
+                return last_frame_count;
             }
 
 
@@ -55,7 +70,9 @@ namespace agario::env {
 
     class PlayerState {
         public:
-            explicit PlayerState(int player_id, vecpii food_positions, vecpii virus_positions, vecpii spore_positions, vecpii clone_positions, string team_name, double score, bool can_eject, bool can_split ):
+
+            PlayerState() = default;
+            explicit PlayerState(int player_id, vecpii food_positions, vecpii virus_positions, vecpii spore_positions, vecpii clone_positions, std::string team_name, double score, bool can_eject, bool can_split ):
             player_id(player_id),
             food_positions(food_positions),
             virus_positions(virus_positions),
@@ -94,6 +111,44 @@ namespace agario::env {
             void update_clone_positions(vecpii clone_positions) {
                 this->clone_positions = clone_positions;
             }
+
+
+            bool canEject() {
+                return can_eject;
+            }
+
+            bool canSplit() {
+                return can_split;
+            }
+
+            double get_score() {
+                return score;
+            }
+
+            const vecpii& get_spore_positions() {
+                return spore_positions;
+            }
+
+            const vecpii& get_clone_positions() {
+                return clone_positions;
+            }
+
+            const vecpii& get_food_positions() {
+                return food_positions;
+            }
+
+            const vecpii& get_virus_positions() {
+                return virus_positions;
+            }
+
+            std::string get_team_name() {
+                return team_name;
+            }
+
+            int get_player_id() {
+                return player_id;
+            }
+
         
         private:
             int player_id;
@@ -101,7 +156,7 @@ namespace agario::env {
             vecpii virus_positions;
             vecpii spore_positions;
             vecpii clone_positions;
-            string team_name;
+            std::string team_name;
             double score;
             bool can_eject;
             bool can_split;        
@@ -117,6 +172,10 @@ namespace agario::env {
                 player_states[player_id] = player_state;
             }
 
+            const std::unordered_map<int, PlayerState>& get_all_player_states() const {
+                return player_states;
+            }
+
         private:
             std::unordered_map<int, PlayerState> player_states;
     };
@@ -126,8 +185,9 @@ namespace agario::env {
     class GoBiggerObservation {
 
         public:
-            explicit GoBiggerObservation(int map_width, int map_height, int frame_limit, int team_num)
-            : global_state(map_width, map_height, frame_limit, team_num) {}
+            explicit GoBiggerObservation(int map_width, int map_height, int frame_limit, int last_frame, int team_num)
+            : global_state(map_width, map_height, frame_limit, last_frame, team_num),
+            player_states({}) {} // Initialize Player States with empty map
 
             // Update global state
             void update_global_state(int frame_count) {
@@ -141,7 +201,7 @@ namespace agario::env {
                                     const vecpii &virus_positions,
                                     const vecpii &spore_positions,
                                     const vecpii &clone_positions,
-                                    const string &team_name,
+                                    const std::string &team_name,
                                     double score,
                                     bool can_eject,
                                     bool can_split)
@@ -158,6 +218,11 @@ namespace agario::env {
             const PlayerStates& get_player_states() const {
                 return player_states;
             }
+
+
+            // Discuss with mohammad if add_frame is needed.
+
+
 
 
         private:
