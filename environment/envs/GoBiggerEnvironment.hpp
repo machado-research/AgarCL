@@ -194,7 +194,9 @@ namespace agario::env {
                 global_state.update_last_frame_count(frame_count);
             }
 
-       
+            // For now num_frames is 1
+            int num_frames() const { return 1; }
+
              // Update a player's state with the given parameters.
             void update_player_state(int player_id,
                                     const vecpii &food_positions,
@@ -219,14 +221,68 @@ namespace agario::env {
                 return player_states;
             }
 
+            const PlayerState& get_player_state(int player_id) const {
+                return player_states.get_all_player_states().at(player_id);
+            }
+
 
             // Discuss with mohammad if add_frame is needed.
-
-
 
 
         private:
             GlobalState global_state;
             PlayerStates player_states;
         };
-}
+
+template <bool renderable>
+    class GoBiggerEnvironment : public BaseEnvironment<renderable> {
+        using gameState = GameState<renderable>;
+        using Player    = agario::Player<renderable>;
+        using Cell      = agario::Cell<renderable>;
+        using Pellet    = agario::Pellet<renderable>;
+        using Virus     = agario::Virus<renderable>;
+        using Food      = agario::Food<renderable>;
+        using Super     = BaseEnvironment<renderable>;
+
+    public:
+        using observationType = GoBiggerObservation;
+
+        explicit GoBiggerEnvironment(int map_width, int map_height, int frame_limit, int num_agents,
+                                     int ticks_per_step, int arena_size, bool pellet_regen, int num_pellets,
+                                     int num_viruses, int num_bots, bool reward_type, int c_death = 0,
+                                     bool agent_view = false)
+            : Super(num_agents, ticks_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type),
+              observation(map_width, map_height, frame_limit, 0, num_agents),
+              last_frame_index(0),
+              last_player(nullptr) {}
+
+        void _partial_observation(int agent_index, int tick_index) override {
+            // For now, every agent is in their own team (so no collaboration)
+            assert(agent_index < this->num_agents());
+            assert(tick_index < this->ticks_per_step());
+
+            auto &player = this->engine_.player(this->pids_[agent_index]);
+            this->c_death_ = 0;
+
+            // Get player state from the observation.
+            PlayerState player_state = observation.get_player_state(player.pid());
+
+            auto &state = this->engine_.game_state();
+            // We store in the observation the last `num_frames` frames between each step.
+            int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
+            // if (frame_index >= 0) // frame skipping
+            //   observation.add_frame(player, state, frame_index);
+
+            last_player = &player;
+            last_frame_index = frame_index;
+
+            observation.update_global_state(last_frame_index);
+        }
+
+    private:
+        int last_frame_index;
+        Player *last_player;
+        GoBiggerObservation observation;
+    };
+
+}  // namespace agario::env
