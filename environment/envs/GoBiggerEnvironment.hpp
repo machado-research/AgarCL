@@ -254,7 +254,8 @@ template <bool renderable>
             : Super(num_agents, ticks_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type),
               observation(map_width, map_height, frame_limit, 0, num_agents),
               last_frame_index(0),
-              last_player(nullptr) {}
+              last_player(nullptr),
+              frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {}
 
         void _partial_observation(int agent_index, int tick_index) override {
             // For now, every agent is in their own team (so no collaboration)
@@ -279,10 +280,41 @@ template <bool renderable>
             observation.update_global_state(last_frame_index);
         }
 
+        void render() override {
+            #ifdef RENDERABLE
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glViewport(0, 0, frame_buffer->width(), frame_buffer->height());
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                for (auto &pid: this->pids_) {
+                    auto &player = this->engine_.player(pid);
+                    renderer->render_screen(player, this->engine_.game_state());
+                }
+
+                glfwPollEvents();
+                frame_buffer -> swap_buffers();
+                frame_buffer -> show();
+            #endif
+        }
+
+        void close() override {
+            #ifdef RENDERABLE
+                renderer->close_program();
+                // glfwTerminate();
+                // glDeleteProgram(renderer->shader.program);
+            #endif
+        }
+
     private:
         int last_frame_index;
         Player *last_player;
         GoBiggerObservation observation;
+
+
+        #ifdef RENDERABLE
+            std::unique_ptr<agario::Renderer> renderer;
+            std::shared_ptr<FrameBufferObject> frame_buffer;
+        #endif
     };
 
 }  // namespace agario::env
