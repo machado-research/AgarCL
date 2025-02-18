@@ -122,6 +122,33 @@ PYBIND11_MODULE(pyagario, m) {
             py::return_value_policy::reference_internal)
       .def("get_player_states", &agario::env::GoBiggerObservation::get_player_states,
             py::return_value_policy::reference_internal);
+
+  // Bind GoBiggerEnvironment
+  using GoBiggerEnv = agario::env::GoBiggerEnvironment<false>;
+
+  py::class_<GoBiggerEnv>(m, "GoBiggerEnvironment")
+      .def(py::init<int, int, int, int, int, int, bool, int, int, int, bool, int, bool>(),
+          py::arg("map_width"),
+          py::arg("map_height"),
+          py::arg("frame_limit"),
+          py::arg("num_agents"),
+          py::arg("ticks_per_step"),
+          py::arg("arena_size"),
+          py::arg("pellet_regen"),
+          py::arg("num_pellets"),
+          py::arg("num_viruses"),
+          py::arg("num_bots"),
+          py::arg("reward_type"),
+          py::arg("c_death") = 0,
+          py::arg("agent_view") = false)
+      // Bind additional methods as needed.
+      .def("seed", &GoBiggerEnv::seed, "Seed the environment")
+      .def("reset", &GoBiggerEnv::reset, "Reset the environment")
+      .def("step", &GoBiggerEnv::step, "Step through the environment")
+      .def("render", &GoBiggerEnv::render, "Render the current state")
+      .def("close", &GoBiggerEnv::close, "Close the environment")
+      .def("save", &GoBiggerEnv::save, "Save the current state");
+
 }
 
 
