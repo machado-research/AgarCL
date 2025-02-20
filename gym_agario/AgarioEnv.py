@@ -161,6 +161,7 @@ class AgarioEnv(gym.Env):
         :return: An observation object
         """
         states = self._env.get_state()
+        print( len(states), self.num_agents )
         assert len(states) == self.num_agents
 
         if self.obs_type in ("grid", ):
@@ -245,7 +246,8 @@ class AgarioEnv(gym.Env):
             # Here we assume that the observation is returned as a NumPy array;
             # adjust dtype and bounds as necessary.
             shape = env.observation_shape()
-            observation_space = spaces.Box(-np.inf, np.inf, shape, dtype=np.float32)
+            print( shape )
+            observation_space = spaces.Box(low=0, high=255, shape=shape, dtype=np.float32)
         else:
             raise ValueError(obs_type)
 
