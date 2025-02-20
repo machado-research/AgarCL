@@ -39,11 +39,11 @@ namespace agario::env {
             }
 
             // Getters
-            int get_map_width() {
+            const int get_map_width() const {
                 return map_width;
             }
 
-            int get_map_height() {
+            const int get_map_height() const {
                 return map_height;
             }
 
@@ -51,7 +51,7 @@ namespace agario::env {
                 return frame_limit;
             }
 
-            int get_team_num() {
+            const int get_team_num() const {
                 return team_num;
             }
 
@@ -185,6 +185,9 @@ namespace agario::env {
     class GoBiggerObservation {
 
         public:
+
+            using dtype = double;
+
             explicit GoBiggerObservation(int map_width, int map_height, int frame_limit, int last_frame, int team_num)
             : global_state(map_width, map_height, frame_limit, last_frame, team_num),
             player_states({}) {} // Initialize Player States with empty map
@@ -222,7 +225,50 @@ namespace agario::env {
             }
 
             const PlayerState& get_player_state(int player_id) const {
-                return player_states.get_all_player_states().at(player_id);
+                const int team_num = global_state.get_team_num();
+                assert (player_id < team_num );
+                const auto& all_states = player_states.get_all_player_states();
+                std::cout << "Player id: " << player_id << std::endl;
+                auto it = all_states.find(player_id);
+                if (it == all_states.end()) {
+                    throw std::out_of_range("Player id not found in player_states mapping");
+                }
+                return it->second;
+            }
+
+            size_t length() const {
+                auto s = shape();
+                return std::get<0>(s) * std::get<1>(s) * std::get<2>(s);
+            }
+
+            // Access to the underlying data (assuming row-major order)
+            const dtype* data() const { return observation_data.data(); }
+            dtype* data() { return observation_data.data(); }
+
+            // Compute the strides (in bytes) for each dimension
+            std::tuple<size_t, size_t, size_t> strides() const {
+                auto s = shape();
+                // Assuming row-major order:
+                size_t frame = std::get<0>(s);
+                size_t height = std::get<1>(s);
+                size_t width  = std::get<2>(s);
+                // For a contiguous array of type dtype, strides are:
+                size_t stride0 = height * width * sizeof(dtype);
+                size_t stride1 = width * sizeof(dtype);
+                size_t stride2 = sizeof(dtype);
+                return {stride0, stride1, stride2};
+            }
+
+            const std::tuple<int, int, int> shape() const {
+                int frames = num_frames(); 
+                const int height = global_state.get_map_height();
+                const int width = global_state.get_map_width();
+
+                const int team_num = global_state.get_team_num();
+                
+                std::cout << "Frames: " << frames << " Height: " << height << " Width: " << width << " Team Num: " << team_num << std::endl;
+                
+                return {frames, height, width};
             }
 
 
@@ -232,6 +278,8 @@ namespace agario::env {
         private:
             GlobalState global_state;
             PlayerStates player_states;
+            std::vector<dtype> observation_data;
+
         };
 
 template <bool renderable>
@@ -245,6 +293,7 @@ template <bool renderable>
         using Super     = BaseEnvironment<renderable>;
 
     public:
+        using dtype = std::uint8_t;
         using observationType = GoBiggerObservation;
 
         explicit GoBiggerEnvironment(int map_width, int map_height, int frame_limit, int num_agents,
@@ -266,7 +315,7 @@ template <bool renderable>
             this->c_death_ = 0;
 
             // Get player state from the observation.
-            PlayerState player_state = observation.get_player_state(player.pid());
+            // PlayerState player_state = observation.get_player_state(player.pid());
 
             auto &state = this->engine_.game_state();
             // We store in the observation the last `num_frames` frames between each step.
@@ -279,6 +328,13 @@ template <bool renderable>
 
             observation.update_global_state(last_frame_index);
         }
+
+        const std::tuple<int, int, int> observation_shape() const {
+            return observation.shape();
+        }
+
+        const std::vector<GoBiggerObservation> &get_observations() const { return observations; }
+
 
         void render() override {
             #ifdef RENDERABLE
@@ -309,6 +365,9 @@ template <bool renderable>
         int last_frame_index;
         Player *last_player;
         GoBiggerObservation observation;
+
+        std::vector<GoBiggerObservation> observations;
+
 
 
         #ifdef RENDERABLE

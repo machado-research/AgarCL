@@ -242,6 +242,8 @@ PYBIND11_MODULE(agarle, module) {
           py::arg("c_death") = 0,
           py::arg("agent_view") = false)
       // Bind additional methods as needed.
+      .def("get_state", &get_state<GoBiggerEnv>)
+      .def("observation_shape", &GoBiggerEnv::observation_shape)
       .def("seed", &GoBiggerEnv::seed, "Seed the environment")
       .def("reset", &GoBiggerEnv::reset, "Reset the environment")
       .def("step", &GoBiggerEnv::step, "Step through the environment")
