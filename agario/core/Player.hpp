@@ -150,6 +150,13 @@ class Player {
         cell.draw(shader, type);
     }
 
+    template <typename T, bool enable = renderable>
+    typename std::enable_if<enable, void>::type
+    draw(T &shader) {
+      for (auto &cell : cells)
+        cell.draw(shader);
+    }
+
     /* override this function to define a bot's behavior */
     virtual void take_action(const GameState<renderable> &state) {
       static_cast<void>(state);
