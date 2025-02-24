@@ -221,11 +221,10 @@ class AgarioEnv(gym.Env):
             # in the underlying C++ code
 
             screen_len = kwargs.get("screen_len", 84)
-            c_death = kwargs.get("c_death", 0)
-            allow_respawn = kwargs.get("allow_respawn", True)
+            agent_view = kwargs.get("agent_view", False)
 
             args += (screen_len, screen_len)
-            args += (c_death, allow_respawn)
+            args += (agent_view, )
             env = agarle.ScreenEnvironment(*args)
             observation_space = spaces.Box(low=0, high=255, shape=env.observation_shape(), dtype=np.uint8)
 
@@ -318,7 +317,7 @@ class AgarioEnv(gym.Env):
 
         return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
-               self.num_viruses, self.num_bots, self.reward_type
+               self.num_viruses, self.num_bots, self.reward_type, self.c_death
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility

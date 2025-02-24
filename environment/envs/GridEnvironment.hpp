@@ -465,7 +465,7 @@ namespace agario::env {
         for (int frame_index = 0; frame_index < frame_observation.num_frames(); ++frame_index) {
             renderer->render_screen(*last_player, this->engine_.game_state());
             void *data = frame_observation.frame_data(frame_index);
-            frame_buffer->copy(data);
+            frame_buffer->copy(data, 0);
         }
       }
 #endif

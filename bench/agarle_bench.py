@@ -50,6 +50,7 @@ default_config = {
     # 'multi_agent'    :  True,
     'num_agents'     :  1,
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
+    'agent_view'     : True,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'
@@ -96,8 +97,6 @@ def main():
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
             print(f"reward: {reward}, step_num: {step_num}, Done: {done}")
-            if(done == True):
-                import pdb; pdb.set_trace()
             # Calculate SPS (Steps Per Second) for the episode
         episode_elapsed_time = time.time() - episode_start_time
         episode_SPS = episode_steps / episode_elapsed_time
