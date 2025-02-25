@@ -172,6 +172,36 @@ PYBIND11_MODULE(agarle, module) {
 
   /* =======================GoBigger Environment =======================*/
   module.doc() = "Pybindings for GoBiggerObservation classes in Agario Environment";
+
+  // Bind the info structs.
+  py::class_<agario::env::FoodInfo>(module, "FoodInfo")
+      .def_readwrite("position", &agario::env::FoodInfo::position)
+      .def_readwrite("radius", &agario::env::FoodInfo::radius)
+      .def_readwrite("score", &agario::env::FoodInfo::score);
+
+  py::class_<agario::env::VirusInfo>(module, "VirusInfo")
+      .def_readwrite("position", &agario::env::VirusInfo::position)
+      .def_readwrite("radius", &agario::env::VirusInfo::radius)
+      .def_readwrite("score", &agario::env::VirusInfo::score)
+      .def_readwrite("velocity", &agario::env::VirusInfo::velocity);
+
+  py::class_<agario::env::SporeInfo>(module, "SporeInfo")
+      .def_readwrite("position", &agario::env::SporeInfo::position)
+      .def_readwrite("radius", &agario::env::SporeInfo::radius)
+      .def_readwrite("score", &agario::env::SporeInfo::score)
+      .def_readwrite("velocity", &agario::env::SporeInfo::velocity)
+      .def_readwrite("owner", &agario::env::SporeInfo::owner);
+
+  py::class_<agario::env::CloneInfo>(module, "CloneInfo")
+      .def_readwrite("position", &agario::env::CloneInfo::position)
+      .def_readwrite("radius", &agario::env::CloneInfo::radius)
+      .def_readwrite("score", &agario::env::CloneInfo::score)
+      .def_readwrite("velocity", &agario::env::CloneInfo::velocity)
+      .def_readwrite("direction", &agario::env::CloneInfo::direction)
+      .def_readwrite("owner", &agario::env::CloneInfo::owner)
+      .def_readwrite("teamId", &agario::env::CloneInfo::teamId);
+
+
   // Bind GlobalState
   py::class_<agario::env::GlobalState>(module, "GlobalState")
       .def(py::init<int, int, int, int, int>(),
@@ -182,30 +212,44 @@ PYBIND11_MODULE(agarle, module) {
       .def("get_frame_limit", &agario::env::GlobalState::get_frame_limit)
       .def("get_team_num", &agario::env::GlobalState::get_team_num);
 
-  // Bind PlayerState
+  // Bind PlayerStats
   py::class_<agario::env::PlayerState>(module, "PlayerState")
-      .def(py::init<int, const agario::env::vecpii&, const agario::env::vecpii&, 
-                    const agario::env::vecpii&, const agario::env::vecpii&, 
-                    const std::string&, double, bool, bool>(),
-            py::arg("player_id"), py::arg("food_positions"), py::arg("thorn_positions"),
-            py::arg("spore_positions"), py::arg("clone_positions"), py::arg("team_name"),
-            py::arg("score"), py::arg("can_wject"), py::arg("can_split"))
-      .def("get_player_id", &agario::env::PlayerState::get_player_id)
-      .def("get_food_positions", &agario::env::PlayerState::get_food_positions)
-      .def("get_virus_positions", &agario::env::PlayerState::get_virus_positions)
-      .def("get_spore_positions", &agario::env::PlayerState::get_spore_positions)
-      .def("get_clone_positions", &agario::env::PlayerState::get_clone_positions)
-      .def("get_team_name", &agario::env::PlayerState::get_team_name)
-      .def("get_score", &agario::env::PlayerState::get_score)
-      .def("canEject", &agario::env::PlayerState::canEject)
-      .def("canSplit", &agario::env::PlayerState::canSplit)
-      .def("update_score", &agario::env::PlayerState::update_score);
+    .def(py::init<int,
+                  const std::vector<agario::env::FoodInfo>&,
+                  const std::vector<agario::env::VirusInfo>&,
+                  const std::vector<agario::env::SporeInfo>&,
+                  const std::vector<agario::env::CloneInfo>&,
+                  const std::string&, double, bool, bool>(),
+         py::arg("player_id"),
+         py::arg("food_infos"),
+         py::arg("virus_infos"),
+         py::arg("spore_infos"),
+         py::arg("clone_infos"),
+         py::arg("team_name"),
+         py::arg("score"),
+         py::arg("can_eject"),
+         py::arg("can_split"))
+    .def("get_player_id", &agario::env::PlayerState::get_player_id)
+    .def("get_food_infos", &agario::env::PlayerState::get_food_infos,
+         py::return_value_policy::reference_internal)
+    .def("get_virus_infos", &agario::env::PlayerState::get_virus_infos,
+         py::return_value_policy::reference_internal)
+    .def("get_spore_infos", &agario::env::PlayerState::get_spore_infos,
+         py::return_value_policy::reference_internal)
+    .def("get_clone_infos", &agario::env::PlayerState::get_clone_infos,
+         py::return_value_policy::reference_internal)
+    .def("get_team_name", &agario::env::PlayerState::get_team_name)
+    .def("get_score", &agario::env::PlayerState::get_score)
+    .def("canEject", &agario::env::PlayerState::canEject)
+    .def("canSplit", &agario::env::PlayerState::canSplit)
+    .def("update_score", &agario::env::PlayerState::update_score);
 
   // Bind PlayerStates
   py::class_<agario::env::PlayerStates>(module, "PlayerStates")
       .def(py::init<const std::unordered_map<int, agario::env::PlayerState>&>(),
          py::arg("player_states"))
       .def("update_player_state", &agario::env::PlayerStates::update_player_state)
+      .def("get_player_state", &agario::env::PlayerStates::get_player_state)
       .def("get_all_player_states", &agario::env::PlayerStates::get_all_player_states,
             py::return_value_policy::reference_internal);
 
@@ -214,6 +258,16 @@ PYBIND11_MODULE(agarle, module) {
       .def(py::init<int, int, int,int, int>(),
             py::arg("map_width"), py::arg("map_height"), py::arg("frame_limit"), py::arg("last_frame"), py::arg("team_num"))
       .def("update_global_state", &agario::env::GoBiggerObservation::update_global_state)
+      .def("update_player_state", &agario::env::GoBiggerObservation::update_player_state,
+          py::arg("player_id"),
+          py::arg("food_infos"),    
+          py::arg("virus_infos"), 
+          py::arg("spore_infos"),
+          py::arg("clone_infos"),
+          py::arg("team_name"),
+          py::arg("score"),
+          py::arg("can_eject"),
+          py::arg("can_split"))
       .def("update_player_state", &agario::env::GoBiggerObservation::update_player_state,
             py::arg("player_id"), py::arg("food_positions"), py::arg("thorn_positions"),
             py::arg("spore_positions"), py::arg("clone_positions"), py::arg("team_name"),
