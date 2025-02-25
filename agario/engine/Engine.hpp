@@ -111,7 +111,7 @@ namespace agario {
         // loc.y += 2*agario::radius_conversion(CELL_MIN_SIZE);
         // loc.x = std::min(loc.x, arena_width() - agario::radius_conversion(CELL_MIN_SIZE));
         // loc.y = std::min(loc.y, arena_height() - agario::radius_conversion(CELL_MIN_SIZE));
-        loc.x +=10; 
+        loc.x +=10;
         loc.y +=10;
         player.add_cell(loc, CELL_MIN_SIZE);
         // player.add_cell(state.pellets[random_index].location(), CELL_MIN_SIZE);
@@ -205,12 +205,13 @@ namespace agario {
 
       move_foods(elapsed_seconds);
 
-      // if(state.ticks%1024 == 0){
-        // if (state.config.pellet_regen) {
-        //   add_pellets(state.config.target_num_pellets - state.pellets.size());
-        // }
-        // add_viruses(state.config.target_num_viruses - state.viruses.size());
-      // }
+      if(state.ticks%300 == 0){ //every 10 seconds
+        if (state.config.pellet_regen) {
+          add_pellets(state.config.target_num_pellets - state.pellets.size());
+        }
+        if(state.ticks%90 == 0) // every 3 seconds
+           add_viruses(state.config.target_num_viruses - state.viruses.size());
+      }
       state.ticks++;
 
     }
@@ -868,7 +869,7 @@ namespace agario {
 
     bool cell_split(Cell &cell, std::vector<Cell> &created_cells, int create_limit, Location &player_target)
     {
-      if (cell.mass() < CELL_SPLIT_MINIMUM)
+      if (cell.mass() < CELL_SPLIT_MINIMUM || cell.mass() < 2 * CELL_MIN_SIZE)
         return false;
 
       agario::mass split_mass = cell.mass() / 2;
