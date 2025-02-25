@@ -21,6 +21,8 @@
 
 #define DEFAULT_GRID_SIZE 128
 # define PIXEL_LEN 3
+#define f first
+#define s second
 namespace agario::env {
 
     using vecpii = std::vector<std::pair<int, int>>;
@@ -68,94 +70,120 @@ namespace agario::env {
             int team_num;
     };
 
+
+
+    struct FoodInfo{
+        std::pair<int, int> position;
+        double radius;
+        double score;
+    };
+
+    struct VirusInfo{
+        std::pair<int, int> position;
+        double radius;
+        double score;
+        std::pair< double, double> velocity;
+    };
+
+    struct SporeInfo{
+        std::pair<int, int> position;
+        double radius;
+        double score;
+        std::pair< double, double> velocity;
+        int owner; //pid
+    };
+
+
+    struct CloneInfo{
+        std::pair<int, int> position;
+        double radius;
+        double score;
+        std::pair< double, double> velocity;
+        std::pair< double, double> direction;
+        int owner; //pid
+        int teamId; //teamid
+    };
+
     class PlayerState {
         public:
 
             PlayerState() = default;
-            explicit PlayerState(int player_id, vecpii food_positions, vecpii virus_positions, vecpii spore_positions, vecpii clone_positions, std::string team_name, double score, bool can_eject, bool can_split ):
-            player_id(player_id),
-            food_positions(food_positions),
-            virus_positions(virus_positions),
-            spore_positions(spore_positions),
-            clone_positions(clone_positions),
-            team_name(team_name),
-            score(score),
-            can_eject(can_eject),
-            can_split(can_split) { }
+            explicit PlayerState(int player_id,
+                             const std::vector<FoodInfo>& food_infos,
+                             const std::vector<VirusInfo>& virus_infos,
+                             const std::vector<SporeInfo>& spore_infos,
+                             const std::vector<CloneInfo>& clone_infos,
+                             std::string team_name,
+                             double score,
+                             bool can_eject,
+                             bool can_split)
+            : player_id(player_id),
+              food_infos(food_infos),
+              virus_infos(virus_infos),
+              spore_infos(spore_infos),
+              clone_infos(clone_infos),
+              team_name(team_name),
+              score(score),
+              can_eject(can_eject),
+              can_split(can_split) {}
+
+            // Update functions that replace the entire info vectors
+            void update_food_infos(const std::vector<FoodInfo>& infos) {
+                food_infos = infos;
+            }
+            void update_virus_infos(const std::vector<VirusInfo>& infos) {
+                virus_infos = infos;
+            }
+            void update_spore_infos(const std::vector<SporeInfo>& infos) {
+                spore_infos = infos;
+            }
+            void update_clone_infos(const std::vector<CloneInfo>& infos) {
+                clone_infos = infos;
+            }
+
+            // Alternatively, add single info objects:
+            void add_food_info(const FoodInfo& info) {
+                food_infos.push_back(info);
+            }
+            void add_virus_info(const VirusInfo& info) {
+                virus_infos.push_back(info);
+            }
+            void add_spore_info(const SporeInfo& info) {
+                spore_infos.push_back(info);
+            }
+            void add_clone_info(const CloneInfo& info) {
+                clone_infos.push_back(info);
+            }
 
 
             void update_can_eject(bool can_eject) {
                 this->can_eject = can_eject;
             }
-
             void update_can_split(bool can_split) {
                 this->can_split = can_split;
             }
-
             void update_score(double score) {
                 this->score = score;
             }
 
-            void update_food_positions(vecpii food_positions) {
-                this->food_positions = food_positions;
-            }
-
-            void update_virus_positions(vecpii virus_positions) {
-                this->virus_positions = virus_positions;
-            }
-
-            void update_spore_positions(vecpii spore_positions) {
-                this->spore_positions = spore_positions;
-            }
-
-            void update_clone_positions(vecpii clone_positions) {
-                this->clone_positions = clone_positions;
-            }
-
-
-            bool canEject() {
-                return can_eject;
-            }
-
-            bool canSplit() {
-                return can_split;
-            }
-
-            double get_score() {
-                return score;
-            }
-
-            const vecpii& get_spore_positions() {
-                return spore_positions;
-            }
-
-            const vecpii& get_clone_positions() {
-                return clone_positions;
-            }
-
-            const vecpii& get_food_positions() {
-                return food_positions;
-            }
-
-            const vecpii& get_virus_positions() {
-                return virus_positions;
-            }
-
-            std::string get_team_name() {
-                return team_name;
-            }
-
-            int get_player_id() {
-                return player_id;
-            }
+            // Getters
+            bool canEject() const { return can_eject; }
+            bool canSplit() const { return can_split; }
+            double get_score() const { return score; }
+            const std::vector<FoodInfo>& get_food_infos() const { return food_infos; }
+            const std::vector<VirusInfo>& get_virus_infos() const { return virus_infos; }
+            const std::vector<SporeInfo>& get_spore_infos() const { return spore_infos; }
+            const std::vector<CloneInfo>& get_clone_infos() const { return clone_infos; }
+            std::string get_team_name() const { return team_name; }
+            int get_player_id() const { return player_id; }
 
         
         private:
             int player_id;
-            vecpii food_positions;
-            vecpii virus_positions;
-            vecpii spore_positions;
-            vecpii clone_positions;
+            std::vector<FoodInfo> food_infos;
+            std::vector<VirusInfo> virus_infos;
+            std::vector<SporeInfo> spore_infos;
+            std::vector<CloneInfo> clone_infos;
             std::string team_name;
             double score;
             bool can_eject;
@@ -166,10 +194,18 @@ namespace agario::env {
     class PlayerStates {
         public:
             explicit PlayerStates(std::unordered_map<int, PlayerState> player_states)
-            : player_states(player_states) { }
+            : player_states(std::move( player_states ) ) { }
 
             void update_player_state(int player_id, PlayerState player_state) {
                 player_states[player_id] = player_state;
+            }
+
+            PlayerState get_player_state(int player_id) {
+                auto it = player_states.find(player_id);
+                if (it == player_states.end()) {
+                    throw std::out_of_range("Player id not found in player_states mapping");
+                }
+                return it->second;
             }
 
             const std::unordered_map<int, PlayerState>& get_all_player_states() const {
@@ -181,16 +217,29 @@ namespace agario::env {
     };
 
    
-
+    template<bool R>
     class GoBiggerObservation {
 
         public:
+            using GameState = GameState<R>;
+            using Player = Player<R>;
+            using Cell = Cell<R>;
+            using Pellet = Pellet<R>;
+            using Virus = Virus<R>;
+            using Food = Food<R>;
 
             using dtype = double;
 
+            enum calc_type {
+                at_least_ = 0,
+                total_mass_ = 1,
+                min_ = 2,
+                max_ = 3
+            };
+
             explicit GoBiggerObservation(int map_width, int map_height, int frame_limit, int last_frame, int team_num)
             : global_state(map_width, map_height, frame_limit, last_frame, team_num),
-            player_states({}) {} // Initialize Player States with empty map
+            player_states( std::unordered_map<int, PlayerState>{} ) {} // Initialize Player States with empty map
 
             // Update global state
             void update_global_state(int frame_count) {
@@ -201,18 +250,31 @@ namespace agario::env {
             int num_frames() const { return 1; }
 
              // Update a player's state with the given parameters.
+
             void update_player_state(int player_id,
-                                    const vecpii &food_positions,
-                                    const vecpii &virus_positions,
-                                    const vecpii &spore_positions,
-                                    const vecpii &clone_positions,
-                                    const std::string &team_name,
-                                    double score,
-                                    bool can_eject,
-                                    bool can_split)
+                        const std::vector<FoodInfo> &food_infos,
+                        const std::vector<VirusInfo> &virus_infos,
+                        const std::vector<SporeInfo> &spore_infos,
+                        const std::vector<CloneInfo> &clone_infos,
+                        const std::string &team_name,
+                        double score,
+                        bool can_eject,
+                        bool can_split)
             {
-                PlayerState ps(player_id, food_positions, virus_positions, spore_positions, clone_positions,
-                            team_name, score, can_eject, can_split);
+                // Simply construct a new PlayerState with the new data structures:
+                PlayerState ps(
+                    player_id,
+                    food_infos,
+                    virus_infos,
+                    spore_infos,
+                    clone_infos,
+                    team_name,
+                    score,
+                    can_eject,
+                    can_split
+                );
+
+                // Store in the internal mapping:
                 player_states.update_player_state(player_id, ps);
             }
 
@@ -245,46 +307,160 @@ namespace agario::env {
             const dtype* data() const { return observation_data.data(); }
             dtype* data() { return observation_data.data(); }
 
-            // Compute the strides (in bytes) for each dimension
-            std::tuple<size_t, size_t, size_t> strides() const {
-                auto s = shape();
-                // Assuming row-major order:
-                size_t frame = std::get<0>(s);
-                size_t height = std::get<1>(s);
-                size_t width  = std::get<2>(s);
-                // For a contiguous array of type dtype, strides are:
-                size_t stride0 = height * width * sizeof(dtype);
-                size_t stride1 = width * sizeof(dtype);
-                size_t stride2 = sizeof(dtype);
-                return {stride0, stride1, stride2};
-            }
+            // // Compute the strides (in bytes) for each dimension
+            // std::tuple<size_t, size_t, size_t> strides() const {
+            //     auto s = shape();
+            //     // Assuming row-major order:
+            //     size_t frame = std::get<0>(s);
+            //     size_t height = std::get<1>(s);
+            //     size_t width  = std::get<2>(s);
+            //     // For a contiguous array of type dtype, strides are:
+            //     size_t stride0 = height * width * sizeof(dtype);
+            //     size_t stride1 = width * sizeof(dtype);
+            //     size_t stride2 = sizeof(dtype);
+            //     return {stride0, stride1, stride2};
+            // }
 
             const std::tuple<int, int, int> shape() const {
                 int frames = num_frames(); 
                 const int height = global_state.get_map_height();
                 const int width = global_state.get_map_width();
-
-                const int team_num = global_state.get_team_num();
                 
-                std::cout << "Frames: " << frames << " Height: " << height << " Width: " << width << " Team Num: " << team_num << std::endl;
+                // std::cout << "Frames: " << frames << " Height: " << height << " Width: " << width << " Team Num: " << team_num << std::endl;
                 
                 return {frames, height, width};
             }
 
 
-            // Discuss with mohammad if add_frame is needed.
+            /* determines what the view size should be, based on the player's mass */
+            // Need to change it after i find actual formulae
+            float _view_size(const Player &player) const {
+            // todo: make this "consistent" with the renderer's view (somewhat tough)
+                return agario::clamp<float>(2 * player.mass(), 100, 300);
+            }
 
+                  /* converts world-coordinates to grid-coordinates */
+            void _world_to_grid(const Player &player, const Location &loc,
+                                float view_size, int &grid_x, int &grid_y) const {
+
+                float centering = config_.grid_size / 2.0;
+
+                auto diff_x = loc.x - player.x();
+                auto diff_y = loc.y - player.y();
+
+                grid_x = static_cast<int>(config_.grid_size * diff_x / view_size + centering);
+                grid_y = static_cast<int>(config_.grid_size * diff_y / view_size + centering);
+            }
+
+            /* converts grid-coordinates to world-coordinates */
+            Location _grid_to_world(const Player &player, float view_size, int grid_x, int grid_y) const {
+                float centering = config_.grid_size / 2.0;
+
+                float x_diff = static_cast<float>(grid_x) - centering;
+                float y_diff = static_cast<float>(grid_y) - centering;
+
+                float dx = x_diff * view_size / config_.grid_size;
+                float dy = y_diff * view_size / config_.grid_size;
+                return player.location() + Location(dx, dy);
+            }
+
+
+                /* stores the given entities in the data map at the given `channel` */
+            template<typename U>
+            void _store_entities(const std::vector<U> &entities, const Player &player, const PlayerState &ps, const int pid, int channel, calc_type calc = calc_type::total_mass_) {
+                float view_size = _view_size(player);
+
+                int grid_x, grid_y;
+                for (auto &entity : entities) {
+                    _world_to_grid(player, entity.location(), view_size, grid_x, grid_y);
+
+                    if (_inside_grid(grid_x, grid_y)) {
+                        if constexpr (std::is_same_v<U, Food>) {
+                            FoodInfo info;
+                            info.position = std::make_pair(grid_x, grid_y);
+                            info.radius = entity.radius();  // assuming Food has a radius() method
+                            info.score = entity.mass();     // or another appropriate measure
+                            ps.add_food_info(info);
+                        } else if constexpr (std::is_same_v<U, Virus>) {
+                            VirusInfo info;
+                            info.position = std::make_pair(grid_x, grid_y);
+                            info.radius = entity.radius();
+                            info.score = entity.mass();
+                            info.velocity = entity.velocity(); // assuming velocity() returns a pair<double, double>
+                            ps.add_virus_info(info);
+                        } else if constexpr (std::is_same_v<U, Spore>) {
+                            SporeInfo info;
+                            info.position = std::make_pair(grid_x, grid_y);
+                            info.radius = entity.radius();
+                            info.score = entity.mass();
+                            info.velocity = entity.velocity();
+                            info.owner = player.pid();
+                            ps.add_spore_info(info);
+                        } else if constexpr (std::is_same_v<U, Cell>) {
+                            CloneInfo info;
+                            info.position = std::make_pair(grid_x, grid_y);
+                            info.radius = entity.radius();
+                            info.score = entity.mass();
+                            info.velocity = entity.velocity();
+                            info.direction = entity.direction(); // if available
+                            info.owner = player.pid();
+                            info.teamId = player.teamId(); // if available
+                            ps.add_clone_info(info);
+                        } else {
+                            throw std::runtime_error("Unknown entity type");
+                        }
+                    // Update player state
+                    player_states.update_player_state(pid, ps);
+                }
+            }
+
+            // void add_frame(const Player &player, const GameState &game_state, int frame_index) {
+            //     if (observation_data.empty())
+            //         throw EnvironmentException("GoBiggerObservation was not configured.");
+
+            //     // Update the global state with the current frame count.
+            //     update_last_frame_count(frame_index);
+
+            //     // Need to update player states
+            //     // spores is 
+
+            //     // Mark the observation areas that are out of bounds.
+            //     // Here, we use global_state to provide map dimensions.
+            //     // _mark_out_of_bounds(player, channel,
+            //     //                     global_state.get_map_width(),
+            //     //                     global_state.get_map_height());
+
+                
+            //     auto playerMap = game_state.players;
+            //     // Iterate over all players in the game state
+
+            //     // For each player, we need to update the player state
+            //     for (auto const& player: playerMap ) {
+
+            //         auto pid = player.first;
+            //         auto player = player.second;
+
+            //         auto cellContainer = player.cells;
+
+            //         // Call store entity with 
+            //         auto playerState = player_states.get_player_state(pid);
+
+            //         // Store viruses 
+            //         _store_entities<Virus>(game_state.viruses, player, playerState, pid, channel, calc_type::total_mass_);
+
+            //     }
+            // }
 
         private:
             GlobalState global_state;
             PlayerStates player_states;
             std::vector<dtype> observation_data;
 
-        };
+};
 
 template <bool renderable>
     class GoBiggerEnvironment : public BaseEnvironment<renderable> {
-        using gameState = GameState<renderable>;
+        using gameState = agario::GameState<renderable>;
         using Player    = agario::Player<renderable>;
         using Cell      = agario::Cell<renderable>;
         using Pellet    = agario::Pellet<renderable>;
@@ -305,6 +481,15 @@ template <bool renderable>
               last_frame_index(0),
               last_player(nullptr),
               frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {}
+
+        
+        template <typename ...Config>
+        void configure_observation(Config&&... config) {
+            observations.clear();
+            for (int i = 0; i < this->num_agents(); i++)
+                observations.emplace_back(config...);
+        }
+
 
         void _partial_observation(int agent_index, int tick_index) override {
             // For now, every agent is in their own team (so no collaboration)
