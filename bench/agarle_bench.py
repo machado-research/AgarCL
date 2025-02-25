@@ -33,13 +33,13 @@ import tqdm
 default_config = {
     'ticks_per_step':  3,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      250,
+    'arena_size':      350,
     'num_pellets':     200,
-    'num_viruses':     0,
-    'num_bots':        0,
+    'num_viruses':     10,
+    'num_bots':        8,
     'pellet_regen':    True,
-    'grid_size':       84,
-    'screen_len':      84,
+    'grid_size':       128,
+    'screen_len':      128,
     'observe_cells':   False,
     'observe_others':  False,
     'observe_viruses': False,
@@ -77,7 +77,7 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 1
+    num_episodes = 100
 
     import matplotlib.pyplot as plt
 
@@ -96,7 +96,8 @@ def main():
                 action = (target_space.sample(), 0)
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
-            print(f"reward: {reward}, step_num: {step_num}, Done: {done}")
+            if(done):
+                env.reset()
             # Calculate SPS (Steps Per Second) for the episode
         episode_elapsed_time = time.time() - episode_start_time
         episode_SPS = episode_steps / episode_elapsed_time
