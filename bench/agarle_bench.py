@@ -35,8 +35,8 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
     'num_pellets':     200,
-    'num_viruses':     10,
-    'num_bots':        8,
+    'num_viruses':     0,
+    'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       128,
     'screen_len':      128,
@@ -77,7 +77,7 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 100
+    num_episodes = 2
 
     import matplotlib.pyplot as plt
 
@@ -98,12 +98,14 @@ def main():
             state, reward, done, truncations, step_num = env.step(agent_actions)
             if(done):
                 env.reset()
+                env.enable_video_recorder()
             # Calculate SPS (Steps Per Second) for the episode
         episode_elapsed_time = time.time() - episode_start_time
         episode_SPS = episode_steps / episode_elapsed_time
         SPS_VALUES.append(episode_SPS)
         print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
+    env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
     # Plotting SPS values
     plt.figure()
     plt.plot(SPS_VALUES)
@@ -119,7 +121,7 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=1000, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=500, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     env_options = parser.add_argument_group("Environment")
     env_options.add_argument("--env", default="agario-grid-v0")
