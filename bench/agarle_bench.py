@@ -34,7 +34,7 @@ default_config = {
     'ticks_per_step':  3,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
-    'num_pellets':     200,
+    'num_pellets':     400,
     'num_viruses':     0,
     'num_bots':        0,
     'pellet_regen':    True,

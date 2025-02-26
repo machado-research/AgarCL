@@ -205,11 +205,10 @@ namespace agario {
 
       move_foods(elapsed_seconds);
 
-      if(state.ticks%300 == 0){ //every 10 seconds
+      if(state.ticks%600 == 0){ //every 10 seconds
         if (state.config.pellet_regen) {
           add_pellets(state.config.target_num_pellets - state.pellets.size());
         }
-        if(state.ticks%90 == 0) // every 3 seconds
            add_viruses(state.config.target_num_viruses - state.viruses.size());
       }
       state.ticks++;
@@ -233,7 +232,16 @@ namespace agario {
     int pellets_grid_height; int virus_grid_height;
     std::vector<std::vector<int>> pellets_grid;
     std::vector<std::vector<int>> virus_grid;
-    void add_pellets(int n) {
+
+    void add_pellets(int n)
+    {
+      agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
+      for (int p = 0; p < n; p++) {
+        state.pellets.emplace_back(random_location(pellet_radius));
+      }
+    }
+
+    void create_squared_pellets(int n) {
 
       // std::random_device rd;
       // std::mt19937 gen(rd());
