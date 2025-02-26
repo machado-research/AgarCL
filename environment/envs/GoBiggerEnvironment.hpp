@@ -212,6 +212,10 @@ namespace agario::env {
                 return player_states;
             }
 
+            void clear() {
+                player_states.clear();
+            }
+
         private:
             std::unordered_map<int, PlayerState> player_states;
     };
@@ -219,6 +223,14 @@ namespace agario::env {
    
     template<bool R>
     class GoBiggerObservation {
+
+        using dtype = double;
+
+        private:
+            GlobalState global_state;
+            PlayerStates player_states;
+            int no_frames;
+            std::vector<dtype> observation_data;
 
         public:
             using GameState = GameState<R>;
@@ -228,7 +240,26 @@ namespace agario::env {
             using Virus = Virus<R>;
             using Food = Food<R>;
 
-            using dtype = double;
+
+
+            class Configuration {
+                public:
+                    Configuration(int num_frames, int grid_size,
+                                bool observe_cells, bool observe_others,
+                                bool observe_viruses, bool observe_pellets) :
+                    num_frames(num_frames), grid_size(grid_size),
+                    observe_cells(observe_cells), observe_others(observe_others),
+                    observe_pellets(observe_pellets), observe_viruses(observe_viruses) {}
+                    int num_frames;
+                    int grid_size;
+                    bool observe_pellets;
+                    bool observe_cells;
+                    bool observe_viruses;
+                    bool observe_others;
+                };
+
+            Configuration config_;
+
 
             enum calc_type {
                 at_least_ = 0,
@@ -239,7 +270,31 @@ namespace agario::env {
 
             explicit GoBiggerObservation(int map_width, int map_height, int frame_limit, int last_frame, int team_num)
             : global_state(map_width, map_height, frame_limit, last_frame, team_num),
-            player_states( std::unordered_map<int, PlayerState>{} ) {} // Initialize Player States with empty map
+            player_states( std::unordered_map<int, PlayerState>{} ) {
+                no_frames = 0;
+            } // Initialize Player States with empty map
+
+
+            template <typename ...Args>
+            void configure(Args&&... args) {
+                config_(args...);
+
+//                delete[] data_; // might be nullptr, thats ok
+
+                // _make_shapes();
+               // data_ = new dtype[length()];
+                // Might need to clear global State here too
+                player_states.clear();
+                // clear_data();
+            }
+                    /* determines whether the given x, y grid-coordinates, are within the grid */
+            [[nodiscard]] bool _inside_grid(int grid_x, int grid_y) const {
+                return 0 <= grid_x && grid_x < config_.grid_size && 0 <= grid_y && grid_y < config_.grid_size;
+            }
+
+            bool _in_bounds(const Location &loc, distance arena_width, distance arena_height) {
+                return 0 <= loc.x && loc.x < arena_width && 0 <= loc.y && loc.y < arena_height;
+            }
 
             // Update global state
             void update_global_state(int frame_count) {
@@ -247,7 +302,7 @@ namespace agario::env {
             }
 
             // For now num_frames is 1
-            int num_frames() const { return 1; }
+            int num_frames() const { return no_frames; }
 
              // Update a player's state with the given parameters.
 
@@ -367,7 +422,7 @@ namespace agario::env {
 
                 /* stores the given entities in the data map at the given `channel` */
             template<typename U>
-            void _store_entities(const std::vector<U> &entities, const Player &player, const PlayerState &ps, const int pid, int channel, calc_type calc = calc_type::total_mass_) {
+            void _store_entities(const std::vector<U> &entities, const Player &player, PlayerState &ps, const int pid, int channel, calc_type calc = calc_type::total_mass_) {
                 float view_size = _view_size(player);
 
                 int grid_x, grid_y;
@@ -414,47 +469,45 @@ namespace agario::env {
                 }
             }
 
-            // void add_frame(const Player &player, const GameState &game_state, int frame_index) {
-            //     if (observation_data.empty())
-            //         throw EnvironmentException("GoBiggerObservation was not configured.");
+            void add_frame(const Player &player, const GameState &game_state, int frame_index) {
+                if (observation_data.empty())
+                    throw EnvironmentException("GoBiggerObservation was not configured.");
 
-            //     // Update the global state with the current frame count.
-            //     update_last_frame_count(frame_index);
+                // Update the global state with the current frame count.
+                update_last_frame_count(frame_index);
 
-            //     // Need to update player states
-            //     // spores is 
+                no_frames += 1;
+                // Need to update player states
+                // spores is 
 
-            //     // Mark the observation areas that are out of bounds.
-            //     // Here, we use global_state to provide map dimensions.
-            //     // _mark_out_of_bounds(player, channel,
-            //     //                     global_state.get_map_width(),
-            //     //                     global_state.get_map_height());
+                // Mark the observation areas that are out of bounds.
+                // Here, we use global_state to provide map dimensions.
+                // _mark_out_of_bounds(player, channel,
+                //                     global_state.get_map_width(),
+                //                     global_state.get_map_height());
 
                 
-            //     auto playerMap = game_state.players;
-            //     // Iterate over all players in the game state
+                auto playerMap = game_state.players;
+                // Iterate over all players in the game state
 
-            //     // For each player, we need to update the player state
-            //     for (auto const& player: playerMap ) {
+                // For each player, we need to update the player state
+                for (auto const& player: playerMap ) {
 
-            //         auto pid = player.first;
-            //         auto player = player.second;
+                    auto pid = player.first;
+                    auto player = player.second;
 
-            //         auto cellContainer = player.cells;
+                    auto cellContainer = player.cells;
 
-            //         // Call store entity with 
-            //         auto playerState = player_states.get_player_state(pid);
+                    // Call store entity with 
+                    auto playerState = player_states.get_player_state(pid);
 
-            //         // Store viruses 
-            //         _store_entities<Virus>(game_state.viruses, player, playerState, pid, channel, calc_type::total_mass_);
+                    // Store viruses 
+                    _store_entities<Virus>(game_state.viruses, player, playerState, pid, channel, calc_type::total_mass_);
 
-            //     }
-            // }
+                }
+            }
 
-        private:
-            GlobalState global_state;
-            PlayerStates player_states;
-            std::vector<dtype> observation_data;
+
 
 };
 
