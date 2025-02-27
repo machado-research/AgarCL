@@ -97,27 +97,30 @@ namespace agario {
     }
 
     void initialize_game() {
-      add_pellets(state.config.target_num_pellets);
+      if(is_squared_pellets_ == true)
+        create_squared_pellets(state.config.target_num_pellets);
+      else
+        add_pellets(state.config.target_num_pellets);
       add_viruses(state.config.target_num_viruses);
     }
 
     void respawn(Player &player) {
       player.kill();
-      // player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), CELL_MIN_SIZE);
+      int player_mass = std::max(CELL_MIN_SIZE, agent_mass); //agent_mass is the mass of the agent.
       if (!state.pellets.empty()) {
-        // auto random_index = random<agario::distance>(0, state.pellets.size() - 1);
+       if(is_squared_pellets_ == true){
         auto random_index = 0;
         auto loc = state.pellets[random_index].location();
         loc.x += 2*agario::radius_conversion(CELL_MIN_SIZE);
         loc.y += 2*agario::radius_conversion(CELL_MIN_SIZE);
         loc.x = std::min(loc.x, arena_width() - agario::radius_conversion(CELL_MIN_SIZE));
         loc.y = std::min(loc.y, arena_height() - agario::radius_conversion(CELL_MIN_SIZE));
-        // loc.x +=10;
-        // loc.y +=10;
-        player.add_cell(loc, CELL_MIN_SIZE);
-        // player.add_cell(state.pellets[random_index].location(), CELL_MIN_SIZE);
+        player.add_cell(loc, player_mass);
+       }
+       else
+       player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), player_mass);
       } else {
-        player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), CELL_MIN_SIZE);
+        player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), player_mass);
       }
     }
 
@@ -212,11 +215,10 @@ namespace agario {
       move_foods(elapsed_seconds);
 
       if(regen_pellets){ // if there is regeneration to the pellets.
-
         if(state.ticks%600 == 0){ //every 10 seconds
-          if (state.config.pellet_regen) {
+          // if (state.config.pellet_regen) {
             add_pellets(state.config.target_num_pellets - state.pellets.size());
-          }
+          // }
             add_viruses(state.config.target_num_viruses - state.viruses.size());
         }
     }
@@ -244,7 +246,7 @@ namespace agario {
     int mode_number = 0;
     bool mass_decay_ = true;
     bool is_squared_pellets_ = false;
-    int agent_mass = 0;
+    int agent_mass = 25;
     bool regen_pellets = true;
 
     void set_mode(int mode) {
@@ -259,21 +261,25 @@ namespace agario {
         mass_decay_ = false;
         is_squared_pellets_ = true;
         regen_pellets = false;
+        agent_mass = 25;
         break;
       case 2:
         mass_decay_ = true;
         is_squared_pellets_ = true;
         regen_pellets = false;
+        agent_mass = 25;
         break;
       case 3:
         mass_decay_ = false;
         is_squared_pellets_ = false; // random
         regen_pellets = true;
+        agent_mass = 25;
         break;
       case 4:
         mass_decay_ = true;
         is_squared_pellets_ = false;
         regen_pellets = true;
+        agent_mass = 25;
         break;
       case 5:
         set_mode(2);
@@ -408,10 +414,10 @@ namespace agario {
 
       // some actions do not need to happen every tick
       // these will be executed once per second
-      // if (player.elapsed_ticks % 60 == 0) {
-      //   maybe_activate_anti_team(player);
-      //   mass_decay(player);
-      // }
+      if (mass_decay_ == true && player.elapsed_ticks % 60 == 0) {
+        maybe_activate_anti_team(player);
+        mass_decay(player);
+      }
     }
 
     /**
