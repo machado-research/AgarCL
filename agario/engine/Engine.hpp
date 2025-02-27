@@ -42,6 +42,7 @@ namespace agario {
       state(agario::GameConfig(arena_width, arena_height, num_pellets, num_viruses, pellet_regen))
     {
       std::srand(std::chrono::system_clock::now().time_since_epoch().count());
+      set_mode(mode_number);
     }
     Engine() : Engine(DEFAULT_ARENA_WIDTH, DEFAULT_ARENA_HEIGHT) {}
 
@@ -60,6 +61,7 @@ namespace agario {
     int virus_count() const { return state.viruses.size(); }
     int food_count() const { return state.foods.size(); }
     bool pellet_regen() const { return state.config.pellet_regen; };
+    void set_mode_number(const int mode) { mode_number = mode; }
 
     template<typename P>
     agario::pid add_player(const std::string &name = std::string()) {
@@ -97,7 +99,6 @@ namespace agario {
     void initialize_game() {
       add_pellets(state.config.target_num_pellets);
       add_viruses(state.config.target_num_viruses);
-      // update_vec();
     }
 
     void respawn(Player &player) {
@@ -107,12 +108,12 @@ namespace agario {
         // auto random_index = random<agario::distance>(0, state.pellets.size() - 1);
         auto random_index = 0;
         auto loc = state.pellets[random_index].location();
-        // loc.x += 2*agario::radius_conversion(CELL_MIN_SIZE);
-        // loc.y += 2*agario::radius_conversion(CELL_MIN_SIZE);
-        // loc.x = std::min(loc.x, arena_width() - agario::radius_conversion(CELL_MIN_SIZE));
-        // loc.y = std::min(loc.y, arena_height() - agario::radius_conversion(CELL_MIN_SIZE));
-        loc.x +=10;
-        loc.y +=10;
+        loc.x += 2*agario::radius_conversion(CELL_MIN_SIZE);
+        loc.y += 2*agario::radius_conversion(CELL_MIN_SIZE);
+        loc.x = std::min(loc.x, arena_width() - agario::radius_conversion(CELL_MIN_SIZE));
+        loc.y = std::min(loc.y, arena_height() - agario::radius_conversion(CELL_MIN_SIZE));
+        // loc.x +=10;
+        // loc.y +=10;
         player.add_cell(loc, CELL_MIN_SIZE);
         // player.add_cell(state.pellets[random_index].location(), CELL_MIN_SIZE);
       } else {
@@ -131,30 +132,8 @@ namespace agario {
       return Location(x, y);
     }
 
-    /**
-     * Performs a single game tick, moving all entities, performing
-     * collision detection and updating the game state accordingly
-     * @param elapsed_seconds the amount of time which has elapsed
-     * since the previous game tick.
-     */
-    void tick(const agario::time_delta &elapsed_seconds) {
-
-      // initalize the pellet_grid
-      initialize_pellet_grid();
-      initialize_virus_grid();
-      std::vector<int> pellets_to_remove;
-      std::vector<int> viruses_to_remove;
-      for (auto &pair : state.players) {
-        auto &player = *pair.second;
-        if (!player.dead())
-          tick_player(player, elapsed_seconds, pellets_to_remove, viruses_to_remove);
-      }
-
-      // remove pellets that have been eaten
-      remove_pellets(pellets_to_remove);
-      remove_viruses(viruses_to_remove);
-      pellets_grid.clear();
-      virus_grid.clear();
+    void players_collision()
+    {
       // to change the hierarchy of: I want pair of player_id and cells: Keep in mind that we will std::move cells
       std::vector<std::pair<agario::pid, Cell>> cells_per_player;
 
@@ -202,15 +181,45 @@ namespace agario {
       // check_player_collisions();
 
       cells_per_player.clear();
+    }
+
+    /**
+     * Performs a single game tick, moving all entities, performing
+     * collision detection and updating the game state accordingly
+     * @param elapsed_seconds the amount of time which has elapsed
+     * since the previous game tick.
+     */
+    void tick(const agario::time_delta &elapsed_seconds) {
+      // initalize the pellet_grid
+      initialize_pellet_grid();
+      initialize_virus_grid();
+      std::vector<int> pellets_to_remove;
+      std::vector<int> viruses_to_remove;
+      for (auto &pair : state.players) {
+        auto &player = *pair.second;
+        if (!player.dead())
+          tick_player(player, elapsed_seconds, pellets_to_remove, viruses_to_remove);
+      }
+
+      // remove pellets that have been eaten
+      remove_pellets(pellets_to_remove);
+      remove_viruses(viruses_to_remove);
+      pellets_grid.clear();
+      virus_grid.clear();
+
+      players_collision();
 
       move_foods(elapsed_seconds);
 
-      if(state.ticks%600 == 0){ //every 10 seconds
-        if (state.config.pellet_regen) {
-          add_pellets(state.config.target_num_pellets - state.pellets.size());
+      if(regen_pellets){ // if there is regeneration to the pellets.
+
+        if(state.ticks%600 == 0){ //every 10 seconds
+          if (state.config.pellet_regen) {
+            add_pellets(state.config.target_num_pellets - state.pellets.size());
+          }
+            add_viruses(state.config.target_num_viruses - state.viruses.size());
         }
-           add_viruses(state.config.target_num_viruses - state.viruses.size());
-      }
+    }
       state.ticks++;
 
     }
@@ -232,6 +241,52 @@ namespace agario {
     int pellets_grid_height; int virus_grid_height;
     std::vector<std::vector<int>> pellets_grid;
     std::vector<std::vector<int>> virus_grid;
+    int mode_number = 0;
+    bool mass_decay_ = true;
+    bool is_squared_pellets_ = false;
+    int agent_mass = 0;
+    bool regen_pellets = true;
+
+    void set_mode(int mode) {
+      switch (mode) {
+      case 0:
+        mass_decay_ = true;
+        is_squared_pellets_ = false;
+        regen_pellets = true;
+        agent_mass = 25;
+        break;
+      case 1:
+        mass_decay_ = false;
+        is_squared_pellets_ = true;
+        regen_pellets = false;
+        break;
+      case 2:
+        mass_decay_ = true;
+        is_squared_pellets_ = true;
+        regen_pellets = false;
+        break;
+      case 3:
+        mass_decay_ = false;
+        is_squared_pellets_ = false; // random
+        regen_pellets = true;
+        break;
+      case 4:
+        mass_decay_ = true;
+        is_squared_pellets_ = false;
+        regen_pellets = true;
+        break;
+      case 5:
+        set_mode(2);
+        agent_mass = 1000;
+        break;
+      case 6:
+        set_mode(4);
+        agent_mass = 1000;
+        break;
+      default:
+        throw EngineException("Invalid mode number");
+      }
+    }
 
     void add_pellets(int n)
     {

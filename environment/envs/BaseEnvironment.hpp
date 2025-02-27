@@ -45,7 +45,8 @@ namespace agario {
         int num_viruses,
         int num_bots,
         bool reward_type,
-        int c_death = 0
+        int c_death ,
+        int mode_number
       ):
         num_agents_(num_agents),
         dones_(num_agents),
@@ -54,8 +55,11 @@ namespace agario {
         num_bots_(num_bots),
         reward_type_(reward_type),
         step_dt_(DEFAULT_DT),
-        c_death_(c_death)
+        c_death_(c_death),
+        mode_number_(mode_number)
       {
+        std::cout <<"Mode Number: " <<  mode_number_ << std::endl;
+        engine_.set_mode_number(mode_number_);
         pids_.reserve(num_agents);
         reset();
       }
@@ -196,6 +200,7 @@ namespace agario {
       const int num_bots_;
       const agario::time_delta step_dt_;
       const bool reward_type_;
+      const int  mode_number_;
       /* allows subclass to do something special at the beginning of each step */
       virtual void _step_hook() {};
 
