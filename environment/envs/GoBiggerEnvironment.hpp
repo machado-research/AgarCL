@@ -221,295 +221,251 @@ namespace agario::env {
     };
 
    
+//-----------------------------------------------
+// GoBiggerObservation
+//-----------------------------------------------
     template<bool R>
     class GoBiggerObservation {
-
         using dtype = double;
 
-        private:
-            GlobalState global_state;
-            PlayerStates player_states;
-            int no_frames;
-            std::vector<dtype> observation_data;
+    private:
+        GlobalState global_state;
+        PlayerStates player_states;
+        int no_frames;
+        std::vector<dtype> observation_data;
 
+    public:
+        using GameState = GameState<R>;
+        using Player    = Player<R>;
+        using Cell      = Cell<R>;
+        using Pellet    = Pellet<R>;
+        using Virus     = Virus<R>;
+        using Food      = Food<R>;
+
+        class Configuration {
         public:
-            using GameState = GameState<R>;
-            using Player = Player<R>;
-            using Cell = Cell<R>;
-            using Pellet = Pellet<R>;
-            using Virus = Virus<R>;
-            using Food = Food<R>;
+            Configuration(int num_frames, int grid_size,
+                        bool observe_cells, bool observe_others,
+                        bool observe_viruses, bool observe_pellets)
+            : num_frames(num_frames),
+                grid_size(grid_size),
+                observe_cells(observe_cells),
+                observe_others(observe_others),
+                observe_pellets(observe_pellets),
+                observe_viruses(observe_viruses) {}
 
+            int num_frames;
+            int grid_size;
+            bool observe_pellets;
+            bool observe_cells;
+            bool observe_viruses;
+            bool observe_others;
+        };
 
+        Configuration config_;
 
-            class Configuration {
-                public:
-                    Configuration(int num_frames, int grid_size,
-                                bool observe_cells, bool observe_others,
-                                bool observe_viruses, bool observe_pellets) :
-                    num_frames(num_frames), grid_size(grid_size),
-                    observe_cells(observe_cells), observe_others(observe_others),
-                    observe_pellets(observe_pellets), observe_viruses(observe_viruses) {}
-                    int num_frames;
-                    int grid_size;
-                    bool observe_pellets;
-                    bool observe_cells;
-                    bool observe_viruses;
-                    bool observe_others;
-                };
+        enum calc_type {
+            at_least_   = 0,
+            total_mass_ = 1,
+            min_        = 2,
+            max_        = 3
+        };
 
-            Configuration config_;
+        explicit GoBiggerObservation(int map_width, int map_height,
+                                    int frame_limit, int last_frame,
+                                    int team_num)
+        : global_state(map_width, map_height, frame_limit, last_frame, team_num),
+            player_states(std::unordered_map<int, PlayerState>{}),
+            no_frames(0),
+            config_(1, DEFAULT_GRID_SIZE, true, true, true, true)  {} // to change to use actual config args
 
+        // Add a constructor that uses the configuration
+        template <typename ...Args>
+        void configure(Args&&... args) {
+            // Store config
+            config_(args...);
+            // Clear states & data if needed
+            player_states.clear();
+            observation_data.clear();
+        }
 
-            enum calc_type {
-                at_least_ = 0,
-                total_mass_ = 1,
-                min_ = 2,
-                max_ = 3
-            };
+        [[nodiscard]] bool _inside_grid(int gx, int gy) const {
+            return (0 <= gx && gx < config_.grid_size &&
+                    0 <= gy && gy < config_.grid_size);
+        }
 
-            explicit GoBiggerObservation(int map_width, int map_height, int frame_limit, int last_frame, int team_num)
-            : global_state(map_width, map_height, frame_limit, last_frame, team_num),
-            player_states( std::unordered_map<int, PlayerState>{} ) {
-                no_frames = 0;
-            } // Initialize Player States with empty map
+        bool _in_bounds(const Location &loc, distance w, distance h) {
+            return (0 <= loc.x && loc.x < w &&
+                    0 <= loc.y && loc.y < h);
+        }
 
+        void update_global_state(int frame_count) {
+            global_state.update_last_frame_count(frame_count);
+        }
 
-            template <typename ...Args>
-            void configure(Args&&... args) {
-                config_(args...);
+        int num_frames() const { return no_frames; }
 
-//                delete[] data_; // might be nullptr, thats ok
+        void update_player_state(int player_id,
+                                const std::vector<FoodInfo> &food_infos,
+                                const std::vector<VirusInfo> &virus_infos,
+                                const std::vector<SporeInfo> &spore_infos,
+                                const std::vector<CloneInfo> &clone_infos,
+                                const std::string &team_name,
+                                double score,
+                                bool can_eject,
+                                bool can_split)
+        {
+            PlayerState ps(player_id,
+                        food_infos,
+                        virus_infos,
+                        spore_infos,
+                        clone_infos,
+                        team_name,
+                        score,
+                        can_eject,
+                        can_split);
+            player_states.update_player_state(player_id, ps);
+        }
 
-                // _make_shapes();
-               // data_ = new dtype[length()];
-                // Might need to clear global State here too
-                player_states.clear();
-                // clear_data();
+        const GlobalState& get_global_state()   const { return global_state; }
+        const PlayerStates& get_player_states() const { return player_states; }
+
+        const PlayerState& get_player_state(int player_id) const {
+            int tnum = global_state.get_team_num();
+            assert(player_id < tnum && "Player ID >= team num!");
+            const auto& m = player_states.get_all_player_states();
+            auto it = m.find(player_id);
+            if (it == m.end()) {
+                throw std::out_of_range("Player id not found in player_states mapping");
             }
-                    /* determines whether the given x, y grid-coordinates, are within the grid */
-            [[nodiscard]] bool _inside_grid(int grid_x, int grid_y) const {
-                return 0 <= grid_x && grid_x < config_.grid_size && 0 <= grid_y && grid_y < config_.grid_size;
-            }
+            return it->second;
+        }
 
-            bool _in_bounds(const Location &loc, distance arena_width, distance arena_height) {
-                return 0 <= loc.x && loc.x < arena_width && 0 <= loc.y && loc.y < arena_height;
-            }
+        size_t length() const {
+            auto [f, h, w] = shape();
+            return static_cast<size_t>(f * h * w);
+        }
 
-            // Update global state
-            void update_global_state(int frame_count) {
-                global_state.update_last_frame_count(frame_count);
-            }
+        const dtype* data() const { return observation_data.data(); }
+        dtype* data()             { return observation_data.data(); }
 
-            // For now num_frames is 1
-            int num_frames() const { return no_frames; }
+        const std::tuple<int,int,int> shape() const {
+            int frames = num_frames();
+            int height = global_state.get_map_height();
+            int width  = global_state.get_map_width();
+            return {frames, height, width};
+        }
 
-             // Update a player's state with the given parameters.
+        // Determine how large a 'view' should be, based on the player's mass
+        float _view_size(const Player &player) const {
+            return agario::clamp<float>(2 * player.mass(), 100, 300);
+        }
 
-            void update_player_state(int player_id,
-                        const std::vector<FoodInfo> &food_infos,
-                        const std::vector<VirusInfo> &virus_infos,
-                        const std::vector<SporeInfo> &spore_infos,
-                        const std::vector<CloneInfo> &clone_infos,
-                        const std::string &team_name,
-                        double score,
-                        bool can_eject,
-                        bool can_split)
-            {
-                // Simply construct a new PlayerState with the new data structures:
-                PlayerState ps(
-                    player_id,
-                    food_infos,
-                    virus_infos,
-                    spore_infos,
-                    clone_infos,
-                    team_name,
-                    score,
-                    can_eject,
-                    can_split
-                );
+        void _world_to_grid(const Player &player, const Location &loc,
+                            float view_size, int &gx, int &gy) const
+        {
+            float centering = static_cast<float>(config_.grid_size) / 2.f;
+            float diff_x = loc.x - player.x();
+            float diff_y = loc.y - player.y();
 
-                // Store in the internal mapping:
-                player_states.update_player_state(player_id, ps);
-            }
+            gx = static_cast<int>((config_.grid_size * diff_x / view_size) + centering);
+            gy = static_cast<int>((config_.grid_size * diff_y / view_size) + centering);
+        }
 
-            const GlobalState& get_global_state() const {
-                return global_state;
-            }
+        Location _grid_to_world(const Player &player, float view_size,
+                                int gx, int gy) const
+        {
+            float centering = static_cast<float>(config_.grid_size) / 2.f;
+            float dx = (gx - centering) * (view_size / config_.grid_size);
+            float dy = (gy - centering) * (view_size / config_.grid_size);
+            return player.location() + Location(dx, dy);
+        }
 
-            const PlayerStates& get_player_states() const {
-                return player_states;
-            }
+        template<typename U>
+        void _store_entities(const std::vector<U> &entities,
+                            const Player &player,
+                            PlayerState &ps,
+                            int pid,
+                            int channel,
+                            calc_type ctype = calc_type::total_mass_)
+        {
+            float view_size = _view_size(player);
 
-            const PlayerState& get_player_state(int player_id) const {
-                const int team_num = global_state.get_team_num();
-                assert (player_id < team_num );
-                const auto& all_states = player_states.get_all_player_states();
-                std::cout << "Player id: " << player_id << std::endl;
-                auto it = all_states.find(player_id);
-                if (it == all_states.end()) {
-                    throw std::out_of_range("Player id not found in player_states mapping");
-                }
-                return it->second;
-            }
+            int grid_x = 0, grid_y = 0;
+            for (auto &entity : entities) {
+                _world_to_grid(player, entity.location(), view_size, grid_x, grid_y);
 
-            size_t length() const {
-                auto s = shape();
-                return std::get<0>(s) * std::get<1>(s) * std::get<2>(s);
-            }
-
-            // Access to the underlying data (assuming row-major order)
-            const dtype* data() const { return observation_data.data(); }
-            dtype* data() { return observation_data.data(); }
-
-            // // Compute the strides (in bytes) for each dimension
-            // std::tuple<size_t, size_t, size_t> strides() const {
-            //     auto s = shape();
-            //     // Assuming row-major order:
-            //     size_t frame = std::get<0>(s);
-            //     size_t height = std::get<1>(s);
-            //     size_t width  = std::get<2>(s);
-            //     // For a contiguous array of type dtype, strides are:
-            //     size_t stride0 = height * width * sizeof(dtype);
-            //     size_t stride1 = width * sizeof(dtype);
-            //     size_t stride2 = sizeof(dtype);
-            //     return {stride0, stride1, stride2};
-            // }
-
-            const std::tuple<int, int, int> shape() const {
-                int frames = num_frames(); 
-                const int height = global_state.get_map_height();
-                const int width = global_state.get_map_width();
-                
-                // std::cout << "Frames: " << frames << " Height: " << height << " Width: " << width << " Team Num: " << team_num << std::endl;
-                
-                return {frames, height, width};
-            }
-
-
-            /* determines what the view size should be, based on the player's mass */
-            // Need to change it after i find actual formulae
-            float _view_size(const Player &player) const {
-            // todo: make this "consistent" with the renderer's view (somewhat tough)
-                return agario::clamp<float>(2 * player.mass(), 100, 300);
-            }
-
-                  /* converts world-coordinates to grid-coordinates */
-            void _world_to_grid(const Player &player, const Location &loc,
-                                float view_size, int &grid_x, int &grid_y) const {
-
-                float centering = config_.grid_size / 2.0;
-
-                auto diff_x = loc.x - player.x();
-                auto diff_y = loc.y - player.y();
-
-                grid_x = static_cast<int>(config_.grid_size * diff_x / view_size + centering);
-                grid_y = static_cast<int>(config_.grid_size * diff_y / view_size + centering);
-            }
-
-            /* converts grid-coordinates to world-coordinates */
-            Location _grid_to_world(const Player &player, float view_size, int grid_x, int grid_y) const {
-                float centering = config_.grid_size / 2.0;
-
-                float x_diff = static_cast<float>(grid_x) - centering;
-                float y_diff = static_cast<float>(grid_y) - centering;
-
-                float dx = x_diff * view_size / config_.grid_size;
-                float dy = y_diff * view_size / config_.grid_size;
-                return player.location() + Location(dx, dy);
-            }
-
-
-                /* stores the given entities in the data map at the given `channel` */
-            template<typename U>
-            void _store_entities(const std::vector<U> &entities, const Player &player, PlayerState &ps, const int pid, int channel, calc_type calc = calc_type::total_mass_) {
-                float view_size = _view_size(player);
-
-                int grid_x, grid_y;
-                for (auto &entity : entities) {
-                    _world_to_grid(player, entity.location(), view_size, grid_x, grid_y);
-
-                    if (_inside_grid(grid_x, grid_y)) {
-                        if constexpr (std::is_same_v<U, Food>) {
-                            FoodInfo info;
-                            info.position = std::make_pair(grid_x, grid_y);
-                            info.radius = entity.radius();  // assuming Food has a radius() method
-                            info.score = entity.mass();     // or another appropriate measure
-                            ps.add_food_info(info);
-                        } else if constexpr (std::is_same_v<U, Virus>) {
-                            VirusInfo info;
-                            info.position = std::make_pair(grid_x, grid_y);
-                            info.radius = entity.radius();
-                            info.score = entity.mass();
-                            info.velocity = entity.velocity(); // assuming velocity() returns a pair<double, double>
-                            ps.add_virus_info(info);
-                        } else if constexpr (std::is_same_v<U, Spore>) {
-                            SporeInfo info;
-                            info.position = std::make_pair(grid_x, grid_y);
-                            info.radius = entity.radius();
-                            info.score = entity.mass();
-                            info.velocity = entity.velocity();
-                            info.owner = player.pid();
-                            ps.add_spore_info(info);
-                        } else if constexpr (std::is_same_v<U, Cell>) {
-                            CloneInfo info;
-                            info.position = std::make_pair(grid_x, grid_y);
-                            info.radius = entity.radius();
-                            info.score = entity.mass();
-                            info.velocity = entity.velocity();
-                            info.direction = entity.direction(); // if available
-                            info.owner = player.pid();
-                            info.teamId = player.teamId(); // if available
-                            ps.add_clone_info(info);
-                        } else {
-                            throw std::runtime_error("Unknown entity type");
-                        }
-                    // Update player state
+                if (_inside_grid(grid_x, grid_y)) {
+                    if constexpr (std::is_same_v<U, Pellet>) {
+                        FoodInfo info = {
+                            {grid_x, grid_y},
+                            entity.radius(),
+                            entity.mass()
+                        };
+                        ps.add_food_info(info);
+                    }
+                    else if constexpr (std::is_same_v<U, Virus>) {
+                        VirusInfo info = {
+                            {grid_x, grid_y},
+                            entity.radius(),
+                            entity.mass(),
+                            std::make_pair(0,0)
+                        };
+                        ps.add_virus_info(info);
+                    }
+                    else if constexpr (std::is_same_v<U, Food>) {
+                        SporeInfo info = {
+                            {grid_x, grid_y},
+                            entity.radius(),
+                            entity.mass(),
+                            std::make_pair(0,0),
+                            player.pid()
+                        };
+                        ps.add_spore_info(info);
+                    }
+                    else if constexpr (std::is_same_v<U, Cell>) {
+                        CloneInfo info = {
+                            {grid_x, grid_y},
+                            entity.radius(),
+                            entity.mass(),
+                            std::make_pair( entity.velocity().dx(), entity.velocity().dy() ),
+                            entity.direction(),
+                            player.pid(),
+                            player.teamId()
+                        };
+                        ps.add_clone_info(info);
+                    }
+                    else {
+                        throw std::runtime_error("Unknown entity type in _store_entities");
+                    }
+                    // commit updated player state
                     player_states.update_player_state(pid, ps);
                 }
             }
+        }
 
-            void add_frame(const Player &player, const GameState &game_state, int frame_index) {
-                if (observation_data.empty())
-                    throw EnvironmentException("GoBiggerObservation was not configured.");
-
-                // Update the global state with the current frame count.
-                update_last_frame_count(frame_index);
-
-                no_frames += 1;
-                // Need to update player states
-                // spores is 
-
-                // Mark the observation areas that are out of bounds.
-                // Here, we use global_state to provide map dimensions.
-                // _mark_out_of_bounds(player, channel,
-                //                     global_state.get_map_width(),
-                //                     global_state.get_map_height());
-
-                
-                auto playerMap = game_state.players;
-                // Iterate over all players in the game state
-
-                // For each player, we need to update the player state
-                for (auto const& player: playerMap ) {
-
-                    auto pid = player.first;
-                    auto player = player.second;
-
-                    auto cellContainer = player.cells;
-
-                    // Call store entity with 
-                    auto playerState = player_states.get_player_state(pid);
-
-                    // Store viruses 
-                    _store_entities<Virus>(game_state.viruses, player, playerState, pid, channel, calc_type::total_mass_);
-
-                }
+        inline void add_frame(const Player &ply,
+                            const GameState &game_state,
+                            int frame_index)
+        {
+            if (observation_data.empty()) {
+                throw EnvironmentException("GoBiggerObservation was not configured.");
             }
 
+            update_global_state(frame_index);
+            no_frames++;
 
+            // Example channel usage
+            int channel = 0;
 
-};
+            for (auto const &[pid, pl] : game_state.players) {
+                auto pstate = player_states.get_player_state(pid);
+
+                _store_entities<Virus>(game_state.viruses, pl, pstate,
+                                    pid, channel, calc_type::total_mass_);
+            }
+        }
+    };
 
 template <bool renderable>
     class GoBiggerEnvironment : public BaseEnvironment<renderable> {
@@ -523,7 +479,7 @@ template <bool renderable>
 
     public:
         using dtype = std::uint8_t;
-        using observationType = GoBiggerObservation;
+        using observationType = GoBiggerObservation<renderable>;
 
         explicit GoBiggerEnvironment(int map_width, int map_height, int frame_limit, int num_agents,
                                      int ticks_per_step, int arena_size, bool pellet_regen, int num_pellets,
@@ -540,7 +496,19 @@ template <bool renderable>
         void configure_observation(Config&&... config) {
             observations.clear();
             for (int i = 0; i < this->num_agents(); i++)
-                observations.emplace_back(config...);
+            {
+                GoBiggerObservation<renderable> obs(
+                    observation.get_global_state().get_map_width(),
+                    observation.get_global_state().get_map_height(),
+                    observation.get_global_state().get_frame_limit(),
+                    0,  // For example, last_frame set to 0
+                observation.get_global_state().get_team_num()
+                );
+                // Now configure the observation with the provided parameters.
+                obs.configure(std::forward<Config>(config)...);
+                // Add the configured observation to the vector.
+                observations.push_back(obs);
+            }
         }
 
 
@@ -571,7 +539,7 @@ template <bool renderable>
             return observation.shape();
         }
 
-        const std::vector<GoBiggerObservation> &get_observations() const { return observations; }
+        const std::vector<observationType> &get_observations() const { return observations; }
 
 
         void render() override {
@@ -602,9 +570,9 @@ template <bool renderable>
     private:
         int last_frame_index;
         Player *last_player;
-        GoBiggerObservation observation;
+        observationType observation;
 
-        std::vector<GoBiggerObservation> observations;
+        std::vector<observationType> observations;
 
 
 
@@ -614,4 +582,4 @@ template <bool renderable>
         #endif
     };
 
-}  // namespace agario::env
+};  // namespace agario::env
