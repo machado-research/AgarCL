@@ -51,6 +51,8 @@ default_config = {
     'num_agents'     :  1,
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
+    'add_noise'     : False,
+    'mode'          : 1,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'
@@ -77,7 +79,7 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 200
+    num_episodes = 2
 
     import matplotlib.pyplot as plt
 
@@ -98,14 +100,14 @@ def main():
             state, reward, done, truncations, step_num = env.step(agent_actions)
             if(done):
                 env.reset()
-                # env.enable_video_recorder()
+                env.enable_video_recorder()
             # Calculate SPS (Steps Per Second) for the episode
         episode_elapsed_time = time.time() - episode_start_time
         episode_SPS = episode_steps / episode_elapsed_time
         SPS_VALUES.append(episode_SPS)
         print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
-    # env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
+    env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
     # Plotting SPS values
     plt.figure()
     plt.plot(SPS_VALUES)

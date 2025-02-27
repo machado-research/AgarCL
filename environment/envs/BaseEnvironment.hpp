@@ -45,8 +45,8 @@ namespace agario {
         int num_viruses,
         int num_bots,
         bool reward_type,
-        int c_death ,
-        int mode_number
+        int c_death = 0,
+        int mode_number = 0
       ):
         num_agents_(num_agents),
         dones_(num_agents),
@@ -58,8 +58,7 @@ namespace agario {
         c_death_(c_death),
         mode_number_(mode_number)
       {
-        std::cout <<"Mode Number: " <<  mode_number_ << std::endl;
-        engine_.set_mode_number(mode_number_);
+        std::cout <<"Mode Number: " <<  mode_number << std::endl;
         pids_.reserve(num_agents);
         reset();
       }

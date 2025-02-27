@@ -88,6 +88,7 @@ class AgarioEnv(gym.Env):
         self.video_recorder_enabled = False
 
         self.agent_view  = kwargs.get("agent_view", False)
+        self.add_noise = kwargs.get("add_noise", True)
         self._seed = None
 
     def step(self, actions):
@@ -284,7 +285,13 @@ class AgarioEnv(gym.Env):
 
         # make sure that the actions are well-formed
         for action in actions:
-            if action not in self.action_space:
+            # Add noise to the action
+            noise = [0,0]
+            if  self.add_noise == True:
+                noise = np.random.normal(0, 0.1, size=(2,))
+            action = ((np.clip(action[0][0] + noise[0], -1, 1), np.clip(action[0][1] + noise[1], -1, 1)), action[1])
+            #make sure the action is in the action space
+            if not (self.action_space[0].contains(action[0]) and self.action_space[1].contains(action[1])):
                 raise ValueError(f"action {action} not in action space")
 
         # gotta format the action for the underlying module.
