@@ -38,11 +38,12 @@ namespace agario {
     Engine(distance arena_width, distance arena_height,
            int num_pellets = DEFAULT_NUM_PELLETS,
            int num_viruses = DEFAULT_NUM_VIRUSES,
-           bool pellet_regen = true) :
+           bool pellet_regen = true,
+          int mode_number = 0) :
       state(agario::GameConfig(arena_width, arena_height, num_pellets, num_viruses, pellet_regen))
     {
-      std::srand(std::chrono::system_clock::now().time_since_epoch().count());
       set_mode(mode_number);
+      std::srand(std::chrono::system_clock::now().time_since_epoch().count());
     }
     Engine() : Engine(DEFAULT_ARENA_WIDTH, DEFAULT_ARENA_HEIGHT) {}
 
