@@ -49,7 +49,7 @@ namespace agario::env {
                 return map_height;
             }
 
-            int get_frame_limit() {
+            int get_frame_limit() const {
                 return frame_limit;
             }
 
@@ -283,7 +283,8 @@ namespace agario::env {
         template <typename ...Args>
         void configure(Args&&... args) {
             // Store config
-            config_(args...);
+            config_ = Configuration(std::forward<Args>(args)...);
+
             // Clear states & data if needed
             player_states.clear();
             observation_data.clear();
@@ -489,7 +490,9 @@ template <bool renderable>
               observation(map_width, map_height, frame_limit, 0, num_agents),
               last_frame_index(0),
               last_player(nullptr),
-              frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {}
+              frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {
+                observations.push_back(observation);
+              }
 
         
         template <typename ...Config>

@@ -310,8 +310,23 @@ PYBIND11_MODULE(agarle, module) {
           py::arg("reward_type"),
           py::arg("c_death") = 0,
           py::arg("agent_view") = false)
+      
+      .def("configure_observation", [](GoBiggerEnv &env, const py::dict &config) {
+
+      int num_frames = config.contains("num_frames")      ? config["num_frames"].cast<int>() : 1;
+      int grid_size  = config.contains("grid_size")       ? config["grid_size"].cast<int>() : DEFAULT_GRID_SIZE;
+      bool cells     = config.contains("observe_cells")   ? config["observe_cells"].cast<bool>()   : true;
+      bool others    = config.contains("observe_others")  ? config["observe_others"].cast<bool>()  : true;
+      bool viruses   = config.contains("observe_viruses") ? config["observe_viruses"].cast<bool>() : true;
+      bool pellets   = config.contains("observe_pellets") ? config["observe_pellets"].cast<bool>() : true;
+
+      env.configure_observation(num_frames, grid_size, cells, others, viruses, pellets);
+    })
       // Bind additional methods as needed.
       .def("get_state", &get_state_goBigger)
+      .def("take_actions", [](GoBiggerEnv &env, const py::list &actions) {
+        env.take_actions(to_action_vector(actions));
+      })
       .def("observation_shape", &GoBiggerEnv::observation_shape)
       .def("seed", &GoBiggerEnv::seed, "Seed the environment")
       .def("reset", &GoBiggerEnv::reset, "Reset the environment")
@@ -319,6 +334,4 @@ PYBIND11_MODULE(agarle, module) {
       .def("render", &GoBiggerEnv::render, "Render the current state")
       .def("close", &GoBiggerEnv::close, "Close the environment")
       .def("save", &GoBiggerEnv::save, "Save the current state");
-
-
 }
