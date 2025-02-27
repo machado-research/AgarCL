@@ -25,6 +25,20 @@ std::vector<T> to_vector(Tuple&& tuple) {
   }, std::forward<Tuple>(tuple));
 }
 
+
+py::list get_state_goBigger(const agario::env::GoBiggerEnvironment<renderable>& environment) {
+    py::list state_list;
+    // For each observation in our environment...
+    for (auto &observation : environment.get_observations()) {
+        py::dict obs_dict;
+        // Put the two “maps” into a dict. These are already bound separately.
+        obs_dict["global_state"] = observation.get_global_state();
+        obs_dict["player_states"] = observation.get_player_states();
+        state_list.append(obs_dict);
+    }
+    return state_list;
+}
+
 /* converts a python list of actions to the C++ action wrapper */
 std::vector<agario::env::Action> to_action_vector(const py::list &actions) {
   std::vector<agario::env::Action> acts;
@@ -254,11 +268,12 @@ PYBIND11_MODULE(agarle, module) {
             py::return_value_policy::reference_internal);
 
   // Bind GoBiggerObservation
-  py::class_<agario::env::GoBiggerObservation>(module, "GoBiggerObservation")
+  using GoBiggerObservation = agario::env::GoBiggerObservation<renderable>;
+  py::class_<GoBiggerObservation>(module, "GoBiggerObservation")
       .def(py::init<int, int, int,int, int>(),
             py::arg("map_width"), py::arg("map_height"), py::arg("frame_limit"), py::arg("last_frame"), py::arg("team_num"))
-      .def("update_global_state", &agario::env::GoBiggerObservation::update_global_state)
-      .def("update_player_state", &agario::env::GoBiggerObservation::update_player_state,
+      .def("update_global_state", &GoBiggerObservation::update_global_state)
+      .def("update_player_state", &GoBiggerObservation::update_player_state,
           py::arg("player_id"),
           py::arg("food_infos"),    
           py::arg("virus_infos"), 
@@ -268,13 +283,13 @@ PYBIND11_MODULE(agarle, module) {
           py::arg("score"),
           py::arg("can_eject"),
           py::arg("can_split"))
-      .def("update_player_state", &agario::env::GoBiggerObservation::update_player_state,
+      .def("update_player_state", &GoBiggerObservation::update_player_state,
             py::arg("player_id"), py::arg("food_positions"), py::arg("thorn_positions"),
             py::arg("spore_positions"), py::arg("clone_positions"), py::arg("team_name"),
             py::arg("score"), py::arg("can_eject"), py::arg("can_split"))
-      .def("get_global_state", &agario::env::GoBiggerObservation::get_global_state,
+      .def("get_global_state", &GoBiggerObservation::get_global_state,
             py::return_value_policy::reference_internal)
-      .def("get_player_states", &agario::env::GoBiggerObservation::get_player_states,
+      .def("get_player_states", &GoBiggerObservation::get_player_states,
             py::return_value_policy::reference_internal);
 
   // Bind GoBiggerEnvironment
@@ -296,7 +311,7 @@ PYBIND11_MODULE(agarle, module) {
           py::arg("c_death") = 0,
           py::arg("agent_view") = false)
       // Bind additional methods as needed.
-      .def("get_state", &get_state<GoBiggerEnv>)
+      .def("get_state", &get_state_goBigger)
       .def("observation_shape", &GoBiggerEnv::observation_shape)
       .def("seed", &GoBiggerEnv::seed, "Seed the environment")
       .def("reset", &GoBiggerEnv::reset, "Reset the environment")
