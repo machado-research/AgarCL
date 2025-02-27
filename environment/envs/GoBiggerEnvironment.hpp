@@ -71,20 +71,23 @@ namespace agario::env {
     };
 
     struct FoodInfo{
-        std::pair<int, int> position;
+        // std::pair<int, int> position;
+        agario::Location position;
         double radius;
         agario::mass score;
     };
 
     struct VirusInfo{
-        std::pair<int, int> position;
+        // std::pair<int, int> position;
+        agario::Location position;
         double radius;
         agario::mass score;
         std::pair< double, double> velocity;
     };
 
     struct SporeInfo{
-        std::pair<int, int> position;
+        // std::pair<int, int> position;
+        agario::Location position;
         double radius;
         agario::mass score;
         std::pair< double, double> velocity;
@@ -93,7 +96,8 @@ namespace agario::env {
 
 
     struct CloneInfo{
-        std::pair<int, int> position;
+        // std::pair<int, int> position;
+        agario::Location position;
         double radius;
         agario::mass score;
         std::pair< double, double> velocity;
@@ -399,7 +403,7 @@ namespace agario::env {
                 if (_inside_grid(grid_x, grid_y)) {
                     if constexpr (std::is_same_v<U, Pellet>) {
                         FoodInfo info = {
-                            {grid_x, grid_y},
+                            entity.location(),
                             entity.radius(),
                             entity.mass()
                         };
@@ -407,7 +411,7 @@ namespace agario::env {
                     }
                     else if constexpr (std::is_same_v<U, Virus>) {
                         VirusInfo info = {
-                            {grid_x, grid_y},
+                            entity.location(),
                             entity.radius(),
                             entity.mass(),
                             std::make_pair(0,0)
@@ -416,7 +420,7 @@ namespace agario::env {
                     }
                     else if constexpr (std::is_same_v<U, Food>) {
                         SporeInfo info = {
-                            {grid_x, grid_y},
+                            entity.location(),
                             entity.radius(),
                             entity.mass(),
                             std::make_pair(0,0),
@@ -426,7 +430,7 @@ namespace agario::env {
                     }
                     else if constexpr (std::is_same_v<U, Cell>) {
                         CloneInfo info = {
-                            {grid_x, grid_y},
+                            entity.location(),
                             entity.radius(),
                             entity.mass(),
                             std::make_pair( entity.get_velocity().dx, entity.get_velocity().dy ),
