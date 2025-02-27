@@ -97,7 +97,7 @@ namespace agario::env {
         double radius;
         agario::mass score;
         std::pair< double, double> velocity;
-        std::pair< double, double> direction;
+        agario::angle direction;
         int owner; //pid
         int teamId; //teamid
     };
@@ -269,6 +269,7 @@ namespace agario::env {
             max_        = 3
         };
 
+        // MUST ALWAYS CALL CONGUFIGURE AFTER CONSTRUCTION
         explicit GoBiggerObservation(int map_width, int map_height,
                                     int frame_limit, int last_frame,
                                     int team_num)
@@ -356,6 +357,7 @@ namespace agario::env {
         }
 
         // Determine how large a 'view' should be, based on the player's mass
+        // todo: Need to find what formula they use
         float _view_size(const Player &player) const {
             return agario::clamp<float>(2 * player.mass(), 100, 300);
         }
@@ -427,10 +429,10 @@ namespace agario::env {
                             {grid_x, grid_y},
                             entity.radius(),
                             entity.mass(),
-                            std::make_pair( entity.velocity().dx(), entity.velocity().dy() ),
-                            entity.direction(),
+                            std::make_pair( entity.get_velocity().dx, entity.get_velocity().dy ),
+                            entity.get_velocity().direction(),
                             player.pid(),
-                            player.teamId()
+                            0 //player.teamId()
                         };
                         ps.add_clone_info(info);
                     }
@@ -463,6 +465,12 @@ namespace agario::env {
 
                 _store_entities<Virus>(game_state.viruses, *pl, pstate,
                        pid, channel, calc_type::total_mass_);
+                _store_entities<Pellet>(game_state.pellets, *pl, pstate,
+                          pid, channel, calc_type::total_mass_);
+                _store_entities<Food>(game_state.foods, *pl, pstate,
+                        pid, channel, calc_type::total_mass_);
+                _store_entities<Cell>(pl->cells, *pl, pstate,
+                        pid, channel, calc_type::total_mass_);
 
             }
         }
