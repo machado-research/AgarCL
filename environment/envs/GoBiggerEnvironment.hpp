@@ -504,6 +504,12 @@ template <bool renderable>
               last_player(nullptr),
               frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {
                 observations.push_back(observation);
+
+                #ifdef RENDERABLE
+                    renderer = std::make_unique<agario::Renderer>(frame_buffer,
+                                                                    this->engine_.arena_width(),
+                                                                    this->engine_.arena_height());
+                #endif
               }
 
         
