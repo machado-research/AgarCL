@@ -327,6 +327,7 @@ PYBIND11_MODULE(agarle, module) {
       .def("take_actions", [](GoBiggerEnv &env, const py::list &actions) {
         env.take_actions(to_action_vector(actions));
       })
+      .def("dones", &GoBiggerEnv::dones)
       .def("observation_shape", &GoBiggerEnv::observation_shape)
       .def("seed", &GoBiggerEnv::seed, "Seed the environment")
       .def("reset", &GoBiggerEnv::reset, "Reset the environment")
