@@ -51,7 +51,7 @@ default_config = {
     'num_agents'     :  1,
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
-    'add_noise'     : False,
+    'add_noise'     : True,
     'mode'          : 1,
 }
 
