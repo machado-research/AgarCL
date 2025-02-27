@@ -70,25 +70,23 @@ namespace agario::env {
             int team_num;
     };
 
-
-
     struct FoodInfo{
         std::pair<int, int> position;
         double radius;
-        double score;
+        agario::mass score;
     };
 
     struct VirusInfo{
         std::pair<int, int> position;
         double radius;
-        double score;
+        agario::mass score;
         std::pair< double, double> velocity;
     };
 
     struct SporeInfo{
         std::pair<int, int> position;
         double radius;
-        double score;
+        agario::mass score;
         std::pair< double, double> velocity;
         int owner; //pid
     };
@@ -97,7 +95,7 @@ namespace agario::env {
     struct CloneInfo{
         std::pair<int, int> position;
         double radius;
-        double score;
+        agario::mass score;
         std::pair< double, double> velocity;
         std::pair< double, double> direction;
         int owner; //pid
@@ -462,8 +460,10 @@ namespace agario::env {
             for (auto const &[pid, pl] : game_state.players) {
                 auto pstate = player_states.get_player_state(pid);
 
-                _store_entities<Virus>(game_state.viruses, pl, pstate,
-                                    pid, channel, calc_type::total_mass_);
+
+                _store_entities<Virus>(game_state.viruses, *pl, pstate,
+                       pid, channel, calc_type::total_mass_);
+
             }
         }
     };
@@ -529,8 +529,8 @@ template <bool renderable>
             auto &state = this->engine_.game_state();
             // We store in the observation the last `num_frames` frames between each step.
             int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
-            // if (frame_index >= 0) // frame skipping
-            //   observation.add_frame(player, state, frame_index);
+            if (frame_index >= 0) // frame skipping
+              observation.add_frame(player, state, frame_index);
 
             last_player = &player;
             last_frame_index = frame_index;
@@ -564,7 +564,12 @@ template <bool renderable>
 
         void close() override {
             #ifdef RENDERABLE
-                renderer->close_program();
+                if (renderer) {
+                    renderer->close_program();
+                }
+                else {
+                    std::cerr << "Error: renderer is null in GoBiggerEnvironment and RENDERABLE is TRUE" << std::endl;
+                }
                 // glfwTerminate();
                 // glDeleteProgram(renderer->shader.program);
             #endif
