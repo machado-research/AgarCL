@@ -397,8 +397,6 @@ class AgarioEnv(gym.Env):
                 for frame in self.video_recorder:
                     if not isinstance(frame, np.ndarray):
                         raise TypeError("Error: A frame is not a numpy array.")
-                    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    cv2.imwrite(f"{path}/frame_{self.steps}.png", rgb_frame)
                     video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))  # Ensure correct format
 
 
