@@ -16,7 +16,7 @@
     "reward_type": "diff",
     "render_mode": "rgb_array",
     "num_agents": 1,
-    "c_death": -100,
+    "c_death": 0,
     "agent_view": true,
     "add_noise" : true,
     "mode": 1

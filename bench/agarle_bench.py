@@ -49,7 +49,7 @@ default_config = {
     'render_mode'    : "rgb_array", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
     'num_agents'     :  1,
-    'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
+    'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
     'mode'          : 1,
