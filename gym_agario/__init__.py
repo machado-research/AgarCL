@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
 File: __init__.py
-Date: 1/27/19 
-Author: Jon Deaton (jdeaton@stanford.edu)
+Date: 1/27/19 -05/12/23
+Author: Jon Deaton (jdeaton@stanford.edu) - Mohamed Ayman (mamoham3@ualberta.ca)
 """
 
 import agarle

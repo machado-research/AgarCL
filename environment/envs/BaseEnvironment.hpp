@@ -46,17 +46,18 @@ namespace agario {
         int num_bots,
         bool reward_type,
         int c_death = 0,
-        bool agent_view = false
+        int mode_number = 0
       ):
         num_agents_(num_agents),
         dones_(num_agents),
-        engine_(arena_size, arena_size, num_pellets, num_viruses, pellet_regen, agent_view),
+        engine_(arena_size, arena_size, num_pellets, num_viruses, pellet_regen, mode_number),
         ticks_per_step_(ticks_per_step),
         num_bots_(num_bots),
         reward_type_(reward_type),
         step_dt_(DEFAULT_DT),
         c_death_(c_death)
       {
+        std::cout <<"Mode Number: " <<  mode_number << std::endl;
         pids_.reserve(num_agents);
         reset();
       }

@@ -1,0 +1,23 @@
+{
+    "ticks_per_step": 4,
+    "num_frames": 1,
+    "arena_size": 250,
+    "num_pellets": 200,
+    "num_viruses": 10,
+    "num_bots": 8,
+    "pellet_regen": true,
+    "grid_size": 84,
+    "screen_len": 84,
+    "observe_cells": false,
+    "observe_others": false,
+    "observe_viruses": false,
+    "observe_pellets": false,
+    "obs_type": "screen",
+    "reward_type": "diff",
+    "render_mode": "rgb_array",
+    "num_agents": 1,
+    "c_death": 0,
+    "agent_view": true,
+    "add_noise" : true,
+    "mode": 2
+}

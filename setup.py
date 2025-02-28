@@ -60,9 +60,9 @@ with open("README.md", "r") as f:
 
 setup(name='GymAgario',
       version='0.0.1',
-      author="Jon Deaton",
-      author_email="jonpauldeaton@gmail.com",
-      description="Agar.io RL gym",
+      author="Jon Deaton - modified by Mohamed Ayman",
+      author_email="mamoham3@ualberta.ca",
+      description="Agar.io as continual learning environment for OpenAI Gym",
       url="https://github.com/jondeaton/AgarLE",
       install_requires=["gymnasium~=0.29", "numpy"],
       packages=["gym_agario"],

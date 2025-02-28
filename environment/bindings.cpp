@@ -151,7 +151,7 @@ PYBIND11_MODULE(agarle, module) {
 
  py::class_<ScreenEnvironment>(module, "ScreenEnvironment")
 
-   .def(pybind11::init<int, int, int, bool, int, int, int, int, int, screen_len, screen_len, bool, bool>())
+   .def(pybind11::init<int, int, int, bool, int, int, int,bool,int, int, screen_len, screen_len, bool>())
    .def("seed", &ScreenEnvironment::seed)
    .def("observation_shape", &ScreenEnvironment::observation_shape)
    .def("dones", &ScreenEnvironment::dones)
@@ -275,8 +275,8 @@ PYBIND11_MODULE(agarle, module) {
       .def("update_global_state", &GoBiggerObservation::update_global_state)
       .def("update_player_state", &GoBiggerObservation::update_player_state,
           py::arg("player_id"),
-          py::arg("food_infos"),    
-          py::arg("virus_infos"), 
+          py::arg("food_infos"),
+          py::arg("virus_infos"),
           py::arg("spore_infos"),
           py::arg("clone_infos"),
           py::arg("team_name"),
@@ -310,7 +310,7 @@ PYBIND11_MODULE(agarle, module) {
           py::arg("reward_type"),
           py::arg("c_death") = 0,
           py::arg("agent_view") = false)
-      
+
       .def("configure_observation", [](GoBiggerEnv &env, const py::dict &config) {
 
       int num_frames = config.contains("num_frames")      ? config["num_frames"].cast<int>() : 1;

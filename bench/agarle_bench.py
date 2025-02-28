@@ -33,13 +33,13 @@ import tqdm
 default_config = {
     'ticks_per_step':  4,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      250,
-    'num_pellets':     200,
-    'num_viruses':     10,
-    'num_bots':        8,
+    'arena_size':      350,
+    'num_pellets':     400,
+    'num_viruses':     0,
+    'num_bots':        0,
     'pellet_regen':    True,
-    'grid_size':       84,
-    'screen_len':      84,
+    'grid_size':       128,
+    'screen_len':      128,
     'observe_cells':   False,
     'observe_others':  False,
     'observe_viruses': False,
@@ -49,8 +49,10 @@ default_config = {
     'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
     'num_agents'     :  1,
-    'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
-    'agent_view' : False,
+    'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
+    'agent_view'     : True,
+    'add_noise'     : True,
+    'mode'          : 1,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'
@@ -79,7 +81,7 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 1000
+    num_episodes = 2
 
     import matplotlib.pyplot as plt
 
@@ -98,10 +100,25 @@ def main():
                 action = (target_space.sample(), 0)
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
+            if(done):
+                env.reset()
+                env.enable_video_recorder()
             # Calculate SPS (Steps Per Second) for the episode
         episode_elapsed_time = time.time() - episode_start_time
         episode_SPS = episode_steps / episode_elapsed_time
         SPS_VALUES.append(episode_SPS)
+        print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
+
+    env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
+    # Plotting SPS values
+    plt.figure()
+    plt.plot(SPS_VALUES)
+    plt.xlabel('Step')
+    plt.ylabel('SPS (Steps Per Second)')
+    plt.title('Steps Per Second over Time')
+    plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
+    plt.close()
+
 
     # screen_len = default_config['screen_len']
     # with open(f'sps_values_{screen_len}_{args.seed}_CPUs.csv', 'w', newline='') as csvfile:
@@ -114,7 +131,7 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=1, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=500, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     parser.add_argument("--seed", default=0, type=int , help="Seed for running the environment")
     env_options = parser.add_argument_group("Environment")
