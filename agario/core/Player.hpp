@@ -178,7 +178,7 @@ class Player {
 
     template <bool r = renderable>
     typename std::enable_if<r, void>::type
-    add_cells(std::vector<Cell> &new_cells) {
+    add_cells(std::vector<Cell> &new_cells, bool is_colorized = true) {
       for (auto &cell : new_cells)
         cell.set_color(color());
 
