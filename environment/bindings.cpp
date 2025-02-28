@@ -296,7 +296,7 @@ PYBIND11_MODULE(agarle, module) {
   using GoBiggerEnv = agario::env::GoBiggerEnvironment<renderable>;
 
   py::class_<GoBiggerEnv>(module, "GoBiggerEnvironment")
-      .def(py::init<int, int, int, int, int, int, bool, int, int, int, bool, int, bool>(),
+      .def(py::init<int, int, int, int, int, int, bool, int, int, int, bool, int, int, bool>(),
           py::arg("map_width"),
           py::arg("map_height"),
           py::arg("frame_limit"),
@@ -309,6 +309,7 @@ PYBIND11_MODULE(agarle, module) {
           py::arg("num_bots"),
           py::arg("reward_type"),
           py::arg("c_death") = 0,
+          py::arg("mode_number") = 0,
           py::arg("agent_view") = false)
 
       .def("configure_observation", [](GoBiggerEnv &env, const py::dict &config) {

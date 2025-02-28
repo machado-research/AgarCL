@@ -173,6 +173,8 @@ class AgarioEnv(gym.Env):
     def _make_video_observation(self, observation):
         if self.obs_type == "grid":
             return self._env.get_frame()
+        elif self.obs_type == "gobigger":
+            return self._env.get_frame()
         else:
             if not self.agent_view:
                 return observation
@@ -265,7 +267,7 @@ class AgarioEnv(gym.Env):
             screen_len = kwargs.get("screen_len", 84)
             self.agent_view = kwargs.get("agent_view", False)
 
-            args += (screen_len, screen_len)
+            args = base_args  + (screen_len, screen_len)
             args += (self.agent_view, )
             env = agarle.ScreenEnvironment(*args)
             observation_space = spaces.Box(low=0, high=255, shape=env.observation_shape(), dtype=np.uint8)
@@ -277,12 +279,13 @@ class AgarioEnv(gym.Env):
             agent_view  = kwargs.get("agent_view", False)
 
 
+
             # GoBiggerEnvironment(map_width, map_height, frame_limit,
             #                     num_agents, ticks_per_step, arena_size,
             #                     pellet_regen, num_pellets, num_viruses,
             #                     num_bots, reward_type, c_death, agent_view)
-            args = (map_width, map_height, frame_limit) + base_args + (agent_view,)
-            env = agarle.GoBiggerEnvironment(*args)
+            full_args = (map_width, map_height, frame_limit) + base_args + (agent_view,)
+            env = agarle.GoBiggerEnvironment(*full_args)
             # Here we assume that the observation is returned as a NumPy array;
             # adjust dtype and bounds as necessary.
             shape = env.observation_shape()

@@ -179,7 +179,7 @@ namespace agario::env {
             std::string get_team_name() const { return team_name; }
             int get_player_id() const { return player_id; }
 
-        
+
         private:
             int player_id;
             std::vector<FoodInfo> food_infos;
@@ -189,7 +189,7 @@ namespace agario::env {
             std::string team_name;
             double score;
             bool can_eject;
-            bool can_split;        
+            bool can_split;
     };
 
 
@@ -222,7 +222,7 @@ namespace agario::env {
             std::unordered_map<int, PlayerState> player_states;
     };
 
-   
+
 //-----------------------------------------------
 // GoBiggerObservation
 //-----------------------------------------------
@@ -497,8 +497,9 @@ template <bool renderable>
         explicit GoBiggerEnvironment(int map_width, int map_height, int frame_limit, int num_agents,
                                      int ticks_per_step, int arena_size, bool pellet_regen, int num_pellets,
                                      int num_viruses, int num_bots, bool reward_type, int c_death = 0,
+                                     int mode_number = 0,
                                      bool agent_view = false)
-            : Super(num_agents, ticks_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type),
+            : Super(num_agents, ticks_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, mode_number),
               observation(map_width, map_height, frame_limit, 0, num_agents),
               last_frame_index(0),
               last_player(nullptr),
@@ -512,7 +513,7 @@ template <bool renderable>
                 #endif
               }
 
-        
+
         template <typename ...Config>
         void configure_observation(Config&&... config) {
             observations.clear();

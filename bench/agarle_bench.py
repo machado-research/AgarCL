@@ -44,7 +44,7 @@ default_config = {
     'observe_others':  False,
     'observe_viruses': False,
     'observe_pellets': False,
-    'obs_type'       : "gobigger",   #Two options: screen, grid
+    'obs_type'       : "grid",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
@@ -52,7 +52,7 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 1,
+    'mode'          : 2,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'
