@@ -369,7 +369,7 @@ namespace agario::env {
       explicit GridEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
                                int num_pellets, int num_viruses, int num_bots, bool reward_type=0) :
         Super(num_agents, ticks_per_step, arena_size, pellet_regen,
-              num_pellets, num_viruses, num_bots,reward_type),
+              num_pellets, num_viruses, num_bots,reward_type , 0, 0),
         frame_observation(ticks_per_step, 512, 512),
         frame_buffer(std::make_shared<FrameBufferObject>(512, 512)) {
 
@@ -465,7 +465,7 @@ namespace agario::env {
         for (int frame_index = 0; frame_index < frame_observation.num_frames(); ++frame_index) {
             renderer->render_screen(*last_player, this->engine_.game_state());
             void *data = frame_observation.frame_data(frame_index);
-            frame_buffer->copy(data);
+            frame_buffer->copy(data, 0);
         }
       }
 #endif

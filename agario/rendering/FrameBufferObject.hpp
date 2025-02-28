@@ -92,7 +92,7 @@ public:
 #endif
   }
 
-  void copy(void *data) {
+  void copy(void *data, bool agent_view) {
     glReadBuffer(GL_BACK);
 
 #ifdef USE_EGL
@@ -101,7 +101,8 @@ public:
     exception_on_gl_error("ReadBuffer");
 #endif
     // glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glReadPixels(0, 0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, data); // for rgb_array render mode
+
+    glReadPixels(0, 0, _width, _height, (agent_view == true ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, data); // for rgb_array render mode
 
 #ifdef USE_EGL
     exception_on_egl_error("ReadPixels");

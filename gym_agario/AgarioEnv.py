@@ -58,9 +58,11 @@ from typing import List, Tuple
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
-
+import cv2
+import os
 import agarle
-
+from .agar_utils import get_color_array, Color
+import random
 class AgarioEnv(gym.Env):
     metadata = {'render_modes': ['human','rgb_array'], 'render_fps': 60}
 
@@ -73,7 +75,7 @@ class AgarioEnv(gym.Env):
         self._env, self.observation_space = self._make_environment(obs_type, kwargs)
         self.steps = None
         self.obs_type = obs_type
-
+        self.agent_view = False
         self.action_space = spaces.Tuple((
             # (dx, dy) movemment vector
             spaces.Box(low=-1, high=1, shape=(2,)),
@@ -82,6 +84,11 @@ class AgarioEnv(gym.Env):
         ))
         self.render_mode = render_mode
 
+        self.video_recorder = []
+        self.video_recorder_enabled = False
+
+        self.agent_view  = kwargs.get("agent_view", False)
+        self.add_noise = kwargs.get("add_noise", True)
         self._seed = None
 
     def step(self, actions):
@@ -108,13 +115,18 @@ class AgarioEnv(gym.Env):
         # observe the new state of the environment for each agent
         self.observations = self._make_observations()
 
+        #Assume it is only one agent -> Needs a fix for multi-agent
+        if(self.video_recorder_enabled== True):
+            self.video_recorder.append(self._make_video_observation(self.observations[0]))
+
         # get the "done" status of each agent
         dones = self._env.dones()
         assert len(dones) == self.num_agents
 
         # set the "truncation" status of each agent to 'False'
         truncations = [False] * len(dones)
-
+        if(self.steps >= 500):
+            dones = [True] * len(dones)
         # unwrap observations, rewards, dones if not mult-agent
         if not self.multi_agent:
             self.observations = self.observations[0]
@@ -122,8 +134,10 @@ class AgarioEnv(gym.Env):
             dones = dones[0]
             truncations = truncations[0]
 
+
+
         self.steps += 1
-        return self.observations, rewards, dones, truncations, {'steps': self.steps}
+        return self.observations, rewards, dones, truncations, {'steps': self.steps, 'untransformed_rewards': rewards}
 
     def reset(self, **kwargs):
         """ resets the environment
@@ -132,7 +146,7 @@ class AgarioEnv(gym.Env):
         self.steps = 0
         self._env.reset()
         obs = self._make_observations()
-        return obs if self.multi_agent else obs[0]
+        return obs if self.multi_agent else obs[0], {}
 
     def render(self):
         # to do: if statements should be changed to self.render_mode, where:
@@ -154,6 +168,33 @@ class AgarioEnv(gym.Env):
 
     def close(self):
         self._env.close()
+
+
+    def _make_video_observation(self, observation):
+        if self.obs_type == "grid":
+            return self._env.get_frame()
+        else:
+            if not self.agent_view:
+                return observation
+            else:
+                observation = observation[0]
+                RGB_obs = np.zeros_like(observation[..., :3])
+                RGB_obs.fill(255)  # White background
+
+                pellets_mask = observation[..., 0] == 255
+                bots_mask = observation[..., 1] == 255
+                virus_mask  = observation[..., 2] == 255
+                main_agent_mask = observation[..., 3] == 230
+                grid_lines_mask = observation[..., 3] == 26
+
+                RGB_obs[pellets_mask] = get_color_array(Color.BLUE)
+                RGB_obs[bots_mask] = get_color_array(Color.PURPLE)
+                RGB_obs[virus_mask] = get_color_array(Color.GREEN)
+                RGB_obs[main_agent_mask] = get_color_array(Color.RED)
+                RGB_obs[grid_lines_mask] = [26, 0, 0]
+
+                return RGB_obs
+
 
     def _make_observations(self):
         """ creates an observation object from the underlying environment
@@ -219,11 +260,10 @@ class AgarioEnv(gym.Env):
             # in the underlying C++ code
 
             screen_len = kwargs.get("screen_len", 84)
-            c_death = kwargs.get("c_death", 0)
-            allow_respawn = kwargs.get("allow_respawn", True)
+            self.agent_view = kwargs.get("agent_view", False)
 
             args += (screen_len, screen_len)
-            args += (c_death, allow_respawn)
+            args += (self.agent_view, )
             env = agarle.ScreenEnvironment(*args)
             observation_space = spaces.Box(low=0, high=255, shape=env.observation_shape(), dtype=np.uint8)
 
@@ -245,7 +285,13 @@ class AgarioEnv(gym.Env):
 
         # make sure that the actions are well-formed
         for action in actions:
-            if action not in self.action_space:
+            # Add noise to the action
+            noise = [0,0]
+            if  self.add_noise == True:
+                noise = np.random.normal(0, 0.1, size=(2,))
+            action = ((np.clip(action[0][0] + noise[0], -1, 1), np.clip(action[0][1] + noise[1], -1, 1)), action[1])
+            #make sure the action is in the action space
+            if not (self.action_space[0].contains(action[0]) and self.action_space[1].contains(action[1])):
                 raise ValueError(f"action {action} not in action space")
 
         # gotta format the action for the underlying module.
@@ -274,8 +320,8 @@ class AgarioEnv(gym.Env):
         num_frames = 1
         arena_size = 1000
         num_pellets = 1000
-        num_viruses = 25
-        num_bots = 25
+        num_viruses = 0
+        num_bots = 0
         pellet_regen = True
         allow_respawn = True
         reward_type   = 1 #means diff
@@ -307,6 +353,7 @@ class AgarioEnv(gym.Env):
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
         self.reward_type     = kwargs.get("reward_type", reward_type)
         self.c_death         = kwargs.get("c_death", -100)
+        self.mode            = kwargs.get("mode", 0)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
 
@@ -316,7 +363,7 @@ class AgarioEnv(gym.Env):
 
         return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
-               self.num_viruses, self.num_bots, self.reward_type
+               self.num_viruses, self.num_bots, self.reward_type, self.c_death, self.mode
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility
@@ -324,3 +371,37 @@ class AgarioEnv(gym.Env):
             self._seed = seed
             self._env.seed(seed)
             return [self._seed]
+
+    def enable_video_recorder(self):
+        self.video_recorder_enabled = True
+
+    def disable_video_recorder(self):
+        self.video_recorder_enabled = False
+
+
+    def generate_video(self, path, video_name):
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)  # Create directory if it doesn't exist
+
+        full_path = os.path.join(path, video_name)
+
+        if self.video_recorder_enabled:
+            if len(self.video_recorder) > 0:
+                sz = (self.video_recorder[0].shape[1], self.video_recorder[0].shape[0])  # Get width and height correctly
+                fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+
+                video = cv2.VideoWriter(full_path, fourcc, 60.0, sz)
+                if not video.isOpened():
+                    raise RuntimeError("Error: VideoWriter failed to open.")
+
+                for frame in self.video_recorder:
+                    if not isinstance(frame, np.ndarray):
+                        raise TypeError("Error: A frame is not a numpy array.")
+                    video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))  # Ensure correct format
+
+
+                video.release()
+            else:
+                print("No frames to generate video")
+        else:
+            print("Video recorder is not enabled. Please enable it before generating video")
