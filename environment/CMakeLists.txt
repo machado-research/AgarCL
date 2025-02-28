@@ -77,7 +77,7 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
 
     target_include_directories(agarle PRIVATE "..")
     target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw )
+    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
 
 else()
 
