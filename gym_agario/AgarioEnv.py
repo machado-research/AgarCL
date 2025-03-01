@@ -171,7 +171,7 @@ class AgarioEnv(gym.Env):
 
 
     def _make_video_observation(self, observation):
-        if self.obs_type == "grid":
+        if self.obs_type == "grid" or self.obs_type == "gobigger":
             return self._env.get_frame()[0]
         else:
             if not self.agent_view:
@@ -202,7 +202,6 @@ class AgarioEnv(gym.Env):
         :return: An observation object
         """
         states = self._env.get_state()
-        print( len(states), self.num_agents )
         assert len(states) == self.num_agents
 
         if self.obs_type in ("grid", ):
@@ -281,7 +280,7 @@ class AgarioEnv(gym.Env):
             # GoBiggerEnvironment(map_width, map_height, frame_limit,
             #                     num_agents, ticks_per_step, arena_size,
             #                     pellet_regen, num_pellets, num_viruses,
-            #                     num_bots, reward_type, c_death, agent_view)
+            #                     num_bots, reward_type, c_death,mode_number, agent_view)
             full_args = (map_width, map_height, frame_limit) + base_args + (agent_view,)
             env = agarle.GoBiggerEnvironment(*full_args)
             # Here we assume that the observation is returned as a NumPy array;

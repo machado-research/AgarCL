@@ -325,6 +325,16 @@ PYBIND11_MODULE(agarle, module) {
     })
       // Bind additional methods as needed.
       .def("get_state", &get_state_goBigger)
+      .def("get_frame", []( GoBiggerEnv &env) {
+        auto& observation = env.get_frame();
+        auto data = (void *)observation.frame_data();
+        auto shape = observation.frame_shape();
+        auto strides = observation.frame_strides();
+        auto format = py::format_descriptor<std::uint8_t>::format();
+        auto buffer = py::buffer_info(data, sizeof(std::uint8_t), format, shape.size(), shape, strides);
+        auto arr = py::array_t<std::uint8_t>(buffer);
+        return arr;
+      })
       .def("take_actions", [](GoBiggerEnv &env, const py::list &actions) {
         env.take_actions(to_action_vector(actions));
       })

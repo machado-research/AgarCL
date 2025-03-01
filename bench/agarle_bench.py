@@ -44,7 +44,7 @@ default_config = {
     'observe_others':  False,
     'observe_viruses': False,
     'observe_pellets': False,
-    'obs_type'       : "grid",   #Two options: screen, grid
+    'obs_type'       : "gobigger",   #Three options: screen, grid, gobigger
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,

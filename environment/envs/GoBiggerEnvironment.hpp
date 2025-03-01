@@ -499,11 +499,13 @@ template <bool renderable>
                                      int num_viruses, int num_bots, bool reward_type, int c_death = 0,
                                      int mode_number = 0,
                                      bool agent_view = false)
-            : Super(num_agents, ticks_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, mode_number),
+            : Super(num_agents, ticks_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death, mode_number),
               observation(map_width, map_height, frame_limit, 0, num_agents),
               last_frame_index(0),
               last_player(nullptr),
+              frame_observation(1, 512, 512),
               frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {
+                std::cout << "GO BIGGER: Mode Number: "<< mode_number << std::endl;
                 observations.push_back(observation);
 
                 #ifdef RENDERABLE
@@ -580,6 +582,27 @@ template <bool renderable>
                 frame_buffer -> show();
             #endif
         }
+        FrameObservation& get_frame() {
+            save_frames();
+            return frame_observation;
+          }
+
+          std::tuple<int, int, int, int> frame_observation_shape() const {
+              std::vector<int> shape_vec = frame_observation.frame_shape();
+              return std::make_tuple(shape_vec[0], shape_vec[1], shape_vec[2], shape_vec[3]);
+            }
+
+            void save_frames() {
+#ifdef RENDERABLE
+            if (last_player != nullptr) {
+              for (int frame_index = 0; frame_index < frame_observation.num_frames(); ++frame_index) {
+                  renderer->render_screen(*last_player, this->engine_.game_state());
+                  void *data = frame_observation.frame_data(frame_index);
+                  frame_buffer->copy(data, 0);
+              }
+            }
+#endif
+        }
 
         void close() override {
             #ifdef RENDERABLE
@@ -598,7 +621,7 @@ template <bool renderable>
         int last_frame_index;
         Player *last_player;
         observationType observation;
-
+        FrameObservation frame_observation;
         std::vector<observationType> observations;
 
 
