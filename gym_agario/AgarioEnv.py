@@ -172,7 +172,7 @@ class AgarioEnv(gym.Env):
 
     def _make_video_observation(self, observation):
         if self.obs_type == "grid":
-            return self._env.get_frame()
+            return self._env.get_frame()[0]
         else:
             if not self.agent_view:
                 return observation
@@ -236,7 +236,6 @@ class AgarioEnv(gym.Env):
                 'observe_pellets': True,
                 'c_death': 0,
             }
-            import pdb; pdb.set_trace()
             env = agarle.GridEnvironment(*args)
             env.configure_observation(kwargs | grid_defaults)
 
@@ -398,6 +397,8 @@ class AgarioEnv(gym.Env):
                 for frame in self.video_recorder:
                     if not isinstance(frame, np.ndarray):
                         raise TypeError("Error: A frame is not a numpy array.")
+                    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    cv2.imwrite(f"{path}/frame_0.png", rgb_frame)
                     video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))  # Ensure correct format
 
 
