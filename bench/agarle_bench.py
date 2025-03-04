@@ -53,6 +53,7 @@ default_config = {
     'agent_view'     : True,
     'add_noise'     : True,
     'mode'          : 1,
+    'number_steps'  : 500,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'

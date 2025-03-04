@@ -87,8 +87,9 @@ class AgarioEnv(gym.Env):
         self.video_recorder = []
         self.video_recorder_enabled = False
 
-        self.agent_view  = kwargs.get("agent_view", False)
-        self.add_noise = kwargs.get("add_noise", True)
+        self.agent_view            = kwargs.get("agent_view", False)
+        self.add_noise             = kwargs.get("add_noise", True)
+        self.number_of_steps       = kwargs.get("number_steps", 500)
         self._seed = None
 
     def step(self, actions):
@@ -125,7 +126,7 @@ class AgarioEnv(gym.Env):
 
         # set the "truncation" status of each agent to 'False'
         truncations = [False] * len(dones)
-        if(self.steps >= 500):
+        if(self.steps >=  self.number_of_steps):
             dones = [True] * len(dones)
         # unwrap observations, rewards, dones if not mult-agent
         if not self.multi_agent:
