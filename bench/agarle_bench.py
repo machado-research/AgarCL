@@ -52,7 +52,7 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 1,
+    'mode'          : 2,
     'number_steps'  : 500,
 }
 
@@ -80,7 +80,7 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 2
+    num_episodes = 20
 
     import matplotlib.pyplot as plt
 
@@ -95,42 +95,30 @@ def main():
             global_step += 1
             episode_steps += 1
             for i in range(num_agents):
-                target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
-                action = (target_space.sample(), 0)
+                c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
+                d_target_space = gym.spaces.Discrete(3)
+                action = (c_target_space.sample(), d_target_space.sample())
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
-            if(done):
+            episode_reward += reward
+            if done:
                 env.reset()
-                env.enable_video_recorder()
-            # Calculate SPS (Steps Per Second) for the episode
-        episode_elapsed_time = time.time() - episode_start_time
-        episode_SPS = episode_steps / episode_elapsed_time
-        SPS_VALUES.append(episode_SPS)
-        print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
-    env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
-    # Plotting SPS values
-    plt.figure()
-    plt.plot(SPS_VALUES)
-    plt.xlabel('Step')
-    plt.ylabel('SPS (Steps Per Second)')
-    plt.title('Steps Per Second over Time')
-    plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
-    plt.close()
+        episode_rewards.append(episode_reward)
 
-
-    screen_len = default_config['screen_len']
-    with open(f'sps_values_{screen_len}_{args.seed}_CPUs.csv', 'w', newline='') as csvfile:
+    # Save rewards to CSV
+    with open(f'episodic_rewards_{args.seed}.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['Episode', 'SPS'])
-        for i, sps in enumerate(SPS_VALUES):
-            writer.writerow([i, sps])
+        writer.writerow(['Episode', 'Reward'])
+        for i, reward in enumerate(episode_rewards):
+            writer.writerow([i + 1, reward])
+
     env.close()
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=500, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=501, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     parser.add_argument("--seed", default=0, type=int , help="Seed for running the environment")
     env_options = parser.add_argument_group("Environment")
