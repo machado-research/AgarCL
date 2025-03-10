@@ -224,7 +224,17 @@ PYBIND11_MODULE(agarle, module) {
       .def("get_map_width", &agario::env::GlobalState::get_map_width)
       .def("get_map_height", &agario::env::GlobalState::get_map_height)
       .def("get_frame_limit", &agario::env::GlobalState::get_frame_limit)
-      .def("get_team_num", &agario::env::GlobalState::get_team_num);
+      .def("get_team_num", &agario::env::GlobalState::get_team_num)
+      .def("__str__", [](const agario::env::GlobalState &gs) -> std::string {
+      std::ostringstream oss;
+      oss << "GlobalState(";
+      oss << "map_width=" << gs.get_map_width() << ", ";
+      oss << "map_height=" << gs.get_map_height() << ", ";
+      oss << "frame_limit=" << gs.get_frame_limit() << ", ";
+      oss << "team_num=" << gs.get_team_num();
+      oss << ")";
+      return oss.str();
+    });
 
   // Bind PlayerStats
   py::class_<agario::env::PlayerState>(module, "PlayerState")
@@ -265,8 +275,18 @@ PYBIND11_MODULE(agarle, module) {
       .def("update_player_state", &agario::env::PlayerStates::update_player_state)
       .def("get_player_state", &agario::env::PlayerStates::get_player_state)
       .def("get_all_player_states", &agario::env::PlayerStates::get_all_player_states,
-            py::return_value_policy::reference_internal);
-
+            py::return_value_policy::reference_internal)
+      .def("__str__", [](const agario::env::PlayerStates &ps) -> std::string {
+      std::ostringstream oss;
+      oss << "PlayerStates:\n";
+      for (const auto &pair : ps.get_all_player_states()) {
+          const auto &state = pair.second;
+          oss << "  Player " << state.get_player_id() << ": ";
+          oss << "score=" << state.get_score() << ", ";
+          oss << "team_name=\"" << state.get_team_name() << "\"\n";
+      }
+      return oss.str();
+    });
   // Bind GoBiggerObservation
   using GoBiggerObservation = agario::env::GoBiggerObservation<renderable>;
   py::class_<GoBiggerObservation>(module, "GoBiggerObservation")
