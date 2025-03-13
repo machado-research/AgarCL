@@ -29,6 +29,8 @@ std::vector<T> to_vector(Tuple&& tuple) {
 py::list get_state_goBigger(const agario::env::GoBiggerEnvironment<renderable>& environment) {
     py::list state_list;
     // For each observation in our environment...
+    
+    /*
     for (auto &observation : environment.get_observations()) {
         py::dict obs_dict;
         // Put the two “maps” into a dict. These are already bound separately.
@@ -36,6 +38,12 @@ py::list get_state_goBigger(const agario::env::GoBiggerEnvironment<renderable>& 
         obs_dict["player_states"] = observation.get_player_states();
         state_list.append(obs_dict);
     }
+    */
+    py::dict obs_dict;
+    auto observation = environment.get_obs();
+    obs_dict["global_state"] = observation.get_global_state();
+    obs_dict["player_states"] = observation.get_player_states();
+    state_list.append(obs_dict);
     return state_list;
 }
 
@@ -283,6 +291,10 @@ PYBIND11_MODULE(agarle, module) {
           const auto &state = pair.second;
           oss << "  Player " << state.get_player_id() << ": ";
           oss << "score=" << state.get_score() << ", ";
+          oss << "food_seen=" << state.get_food_infos().size() << ", ";
+          oss << "virus_seen=" << state.get_virus_infos().size() << ", ";
+          oss << "spores_seen=" << state.get_spore_infos().size() << ", ";
+          oss << "no_clone=" << state.get_clone_infos().size() << ", ";
           oss << "team_name=\"" << state.get_team_name() << "\"\n";
       }
       return oss.str();
