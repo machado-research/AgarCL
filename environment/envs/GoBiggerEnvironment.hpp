@@ -173,6 +173,10 @@ namespace agario::env {
             bool canSplit() const { return can_split; }
             double get_score() const { return score; }
             const std::vector<FoodInfo>& get_food_infos() const { return food_infos; }
+            void clear_food_infos() { food_infos.clear(); }
+            void clear_virus_infos() { virus_infos.clear(); }
+            void clear_spore_infos() { spore_infos.clear(); }
+            void clear_clone_infos() { clone_infos.clear(); }
             const std::vector<VirusInfo>& get_virus_infos() const { return virus_infos; }
             const std::vector<SporeInfo>& get_spore_infos() const { return spore_infos; }
             const std::vector<CloneInfo>& get_clone_infos() const { return clone_infos; }
@@ -187,7 +191,7 @@ namespace agario::env {
             std::vector<SporeInfo> spore_infos;
             std::vector<CloneInfo> clone_infos;
             std::string team_name;
-            double score;
+            agario::score score;
             bool can_eject;
             bool can_split;
     };
@@ -200,13 +204,29 @@ namespace agario::env {
 
             void update_player_state(int player_id, PlayerState player_state) {
                 player_states[player_id] = player_state;
+
             }
 
             PlayerState get_player_state(int player_id) {
                 auto it = player_states.find(player_id);
                 if (it == player_states.end()) {
-                    throw std::out_of_range("Player id not found in player_states mapping");
-                }
+
+                    std::cerr << "Player id not found in player_states mapping, so creating one" << std::endl;
+
+                    // Create a dummmy player state
+                    PlayerState ps(player_id,
+                                std::vector<FoodInfo>{},
+                                std::vector<VirusInfo>{},
+                                std::vector<SporeInfo>{},
+                                std::vector<CloneInfo>{},
+                                "dummy",    // team_name (empty by default)
+                                0.0,   // score
+                                true, // can_eject
+                                true  // can_split
+                                );
+                    update_player_state(player_id, ps);
+                    return get_player_state(player_id);
+                    }
                 return it->second;
             }
 
@@ -223,6 +243,7 @@ namespace agario::env {
     };
 
 
+// Need to add a clear method
 //-----------------------------------------------
 // GoBiggerObservation
 //-----------------------------------------------
@@ -278,9 +299,27 @@ namespace agario::env {
                                     int frame_limit, int last_frame,
                                     int team_num)
         : global_state(map_width, map_height, frame_limit, last_frame, team_num),
-            player_states(std::unordered_map<int, PlayerState>{}),
+          player_states(std::unordered_map<int, PlayerState>{}),
+
+        //   player_states([team_num]() -> std::unordered_map<int, PlayerState> {
+        //         std::unordered_map<int, PlayerState> temp;
+        //         for (int i = 0; i < team_num; ++i) {
+        //             temp.emplace(i, PlayerState(i,
+        //                                         std::vector<FoodInfo>{},
+        //                                         std::vector<VirusInfo>{},
+        //                                         std::vector<SporeInfo>{},
+        //                                         std::vector<CloneInfo>{},
+        //                                         "",    // team_name (empty by default)
+        //                                         0.0,   // score
+        //                                         false, // can_eject
+        //                                         false  // can_split
+        //                                         ));
+        //         }
+        //         return temp;
+        //      }()),
             no_frames(0),
-            config_(1, DEFAULT_GRID_SIZE, true, true, true, true)  {} // to change to use actual config args
+            config_(1, DEFAULT_GRID_SIZE, true, true, true, true)  {
+            } // to change to use actual config args
 
         // Add a constructor that uses the configuration
         template <typename ...Args>
@@ -329,6 +368,7 @@ namespace agario::env {
                         can_eject,
                         can_split);
             player_states.update_player_state(player_id, ps);
+
         }
 
         const GlobalState& get_global_state()   const { return global_state; }
@@ -337,12 +377,28 @@ namespace agario::env {
         const PlayerState& get_player_state(int player_id) const {
             int tnum = global_state.get_team_num();
             assert(player_id < tnum && "Player ID >= team num!");
-            const auto& m = player_states.get_all_player_states();
-            auto it = m.find(player_id);
-            if (it == m.end()) {
-                throw std::out_of_range("Player id not found in player_states mapping");
-            }
-            return it->second;
+
+            return player_states.get_player_state(player_id);
+            // const auto& m = player_states.get_all_player_states();
+            // auto it = m.find(player_id);
+            // if (it == m.end()) {
+            //     std::cerr << "Player id not found in player_states mapping, so creating one" << std::endl;
+
+            //     // Create a dummmy player state
+            //     PlayerState ps(player_id,
+            //                 std::vector<FoodInfo>{},
+            //                 std::vector<VirusInfo>{},
+            //                 std::vector<SporeInfo>{},
+            //                 std::vector<CloneInfo>{},
+            //                 "",    // team_name (empty by default)
+            //                 0.0,   // score
+            //                 false, // can_eject
+            //                 false  // can_split
+            //                 );
+            //     player_states.update_player_state(player_id, ps);
+            //     return player_states.get_player_state(player_id);
+            // }
+            // return it->second;
         }
 
         size_t length() const {
@@ -397,6 +453,7 @@ namespace agario::env {
             float view_size = _view_size(player);
 
             int grid_x = 0, grid_y = 0;
+
             for (auto &entity : entities) {
                 _world_to_grid(player, entity.location(), view_size, grid_x, grid_y);
 
@@ -443,6 +500,7 @@ namespace agario::env {
                     else {
                         throw std::runtime_error("Unknown entity type in _store_entities");
                     }
+                    ps.update_score(player.mass());
                     // commit updated player state
                     player_states.update_player_state(pid, ps);
                 }
@@ -453,9 +511,9 @@ namespace agario::env {
                             const GameState &game_state,
                             int frame_index)
         {
-            if (observation_data.empty()) {
-                throw EnvironmentException("GoBiggerObservation was not configured.");
-            }
+            // if (observation_data.empty()) {
+            //     throw EnvironmentException("GoBiggerObservation was not configured.");
+            // }
 
             update_global_state(frame_index);
             no_frames++;
@@ -466,7 +524,12 @@ namespace agario::env {
             for (auto const &[pid, pl] : game_state.players) {
                 auto pstate = player_states.get_player_state(pid);
 
+                // std::cout << "Storing entities to Player ID: " << pid << std::endl;
 
+                pstate.clear_food_infos();
+                pstate.clear_virus_infos();
+                pstate.clear_spore_infos();
+                pstate.clear_clone_infos();
                 _store_entities<Virus>(game_state.viruses, *pl, pstate,
                        pid, channel, calc_type::total_mass_);
                 _store_entities<Pellet>(game_state.pellets, *pl, pstate,
@@ -477,6 +540,12 @@ namespace agario::env {
                         pid, channel, calc_type::total_mass_);
 
             }
+        }
+
+        void clear() {
+            player_states.clear();
+            observation_data.clear();
+            no_frames = 0;
         }
     };
 
@@ -519,6 +588,7 @@ template <bool renderable>
         template <typename ...Config>
         void configure_observation(Config&&... config) {
             observations.clear();
+            observation.configure(std::forward<Config>(config)...);
             for (int i = 0; i < this->num_agents(); i++)
             {
                 GoBiggerObservation<renderable> obs(
@@ -549,7 +619,8 @@ template <bool renderable>
 
             auto &state = this->engine_.game_state();
             // We store in the observation the last `num_frames` frames between each step.
-            int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
+            int frame_index = 0;
+
             if (frame_index >= 0) // frame skipping
               observation.add_frame(player, state, frame_index);
 
@@ -564,6 +635,8 @@ template <bool renderable>
         }
 
         const std::vector<observationType> &get_observations() const { return observations; }
+
+        const observationType &get_obs() const { return observation; }
 
 
         void render() override {
@@ -615,6 +688,13 @@ template <bool renderable>
                 // glfwTerminate();
                 // glDeleteProgram(renderer->shader.program);
             #endif
+        }
+
+        void reset() {
+            BaseEnvironment<renderable>::reset();
+            observation.clear();
+            last_frame_index = 0;
+            last_player = nullptr;
         }
 
     private:
