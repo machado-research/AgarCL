@@ -949,6 +949,8 @@ namespace agario {
 
       auto dir = (player_target - cell.location()).normed();
       auto loc = cell.location() + dir * cell.radius();
+      loc.x = std::clamp(loc.x, cell.radius(), arena_width() - cell.radius());
+      loc.y = std::clamp(loc.y, cell.radius(), arena_height() - cell.radius());
       Velocity vel(dir * split_speed(split_mass));
 
       // todo: add constructor that takes splitting velocity (and color)
