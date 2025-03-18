@@ -233,7 +233,7 @@ namespace agario::env {
         _partial_observation(player, tick_index);
         if (player.dead())
         {
-          // to do: modify for respawn == True
+
           this->dones_[agent_index] = true;
           return;
         }

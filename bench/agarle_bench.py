@@ -35,7 +35,7 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
     'num_pellets':     400,
-    'num_viruses':     0,
+    'num_viruses':     10,
     'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       128,
@@ -44,16 +44,17 @@ default_config = {
     'observe_others':  False,
     'observe_viruses': False,
     'observe_pellets': False,
-    'obs_type'       : "grid",   #Two options: screen, grid
+    'obs_type'       : "screen",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
-    'render_mode'    : "rgb_array", # Two options: "human", "rgb_array"
+    'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
     'num_agents'     :  1,
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 1,
+    'mode'          : 0,
     'number_steps'  : 500,
+    'env_type'      : 1, #0 -> episodic or 1 - > continuing
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'
@@ -80,17 +81,17 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 2
+    num_episodes = 1
 
     import matplotlib.pyplot as plt
 
     episode_rewards = []
-
+    env.enable_video_recorder()
     for iter in tqdm.tqdm(range(num_episodes), desc="Benchmarking Progress"):
         episode_reward = 0
         episode_start_time = time.time()
         episode_steps = 0
-        for _ in range(args.num_steps):
+        for t in range(args.num_steps):
             agent_actions = []
             global_step += 1
             episode_steps += 1
@@ -99,9 +100,10 @@ def main():
                 action = (target_space.sample(), 0)
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
+            env.render()
             if(done):
                 env.reset()
-                env.enable_video_recorder()
+                # env.enable_video_recorder()
             # Calculate SPS (Steps Per Second) for the episode
         episode_elapsed_time = time.time() - episode_start_time
         episode_SPS = episode_steps / episode_elapsed_time
@@ -110,13 +112,13 @@ def main():
 
     env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
     # Plotting SPS values
-    plt.figure()
-    plt.plot(SPS_VALUES)
-    plt.xlabel('Step')
-    plt.ylabel('SPS (Steps Per Second)')
-    plt.title('Steps Per Second over Time')
-    plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
-    plt.close()
+    # plt.figure()
+    # plt.plot(SPS_VALUES)
+    # plt.xlabel('Step')
+    # plt.ylabel('SPS (Steps Per Second)')
+    # plt.title('Steps Per Second over Time')
+    # plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
+    # plt.close()
 
 
     screen_len = default_config['screen_len']
@@ -130,7 +132,7 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=500, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=5000, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     parser.add_argument("--seed", default=0, type=int , help="Seed for running the environment")
     env_options = parser.add_argument_group("Environment")

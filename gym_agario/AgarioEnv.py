@@ -90,6 +90,8 @@ class AgarioEnv(gym.Env):
         self.agent_view            = kwargs.get("agent_view", False)
         self.add_noise             = kwargs.get("add_noise", True)
         self.number_of_steps       = kwargs.get("number_steps", 500)
+        self.mode                  = kwargs.get("mode", 0)
+        self.env_type              = kwargs.get("env_type", 0) #0 -> Episodic or 1 -> Continuing
         self._seed = None
 
     def step(self, actions):
@@ -126,7 +128,7 @@ class AgarioEnv(gym.Env):
 
         # set the "truncation" status of each agent to 'False'
         truncations = [False] * len(dones)
-        if(self.steps >=  self.number_of_steps):
+        if(self.steps >=  self.number_of_steps and self.mode != 0 and self.env_type == 0): #Episodic
             dones = [True] * len(dones)
         # unwrap observations, rewards, dones if not mult-agent
         if not self.multi_agent:
