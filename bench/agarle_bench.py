@@ -81,7 +81,7 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 1
+    num_episodes = 20
 
     import matplotlib.pyplot as plt
 
@@ -96,8 +96,9 @@ def main():
             global_step += 1
             episode_steps += 1
             for i in range(num_agents):
-                target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
-                action = (target_space.sample(), 0)
+                c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
+                d_target_space = gym.spaces.Discrete(3)
+                action = (c_target_space.sample(), d_target_space.sample())
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
             env.render()
@@ -120,13 +121,13 @@ def main():
     # plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
     # plt.close()
 
-
-    screen_len = default_config['screen_len']
-    with open(f'sps_values_{screen_len}_{args.seed}_CPUs.csv', 'w', newline='') as csvfile:
+    # Save rewards to CSV
+    with open(f'episodic_rewards_{args.seed}.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['Episode', 'SPS'])
-        for i, sps in enumerate(SPS_VALUES):
-            writer.writerow([i, sps])
+        writer.writerow(['Episode', 'Reward'])
+        for i, reward in enumerate(episode_rewards):
+            writer.writerow([i + 1, reward])
+
     env.close()
 
 def parse_args():
