@@ -57,10 +57,6 @@ default_config = {
     'env_type'      : 0, #0 -> episodic or 1 - > continuing
 }
 
-# config_file = 'bench/tasks_configs/Exploration.json'
-# with open(config_file, 'r') as file:
-#     default_config = eval(file.read())
-#     default_config = {k: (v.lower() == 'true' if isinstance(v, str) and v.lower() in ['true', 'false'] else v) for k, v in default_config.items()}
 
 def main():
 
@@ -81,12 +77,12 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 1
-
+    total_steps =  5 * 10**6
+    num_episodes = (total_steps // args.num_steps)
+    print(f"Total Steps: {total_steps}, Num Episodes: {num_episodes}")
     import matplotlib.pyplot as plt
 
     episode_rewards = []
-    env.enable_video_recorder()
     for iter in tqdm.tqdm(range(num_episodes), desc="Benchmarking Progress"):
         episode_reward = 0
         episode_start_time = time.time()
@@ -102,35 +98,23 @@ def main():
                 agent_actions.append(action)
             state, reward, done, truncations, step_num = env.step(agent_actions)
             total_reward += reward
-            with open('step_rewards.csv', 'a', newline='') as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerow([global_step, reward, total_reward])
-            # env.render()
             if(done):
                 env.reset()
-                # env.enable_video_recorder()
-            # Calculate SPS (Steps Per Second) for the episode
-        episode_elapsed_time = time.time() - episode_start_time
-        episode_SPS = episode_steps / episode_elapsed_time
-        SPS_VALUES.append(episode_SPS)
-        print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
-    env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
-    # Plotting SPS values
-    # plt.figure()
-    # plt.plot(SPS_VALUES)
-    # plt.xlabel('Step')
-    # plt.ylabel('SPS (Steps Per Second)')
-    # plt.title('Steps Per Second over Time')
-    # plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
-    # plt.close()
+
+        episode_rewards.append(total_reward)
 
     # Save rewards to CSV
-    # with open(f'episodic_rewards_{args.seed}.csv', 'w', newline='') as csvfile:
-    #     writer = csv.writer(csvfile)
-    #     writer.writerow(['Episode', 'Reward'])
-    #     for i, reward in enumerate(episode_rewards):
-    #         writer.writerow([i + 1, reward])
+    import os
+    output_dir = 'random_walk_mode'
+    # Ensure the output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, f'episodic_rewards_{args.seed}.csv')
+    with open(output_file, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Episode', 'Reward'])
+        for i, reward in enumerate(episode_rewards):
+            writer.writerow([i + 1, reward])
 
     env.close()
 

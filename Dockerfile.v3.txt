@@ -67,12 +67,6 @@ RUN  apt-get update && apt-get install -y \
     sudo apt-get clean && \
     sudo rm -rf /var/lib/apt/lists/*
 
-# install bazel, needed for google-benchmark installation
-RUN wget https://github.com/bazelbuild/bazelisk/releases/download/v1.15.0/bazelisk-linux-amd64 && \
-    chmod +x bazelisk-linux-amd64 && \
-    sudo mv bazelisk-linux-amd64 /usr/local/bin/bazel
-WORKDIR /home/newuser
-
 # Set clang++ as the default C++ compiler
 RUN sudo apt-get remove -y gcc
 RUN sudo apt-get update -y
@@ -80,57 +74,22 @@ RUN sudo apt-get install -y clang
 RUN sudo apt-get install -y libgbm-dev libdrm-dev
 ENV CXX=clang++
 
-# Clone AgarLE-benchmark and install dependencies
-RUN git clone https://${GITHUB_TOKEN}@github.com/machado-research/AgarLE-benchmark.git && \
-    cd AgarLE-benchmark && \
-    git fetch --all && \
-    git checkout -b reward_stats origin/reward_stats && \
-    git submodule init && \
-    git config submodule.modules/agar.url https://${GITHUB_TOKEN}@github.com/machado-research/AgarLE.git && \
-    git submodule update && \
-    cd modules/agar/ && \
-    git fetch --all && \
-    git checkout -b egl origin/egl && \
-    git submodule init && \
-    git submodule update
-RUN sudo apt-get update -y
 
-# Install GLM
-WORKDIR /home/newuser/AgarLE-benchmark/modules/agar
-RUN mkdir -p build && cd build && \
-    git clone https://github.com/g-truc/glm && \
-    cd glm && \
-    cmake -DGLM_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -B build . && \
-    cmake --build build --target all && \
-    cmake --build build --target install
-
-# Install Cxxopts
-WORKDIR /home/newuser/AgarLE-benchmark/modules/agar/build
-RUN git clone https://github.com/jarro2783/cxxopts.git && \
-    cd cxxopts && \
-    cmake . && make
-
-
-# Install Benchmarking Tools
-WORKDIR /home/newuser/AgarLE-benchmark/modules/agar
-RUN cd build && \
-    git clone https://github.com/google/benchmark.git && \
-    cd benchmark && \
-    mkdir build && cd build
-WORKDIR /home/newuser/AgarLE-benchmark/modules/agar/build/benchmark/build
-RUN cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../ && \
-    cmake --build ../build --config Release && \
-    cmake --build ../build --config Release --target install
+# Install AgarLE
+WORKDIR /home/newuser
+RUN git clone --recursive https://$GITHUB_TOKEN@github.com/machado-research/AgarLE.git
+RUN git clone https://$GITHUB_TOKEN@github.com/machado-research/AgarLE-benchmark.git
 WORKDIR /home/newuser/AgarLE-benchmark
-RUN python3 -m pip install --upgrade pip
+RUN python setup.py install --user
+
 # && \
     # sudo pip3 install -r requirements.txt
-# RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-WORKDIR /home/newuser/AgarLE-benchmark/modules/agar
-RUN python3 setup.py install
-USER newuser
+RUN pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu124
+RUN pip install git+https://github.com/mayman150/pfrl.git@gymnasium_support
 
-RUN sudo chown -R newuser:newuser /home/newuser/AgarLE-benchmark
-
-#additional files
-RUN sudo apt install nano
+RUN sudo apt-get install -y libglib2.0-0
+RUN pip install tqdm
+RUN pip install opencv-python
+RUN pip install matplotlib
+RUN pip install packaging
+RUN pip install wandb
