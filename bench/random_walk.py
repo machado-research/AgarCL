@@ -101,7 +101,6 @@ def main():
             env.reset()
             episode_rewards.append(episode_reward)
             episode_reward = 0
-            import pdb; pdb.set_trace()
 
 
     # Save rewards to CSV
