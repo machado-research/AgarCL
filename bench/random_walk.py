@@ -52,7 +52,7 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 3,
+    'mode'          : 4,
     'number_steps'  : 3000,
     'env_type'      : 0, #0 -> episodic or 1 - > continuing
 }
@@ -78,31 +78,31 @@ def main():
     start_time = time.time()
     total_reward = 0
     total_steps =  5 * 10**6
-    num_episodes = (total_steps // args.num_steps)
-    print(f"Total Steps: {total_steps}, Num Episodes: {num_episodes}")
+    # num_episodes = (total_steps // args.num_steps)
+    # print(f"Total Steps: {total_steps}, Num Episodes: {num_episodes}")
     import matplotlib.pyplot as plt
 
     episode_rewards = []
-    for iter in tqdm.tqdm(range(num_episodes), desc="Benchmarking Progress"):
-        episode_reward = 0
+    episode_reward = 0
+    for iter in tqdm.tqdm(range(total_steps), desc="Benchmarking Progress"):
+        # episode_reward = 0
         episode_start_time = time.time()
-        episode_steps = 0
-        for t in range(args.num_steps):
-            agent_actions = []
-            global_step += 1
-            episode_steps += 1
-            for i in range(num_agents):
-                c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
-                d_target_space = gym.spaces.Discrete(3)
-                action = (c_target_space.sample(), d_target_space.sample())
-                agent_actions.append(action)
-            state, reward, done, truncations, step_num = env.step(agent_actions)
-            total_reward += reward
-            if(done):
-                env.reset()
+        agent_actions = []
+        global_step += 1
+        # episode_steps += 1
+        for i in range(num_agents):
+            c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
+            d_target_space = gym.spaces.Discrete(3)
+            action = (c_target_space.sample(), d_target_space.sample())
+            agent_actions.append(action)
+        state, reward, done, truncations, step_num = env.step(agent_actions)
+        episode_reward += reward
+        if(done):
+            env.reset()
+            episode_rewards.append(episode_reward)
+            episode_reward = 0
+            import pdb; pdb.set_trace()
 
-
-        episode_rewards.append(total_reward)
 
     # Save rewards to CSV
     import os

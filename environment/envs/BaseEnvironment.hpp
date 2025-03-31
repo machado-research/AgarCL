@@ -10,8 +10,8 @@
 #include <dependencies/json.hpp>
 #include <tuple>
 
-// 60 frames per second: the default amount of time between frames of the game
-#define DEFAULT_DT (1.0 / 20)
+// 30 frames per second: the default amount of time between frames of the game
+#define DEFAULT_DT (1.0 / 30.0)
 
 namespace agario {
   namespace env {
