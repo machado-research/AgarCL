@@ -81,13 +81,13 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    num_episodes = 1
+    num_steps = args.num_steps
 
     import matplotlib.pyplot as plt
 
     episode_rewards = []
     env.enable_video_recorder()
-    for iter in tqdm.tqdm(range(num_episodes), desc="Benchmarking Progress"):
+    for iter in tqdm.tqdm(range(num_steps), desc="Benchmarking Progress"):
         episode_reward = 0
         episode_start_time = time.time()
         episode_steps = 0
