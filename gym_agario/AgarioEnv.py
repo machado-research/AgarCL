@@ -184,18 +184,17 @@ class AgarioEnv(gym.Env):
                 RGB_obs = np.zeros_like(observation[..., :3])
                 RGB_obs.fill(255)  # White background
 
-                pellets_mask = observation[..., 0] == 255
+                pellets_mask = observation[..., 0] != 255
                 bots_mask = observation[..., 1] == 255
                 virus_mask  = observation[..., 2] == 255
-                main_agent_mask = observation[..., 3] == 230
-                grid_lines_mask = observation[..., 3] == 26
+                main_agent_mask = (observation[..., 3] <= 230) & (observation[..., 3] > 30)
+                grid_lines_mask = observation[..., 3] <= 30
 
                 RGB_obs[pellets_mask] = get_color_array(Color.BLUE)
                 RGB_obs[bots_mask] = get_color_array(Color.PURPLE)
                 RGB_obs[virus_mask] = get_color_array(Color.GREEN)
                 RGB_obs[main_agent_mask] = get_color_array(Color.RED)
                 RGB_obs[grid_lines_mask] = [26, 0, 0]
-
                 return RGB_obs
 
 

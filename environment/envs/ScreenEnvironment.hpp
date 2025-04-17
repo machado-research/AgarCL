@@ -53,20 +53,20 @@ namespace agario::env {
           // we have 4 channels : 0 1 2 3 (r g b a) (i%4) => (0,1,2,3)
           // data[i+3] = 0;
           // 26 is the value of GridLines
-          if(i%4 == 3 && data[i] != 26 && data[i] != 230)
+          if(i%4 == 3 && (data[i] == 0 && data[i] == 255))
           {
             // two conditions: Above me is a gridLine. If so, make me a gridLine too. Vertical GridLine
             int above_Gline_index = i - _width * (PIXEL_LEN + multi_channel_obs);
             int above_above_Gline_index = above_Gline_index - _width * (PIXEL_LEN + multi_channel_obs);
-            if(above_above_Gline_index >= 0 && data[above_Gline_index] !=0 && data[above_above_Gline_index]==26)
-              data[i] = 26;
+            if(above_above_Gline_index >= 0 && data[above_Gline_index] !=0 && data[above_above_Gline_index]<=30)
+              data[i] = data[above_above_Gline_index];
             else
               data[i] = 0; // make it transparent
           }
 
           if(data[i] != 0 && i%4 != 3)
           {
-              if(data[i] == 26 || data[i] == 230)
+              if(data[i] <= 30 || data[i] <= 230)
               {
                 data[i + (3 - i%4)] = data[i];
                 data[i] = 0;
@@ -78,8 +78,8 @@ namespace agario::env {
                 int prev_Gline_index = i - i%4 - 1;
                 int prev_prev_Gline_index = prev_Gline_index - 4;
 
-                if(prev_prev_Gline_index >= 0 && data[prev_prev_Gline_index] == 26 && data[prev_Gline_index] == 26)
-                  data[i + (3 - i%4)] = 26;
+                if(prev_prev_Gline_index >= 0 && data[prev_prev_Gline_index]<=30 && data[prev_Gline_index] <= 30)
+                  data[i + (3 - i%4)] = data[prev_Gline_index];
               }
           }
         }
