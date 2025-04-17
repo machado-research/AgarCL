@@ -91,29 +91,28 @@ def main():
         episode_reward = 0
         episode_start_time = time.time()
         episode_steps = 0
-        for t in range(args.num_steps):
-            agent_actions = []
-            global_step += 1
-            episode_steps += 1
-            for i in range(num_agents):
-                c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
-                d_target_space = gym.spaces.Discrete(3)
-                action = (c_target_space.sample(), d_target_space.sample())
-                agent_actions.append(action)
-            state, reward, done, truncations, step_num = env.step(agent_actions)
-            total_reward += reward
-            with open('step_rewards.csv', 'a', newline='') as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerow([global_step, reward, total_reward])
-            # env.render()
-            if(done):
-                env.reset()
-                # env.enable_video_recorder()
-            # Calculate SPS (Steps Per Second) for the episode
-        episode_elapsed_time = time.time() - episode_start_time
-        episode_SPS = episode_steps / episode_elapsed_time
-        SPS_VALUES.append(episode_SPS)
-        print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
+        agent_actions = []
+        global_step += 1
+        episode_steps += 1
+        for i in range(num_agents):
+            c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
+            d_target_space = gym.spaces.Discrete(3)
+            action = (c_target_space.sample(), d_target_space.sample())
+            agent_actions.append(action)
+        state, reward, done, truncations, step_num = env.step(agent_actions)
+        total_reward += reward
+        with open('step_rewards.csv', 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([global_step, reward, total_reward])
+        # env.render()
+        if(done):
+            env.reset()
+            # env.enable_video_recorder()
+        # Calculate SPS (Steps Per Second) for the episode
+    episode_elapsed_time = time.time() - episode_start_time
+    episode_SPS = episode_steps / episode_elapsed_time
+    SPS_VALUES.append(episode_SPS)
+    print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
     env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
     # Plotting SPS values
