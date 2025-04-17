@@ -11,7 +11,9 @@ class Color(Enum):
     GREEN = 4
     BLUE = 5
     PURPLE = 6
-    LAST = 7
+    WHITE = 7
+    BLACK = 8
+    LAST = 9
 
 red_color = np.array([1.0, 0.0, 0.0]) * 255
 blue_color = np.array([0.0, 0.0, 1.0]) * 255
@@ -20,6 +22,7 @@ orange_color = np.array([1.0, 0.65, 0.0]) * 255
 purple_color = np.array([0.6, 0.2, 0.8]) * 255
 yellow_color = np.array([1.0, 1.0, 0.0]) * 255
 black_color = np.array([0.0, 0.0, 0.0]) * 255
+white_color = np.array([1.0, 1.0, 1.0]) * 255
 
 
 def random_color():
@@ -38,5 +41,9 @@ def get_color_array(c):
         return purple_color
     elif c == Color.YELLOW:
         return yellow_color
+    elif c == Color.WHITE:
+        return white_color
+    elif c == Color.BLACK:
+        return black_color
     else:
         raise ValueError("Not a color")
