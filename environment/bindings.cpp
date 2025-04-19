@@ -110,7 +110,7 @@ PYBIND11_MODULE(agarle, module) {
     .def("step", &GridEnvironment::step)
     .def("get_state", &get_state<GridEnvironment>)
     .def("close", &GridEnvironment::close)
-    .def("save", &GridEnvironment::save);
+    .def("save_env_state", &GridEnvironment::save_env_state);
   /* ================ Ram Environment ================ */
   // using RamEnvironment = agario::env::RamEnvironment<renderable>;
 
@@ -161,7 +161,8 @@ PYBIND11_MODULE(agarle, module) {
       return obs;
     })
     .def("close", &ScreenEnvironment::close)
-    .def("save", &ScreenEnvironment::save);
+    .def("load_env_state", &ScreenEnvironment::load_env_state)
+    .def("save_env_state", &ScreenEnvironment::save_env_state);
   module.attr("has_screen_env") = py::bool_(true);
 
 #else

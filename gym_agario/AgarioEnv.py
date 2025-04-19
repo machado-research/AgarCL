@@ -166,8 +166,11 @@ class AgarioEnv(gym.Env):
             if self.obs_type == "grid":
                 return  self._env.get_frame()
 
-    def save(self, filename):
-        self._env.save(filename)
+    def load_env_state(self, filename):
+        self._env.load_env_state(filename)
+
+    def save_env_state(self, filename):
+        self._env.save_env_state(filename)
 
     def close(self):
         self._env.close()

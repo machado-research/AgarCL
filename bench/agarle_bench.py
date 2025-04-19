@@ -35,8 +35,8 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
     'num_pellets':     500,
-    'num_viruses':     0,
-    'num_bots':        0,
+    'num_viruses':     5,
+    'num_bots':        5,
     'pellet_regen':    True,
     'grid_size':       128,
     'screen_len':      128,
@@ -87,6 +87,7 @@ def main():
 
     episode_rewards = []
     env.enable_video_recorder()
+    env.load_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
     for iter in tqdm.tqdm(range(num_steps), desc="Benchmarking Progress"):
         episode_reward = 0
         episode_start_time = time.time()
@@ -113,8 +114,8 @@ def main():
     episode_SPS = episode_steps / episode_elapsed_time
     SPS_VALUES.append(episode_SPS)
     print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
-
-    env.generate_video('/home/mamm/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
+    env.save_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
+    env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
     # Plotting SPS values
     # plt.figure()
     # plt.plot(SPS_VALUES)

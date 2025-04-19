@@ -6,10 +6,10 @@
 #include <agario/core/Ball.hpp>
 #include <agario/bots/bots.hpp>
 #include "agario/engine/GameState.hpp"
- #include <fstream>
+#include <fstream>
 #include <dependencies/json.hpp>
 #include <tuple>
-
+#include <agario/utils/json.hpp>
 // 30 frames per second: the default amount of time between frames of the game
 #define DEFAULT_DT (1.0 / 30.0)
 
@@ -115,10 +115,6 @@ namespace agario {
         return masses_;
       }
 
-      void save(const std::string &filename) const {
-      }
-
-
       /* take an action for each agent */
       void take_actions(const std::vector<Action> &actions) {
         if (actions.size() != num_agents())
@@ -159,6 +155,10 @@ namespace agario {
 
       /* resets the environment by resetting the game engine. */
       void reset() {
+
+        if(this->is_loading_env_state == true)
+          return;
+
         engine_.reset();
         pids_.clear();
         c_death_ = 0;
@@ -186,7 +186,127 @@ namespace agario {
 
       virtual void render() {};
 
-      void seed (int s) { engine_.seed(s); }
+      void seed (int s) { engine_.seed(s); seed_ = s; }
+      // Save the environment state to a file
+      void save_env_state(const std::string &filename) const {
+        using json = nlohmann::json;
+
+        // std::ifstream in_file(filename);
+        // json agarcl_data = json::parse(in_file);
+        json agarcl_data = json::object();
+
+        agarcl_data["num_agents"] = num_agents_;
+        agarcl_data["ticks_per_step"] = ticks_per_step_;
+        agarcl_data["arena_size"] = static_cast<int>(engine_.arena_width());
+        agarcl_data["num_bots"] = num_bots_;
+        agarcl_data["reward_type"] = reward_type_;
+        agarcl_data["seed"] = seed_;
+        agarcl_data["c_death"] = c_death_;
+        agarcl_data["mode_number"] = engine_.mode_number;
+        agarcl_data["pellet_regen"] = engine_.pellet_regen();
+        agarcl_data["pellet_count"] = engine_.pellet_count();
+
+        //Get the data for the player:
+        agarcl_data["players"] = json::array();
+        for (const auto &[pid, player] : engine_.players()) {
+            nlohmann::json player_data;
+            player_data["pid"] = pid;
+            player_data["name"] = player->name(); // Add the player's name
+            player_data["target_x"] = static_cast<float>(player->target.x);
+            player_data["target_y"] = static_cast<float>(player->target.y);
+            player_data["is_bot"] = player->is_bot;
+            player_data["dead"] = player->dead();
+            player_data["split_cooldown"] = player->split_cooldown;
+            player_data["feed_cooldown"] = player->feed_cooldown;
+            player_data["virus_eaten_ticks"] = json::array();
+
+            for (const auto &tick : player->virus_eaten_ticks) {
+              player_data["virus_eaten_ticks"].push_back(tick);
+            }
+
+            agario::color player_color = player->color();
+            player_data["cells"] = json::array();
+
+            for (const auto &cell : player->cells) {
+              nlohmann::json cell_data;
+              cell_data["id"] = cell.id;
+              cell_data["x"] = static_cast<float>(cell.x);
+              cell_data["y"] = static_cast<float>(cell.y);
+              cell_data["mass"] = cell.mass();
+              cell_data["velocity_x"] = static_cast<float>(cell.velocity.dx);
+              cell_data["velocity_y"] = static_cast<float>(cell.velocity.dy);
+              cell_data["color"] = player_color;
+              player_data["cells"].push_back(cell_data);
+            }
+
+            player_data["anti_team_decay"] = player->anti_team_decay;
+            player_data["elapsed_ticks"] = player->elapsed_ticks;
+            player_data["last_decay_tick"] = player->last_decay_tick;
+            player_data["food_eaten"] = player->food_eaten;
+            player_data["highest_mass"] = player->highest_mass;
+            player_data["cells_eaten"] = player->cells_eaten;
+            player_data["viruses_eaten"] = player->viruses_eaten;
+            player_data["top_position"] = player->top_position;
+            agarcl_data["players"].push_back(player_data);
+        }
+
+        // Pellets
+        agarcl_data["pellets"] = json::array();
+        for (const auto &pellet : engine_.state.pellets) {
+          nlohmann::json pellet_data;
+          pellet_data["x"] = static_cast<float>(pellet.x);
+          pellet_data["y"] = static_cast<float>(pellet.y);
+          agarcl_data["pellets"].push_back(pellet_data);
+        }
+
+        // Viruses
+        agarcl_data["viruses"] = json::array();
+        for (const auto &virus : engine_.state.viruses) {
+          nlohmann::json virus_data;
+          virus_data["x"] = static_cast<float>(virus.x);
+          virus_data["y"] = static_cast<float>(virus.y);
+          virus_data["velocity_x"] = static_cast<float>(virus.velocity.dx);
+          virus_data["velocity_y"] = static_cast<float>(virus.velocity.dy);
+          virus_data["mass"] = static_cast<float>(virus.mass());
+          // virus_data["is_eaten"] = virus.is_eaten;
+          agarcl_data["viruses"].push_back(virus_data);
+        }
+
+        // Open the output file for writing
+        std::ofstream out_file(filename);
+        if (!out_file.is_open()) {
+            throw std::runtime_error("Failed to open " + filename + " for writing");
+        }
+
+        // Dump pretty‑printed JSON (4-space indent)
+        out_file << std::setw(4) << agarcl_data << std::endl;
+
+      }
+
+      void load_env_state(const std::string &filename) {
+        this->is_loading_env_state =  true;
+        engine_.reset_state();
+        pids_.clear();
+        pids_.reserve(num_agents_);
+        c_death_ = 0;
+
+        engine_.load_env_state(filename);
+
+        int i = 0;
+        for(auto &pair : engine_.state.players){
+          auto pid = pair.first;
+          auto player = pair.second;
+          if(player->is_bot) continue;
+          engine_.state.main_agent_pid = pid;
+          pids_.emplace_back(pid);
+          std::cout << pid << " " << player->name() << std::endl;
+          dones_[i] = false;
+          i++;
+        }
+
+        for (int agent_index = 0; agent_index < num_agents(); agent_index++)
+            this->_partial_observation(agent_index, 0);
+      }
 
     protected:
       Engine <renderable> engine_;
@@ -198,6 +318,7 @@ namespace agario {
       const int num_bots_;
       const agario::time_delta step_dt_;
       const bool reward_type_;
+      int seed_ = 0;
       /* allows subclass to do something special at the beginning of each step */
       virtual void _step_hook() {};
 
@@ -205,6 +326,9 @@ namespace agario {
        * intermediate frames between the start and end of a "step" */
       virtual void _partial_observation(int agent_index, int tick_index) {};
       virtual void _partial_observation(Player &player, int tick_index) {};
+
+
+
 
     private:
       /* adds the specified number of bots to the game */
@@ -234,6 +358,7 @@ namespace agario {
           }
         }
       }
+      bool is_loading_env_state = false;
 
     };
 
