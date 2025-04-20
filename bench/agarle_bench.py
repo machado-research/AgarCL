@@ -52,8 +52,8 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 3,
-    'number_steps'  : 3000,
+    'mode'          : 1,
+    'number_steps'  : 500,
     'env_type'      : 0, #0 -> episodic or 1 - > continuing
 }
 
@@ -136,7 +136,7 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=3000, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=500, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     parser.add_argument("--seed", default=0, type=int , help="Seed for running the environment")
     env_options = parser.add_argument_group("Environment")

@@ -42,7 +42,7 @@ namespace agario {
           int mode_number = 0) :
       state(agario::GameConfig(arena_width, arena_height, num_pellets, num_viruses, pellet_regen))
     {
-      set_mode(3);
+      set_mode(mode_number);
       std::srand(std::chrono::system_clock::now().time_since_epoch().count());
     }
     Engine() : Engine(DEFAULT_ARENA_WIDTH, DEFAULT_ARENA_HEIGHT) {}
