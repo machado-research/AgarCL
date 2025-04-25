@@ -368,6 +368,7 @@ namespace agario::env {
                         can_eject,
                         can_split);
             player_states.update_player_state(player_id, ps);
+            std::cout << "Updated player state for player ID: " << player_id << std::endl;
 
         }
 
@@ -589,7 +590,7 @@ template <bool renderable>
         void configure_observation(Config&&... config) {
             observations.clear();
             observation.configure(std::forward<Config>(config)...);
-            for (int i = 0; i < this->num_agents(); i++)
+            for (int i = 0; i < this->pids_.size(); i++)
             {
                 GoBiggerObservation<renderable> obs(
                     observation.get_global_state().get_map_width(),
@@ -690,9 +691,26 @@ template <bool renderable>
             #endif
         }
 
-        void reset() {
+        void reset() override {
+            std::cout << "Resetting GoBiggerEnvironment" << std::endl;
             BaseEnvironment<renderable>::reset();
             observation.clear();
+            for ( auto &pid: this->pids_ )
+            {   
+                observation.update_player_state(pid,
+                    std::vector<FoodInfo>{},
+                    std::vector<VirusInfo>{},
+                    std::vector<SporeInfo>{},
+                    std::vector<CloneInfo>{},
+                    "",    // team_name (empty by default)
+                    0.0,   // score
+                    true, // can_eject
+                    true  // can_split
+                );
+
+                // observations.push_back(observation);
+
+            }
             last_frame_index = 0;
             last_player = nullptr;
         }
