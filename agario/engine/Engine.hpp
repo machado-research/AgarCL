@@ -222,7 +222,7 @@ namespace agario {
           // }
             add_viruses(state.config.target_num_viruses - state.viruses.size());
         }
-    }
+      }
       state.ticks++;
 
     }
@@ -362,7 +362,6 @@ namespace agario {
       int mx_num_viruses = std::min(arena_height(), arena_width())/virus_radius;
         for (int v = 0; v < n; v++)
           state.viruses.emplace_back(random_location(virus_radius));
-
     }
 
     /**
