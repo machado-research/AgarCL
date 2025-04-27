@@ -198,17 +198,23 @@ PYBIND11_MODULE(agarle, module) {
   // Bind the info structs.
   py::class_<agario::env::FoodInfo>(module, "FoodInfo")
       .def_readwrite("position", &agario::env::FoodInfo::position)
+      .def("get_position_x", [](const agario::env::FoodInfo &f) { return f.position.x; })
+      .def("get_position_y", [](const agario::env::FoodInfo &f) { return f.position.y; })
       .def_readwrite("radius", &agario::env::FoodInfo::radius)
       .def_readwrite("score", &agario::env::FoodInfo::score);
 
   py::class_<agario::env::VirusInfo>(module, "VirusInfo")
       .def_readwrite("position", &agario::env::VirusInfo::position)
+      .def("get_position_x", [](const agario::env::VirusInfo &f) { return f.position.x; })
+      .def("get_position_y", [](const agario::env::VirusInfo &f) { return f.position.y; })
       .def_readwrite("radius", &agario::env::VirusInfo::radius)
       .def_readwrite("score", &agario::env::VirusInfo::score)
       .def_readwrite("velocity", &agario::env::VirusInfo::velocity);
 
   py::class_<agario::env::SporeInfo>(module, "SporeInfo")
       .def_readwrite("position", &agario::env::SporeInfo::position)
+      .def("get_position_x", [](const agario::env::SporeInfo &f) { return f.position.x; })
+      .def("get_position_y", [](const agario::env::SporeInfo &f) { return f.position.y; })
       .def_readwrite("radius", &agario::env::SporeInfo::radius)
       .def_readwrite("score", &agario::env::SporeInfo::score)
       .def_readwrite("velocity", &agario::env::SporeInfo::velocity)
@@ -216,6 +222,8 @@ PYBIND11_MODULE(agarle, module) {
 
   py::class_<agario::env::CloneInfo>(module, "CloneInfo")
       .def_readwrite("position", &agario::env::CloneInfo::position)
+      .def("get_position_x", [](const agario::env::CloneInfo &f) { return f.position.x; })
+      .def("get_position_y", [](const agario::env::CloneInfo &f) { return f.position.y; })
       .def_readwrite("radius", &agario::env::CloneInfo::radius)
       .def_readwrite("score", &agario::env::CloneInfo::score)
       .def_readwrite("velocity", &agario::env::CloneInfo::velocity)
