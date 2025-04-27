@@ -375,7 +375,7 @@ namespace agario::env {
         const GlobalState& get_global_state()   const { return global_state; }
         const PlayerStates& get_player_states() const { return player_states; }
 
-        const PlayerState& get_player_state(int player_id) {
+        PlayerState get_player_state(int player_id) {
             int tnum = global_state.get_team_num();
             assert(player_id < tnum && "Player ID >= team num!");
 
