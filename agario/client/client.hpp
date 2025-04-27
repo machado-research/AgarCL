@@ -109,7 +109,7 @@ namespace agario {
       auto before = std::chrono::system_clock::now();
       int steps = 0 ;
       int mx_episode = 3000;
-      while (steps  < mx_episode) {
+      while (!window->should_close()) {
         steps++;
         auto tick_start = std::chrono::system_clock::now();
         auto dt = tick_start - before;
