@@ -375,7 +375,7 @@ namespace agario::env {
         const GlobalState& get_global_state()   const { return global_state; }
         const PlayerStates& get_player_states() const { return player_states; }
 
-        const PlayerState& get_player_state(int player_id) const {
+        const PlayerState& get_player_state(int player_id) {
             int tnum = global_state.get_team_num();
             assert(player_id < tnum && "Player ID >= team num!");
 
@@ -461,7 +461,8 @@ namespace agario::env {
                 if (_inside_grid(grid_x, grid_y)) {
                     if constexpr (std::is_same_v<U, Pellet>) {
                         FoodInfo info = {
-                            entity.location(),
+                            agario::Location(entity.location().x - player.x(),
+                                             entity.location().y - player.y()),
                             entity.radius(),
                             entity.mass()
                         };
@@ -469,7 +470,8 @@ namespace agario::env {
                     }
                     else if constexpr (std::is_same_v<U, Virus>) {
                         VirusInfo info = {
-                            entity.location(),
+                            agario::Location(entity.location().x - player.x(),
+                            entity.location().y - player.y()),
                             entity.radius(),
                             entity.mass(),
                             std::make_pair(0,0)
@@ -478,7 +480,8 @@ namespace agario::env {
                     }
                     else if constexpr (std::is_same_v<U, Food>) {
                         SporeInfo info = {
-                            entity.location(),
+                            agario::Location(entity.location().x - player.x(),
+                            entity.location().y - player.y()),
                             entity.radius(),
                             entity.mass(),
                             std::make_pair(0,0),
@@ -488,7 +491,8 @@ namespace agario::env {
                     }
                     else if constexpr (std::is_same_v<U, Cell>) {
                         CloneInfo info = {
-                            entity.location(),
+                            agario::Location(entity.location().x - player.x(),
+                            entity.location().y - player.y()),
                             entity.radius(),
                             entity.mass(),
                             std::make_pair( entity.get_velocity().dx, entity.get_velocity().dy ),
