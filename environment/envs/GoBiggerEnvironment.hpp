@@ -579,7 +579,6 @@ template <bool renderable>
               last_player(nullptr),
               frame_observation(1, 512, 512),
               frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {
-                std::cout << "GO BIGGER: Mode Number: "<< mode_number << std::endl;
                 observations.push_back(observation);
 
                 #ifdef RENDERABLE
