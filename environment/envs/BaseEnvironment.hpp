@@ -195,7 +195,7 @@ namespace agario {
     protected:
       Engine <renderable> engine_;
       std::vector<agario::pid> pids_;
-      std::vector<bool> dones_;
+      mutable std::vector<bool> dones_;
       int c_death_;
       const int num_agents_;
       const int ticks_per_step_;
