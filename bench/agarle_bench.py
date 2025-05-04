@@ -35,8 +35,8 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
     'num_pellets':     500,
-    'num_viruses':     5,
-    'num_bots':        5,
+    'num_viruses':     0,
+    'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       128,
     'screen_len':      128,
@@ -54,7 +54,7 @@ default_config = {
     'add_noise'     : True,
     'mode'          : 3,
     'number_steps'  : 3000,
-    'env_type'      : 0, #0 -> episodic or 1 - > continuing
+    'env_type'      : 1, #0 -> episodic or 1 - > continuing
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'
@@ -95,12 +95,18 @@ def main():
         agent_actions = []
         global_step += 1
         episode_steps += 1
-        for i in range(num_agents):
-            c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
-            d_target_space = gym.spaces.Discrete(3)
-            action = (c_target_space.sample(), d_target_space.sample())
-            agent_actions.append(action)
-        state, reward, done, truncations, step_num = env.step(agent_actions)
+        with open('agent_actions.csv', 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                if int(row[0]) == global_step:  # Match the global step with the row
+                    x = float(row[2].strip('()').split(',')[:2][0][7:])
+                    y = float(row[2].strip('()').split(',')[:2][1][2:-2])
+                    discrete = int(row[2].split('),')[-1][1:-1])
+                    agent_actions = [(np.array([x, y]), discrete)]
+                    break
+
+
+        state,reward, done, truncations, step_num = env.step(agent_actions[0])
         total_reward += reward
         with open('step_rewards.csv', 'a', newline='') as csvfile:
             writer = csv.writer(csvfile)
@@ -114,8 +120,8 @@ def main():
     episode_SPS = episode_steps / episode_elapsed_time
     SPS_VALUES.append(episode_SPS)
     print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
-    env.save_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
-    env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
+    # env.save_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
+    env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_videox.avi')
     # Plotting SPS values
     # plt.figure()
     # plt.plot(SPS_VALUES)

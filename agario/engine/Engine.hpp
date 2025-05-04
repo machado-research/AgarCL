@@ -267,7 +267,7 @@ namespace agario {
         auto name = player_data["name"].get<std::string>();
         auto pid_added = this->template add_player<Player>(name);
         auto &player = this->player(pid_added);
-
+        player.cells.clear();
         player.target.x = player_data["target_x"];
         player.target.y = player_data["target_y"];
         player.is_bot = player_data["is_bot"];
@@ -294,6 +294,9 @@ namespace agario {
           cell.id = cell_data["id"].get<int>();
           player.cells.push_back(std::move(cell));
         }
+        std::cout << "HEY: " << player_data<< std::endl;
+        std::cout <<  player_data["cells"].size() << std::endl;
+        std::cout << player.cells.size() << std::endl;
       }
 
       // Load pellets
