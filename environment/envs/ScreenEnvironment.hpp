@@ -157,10 +157,11 @@ namespace agario::env {
       ):
         Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death, mode_number),
         _observation(1, screen_width, screen_height, agent_view),
-        frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height)),
+        frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height, agent_view)),
         renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height()),
         multi_channel_obs(agent_view)
       {
+        multi_channel_obs = agent_view;
         if (!frame_buffer) {
           std::cerr << "Error: frame_buffer is null in ScreenEnvironment constructor" << std::endl;
         }
@@ -201,12 +202,12 @@ namespace agario::env {
       std::shared_ptr<FrameBufferObject> frame_buffer;
       agario::Renderer renderer;
 
-      void render_frame(Player &player) {
-        renderer.render_screen(player, this->engine_.game_state());
-      }
-
       void multi_channel_render_frame(Player &player) {
         renderer.multi_channel_render_screen(player, this->engine_.game_state());
+      }
+
+      void render_frame(Player &player) {
+        renderer.render_screen(player, this->engine_.game_state());
       }
 
       // stores current frame into buffer containing the next observation

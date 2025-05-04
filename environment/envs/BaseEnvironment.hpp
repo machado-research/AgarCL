@@ -45,8 +45,8 @@ namespace agario {
         int num_viruses,
         int num_bots,
         bool reward_type,
-        int c_death = 0,
-        int mode_number = 0
+        int c_death,
+        int mode_number
       ):
         num_agents_(num_agents),
         dones_(num_agents),
@@ -59,6 +59,7 @@ namespace agario {
       {
         std::cout <<"Mode Number: " <<  mode_number << std::endl;
         curr_mode_number = mode_number;
+        std::cout <<"BASE ENV - Mode Number: " <<  mode_number << std::endl;
         pids_.reserve(num_agents);
         reset();
       }
@@ -162,7 +163,7 @@ namespace agario {
       }
 
       /* resets the environment by resetting the game engine. */
-      void reset() {
+      virtual void reset() {
         engine_.reset();
         pids_.clear();
         c_death_ = 0;

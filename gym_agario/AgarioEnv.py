@@ -69,7 +69,7 @@ class AgarioEnv(gym.Env):
     def __init__(self, obs_type='grid', render_mode = None, **kwargs):
         super(AgarioEnv, self).__init__()
 
-        if obs_type not in ("ram", "screen", "grid"):
+        if obs_type not in ("ram", "screen", "grid", "gobigger"):
             raise ValueError(obs_type)
 
         self._env, self.observation_space = self._make_environment(obs_type, kwargs)
@@ -174,7 +174,7 @@ class AgarioEnv(gym.Env):
 
 
     def _make_video_observation(self, observation):
-        if self.obs_type == "grid":
+        if self.obs_type == "grid" or self.obs_type == "gobigger":
             return self._env.get_frame()[0]
         else:
             if not self.agent_view:
@@ -224,9 +224,11 @@ class AgarioEnv(gym.Env):
                     1) the environment object
                     2) observation space
         """
-        assert obs_type in ("ram", "screen", "grid")
 
-        args = self._get_env_args(kwargs)
+        assert obs_type in ("ram", "screen", "grid", "gobigger")
+
+        base_args = self._get_env_args(kwargs)
+
         if obs_type == "grid":
             grid_defaults = {
                 'num_frames': 1,
@@ -238,7 +240,7 @@ class AgarioEnv(gym.Env):
                 'observe_pellets': True,
                 'c_death': 0,
             }
-            env = agarle.GridEnvironment(*args)
+            env = agarle.GridEnvironment(*base_args)
             env.configure_observation(kwargs | grid_defaults)
 
             channels, width, height = env.observation_shape()
@@ -247,7 +249,7 @@ class AgarioEnv(gym.Env):
             observation_space = spaces.Box(-1, np.iinfo(dtype).max, shape, dtype=dtype)
 
         elif obs_type == "ram":
-            env = agarle.RamEnvironment(*args)
+            env = agarle.RamEnvironment(*base_args)
             shape = env.observation_shape()
             observation_space = spaces.Box(-np.inf, np.inf, shape)
 
@@ -264,11 +266,30 @@ class AgarioEnv(gym.Env):
             screen_len = kwargs.get("screen_len", 84)
             self.agent_view = kwargs.get("agent_view", False)
 
-            args += (screen_len, screen_len)
+            args = base_args  + (screen_len, screen_len)
             args += (self.agent_view, )
             env = agarle.ScreenEnvironment(*args)
             observation_space = spaces.Box(low=0, high=255, shape=env.observation_shape(), dtype=np.uint8)
+        elif obs_type == "gobigger":
 
+            map_width   = kwargs.get("map_width", 512)
+            map_height  = kwargs.get("map_height", 512)
+            frame_limit = kwargs.get("frame_limit", 1000)
+            agent_view  = kwargs.get("agent_view", False)
+
+
+
+            # GoBiggerEnvironment(map_width, map_height, frame_limit,
+            #                     num_agents, ticks_per_step, arena_size,
+            #                     pellet_regen, num_pellets, num_viruses,
+            #                     num_bots, reward_type, c_death,mode_number, agent_view)
+            full_args = (map_width, map_height, frame_limit) + base_args + (agent_view,)
+            env = agarle.GoBiggerEnvironment(*full_args)
+            # Here we assume that the observation is returned as a NumPy array;
+            # adjust dtype and bounds as necessary.
+            shape = env.observation_shape()
+            print( shape )
+            observation_space = spaces.Box(low=0, high=255, shape=shape, dtype=np.float32)
         else:
             raise ValueError(obs_type)
 

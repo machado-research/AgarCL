@@ -29,7 +29,7 @@ endif ()
 
 
 # Allow for USE_EGL
-option(USE_EGL "Make environments headlessly renderable" ON) # Disabled by default
+option(USE_EGL "Make environments headlessly renderable" OFF) # Disabled by default
 if (USE_EGL)
     message("Headlessly renderable")
     add_definitions(-DUSE_EGL)
@@ -40,7 +40,8 @@ endif ()
 set(AGARIO_ENVS_SOURCE
         envs/BaseEnvironment.hpp
         envs/GridEnvironment.hpp
-        envs/RamEnvironment.hpp)
+        envs/RamEnvironment.hpp
+        envs/GoBiggerEnvironment.hpp)
 
 set(AGARIO_SCREEN_ENV_SOURCE
         envs/BaseEnvironment.hpp

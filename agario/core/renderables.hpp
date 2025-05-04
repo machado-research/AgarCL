@@ -155,7 +155,6 @@ namespace agario {
       glBindVertexArray(0);
     }
 
-
     ~RenderableBall() override {
       // If you get a "function not found" compilation error
       // right here its probably because you didn't link OpenGL

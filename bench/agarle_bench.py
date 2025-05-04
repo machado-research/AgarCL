@@ -44,9 +44,9 @@ default_config = {
     'observe_others':  False,
     'observe_viruses': False,
     'observe_pellets': False,
-    'obs_type'       : "screen",   #Two options: screen, grid
+    'obs_type'       : "gobigger",   #Three options: screen, grid, gobigger
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
-    'render_mode'    : "rgb_array", # Two options: "human", "rgb_array"
+    'render_mode'    : "human", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
     'num_agents'     :  1,
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
@@ -74,6 +74,8 @@ def main():
     print(env_config)
     num_agents =  default_config['num_agents']
     env = gym.make(args.env, **env_config)
+
+    print("environment created")
     env.reset()
     env.seed(args.seed)
     states = []
