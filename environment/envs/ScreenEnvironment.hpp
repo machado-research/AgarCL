@@ -236,6 +236,7 @@ namespace agario::env {
         {
           this->engine_.respawn(player);
           // this->dones_[agent_index] = true;
+          this->is_main_player_respawned = true;
           // return;
         }
       }

@@ -88,7 +88,7 @@ namespace agario {
        */
       std::vector<reward> step() {
         this->_step_hook(); // allow subclass to set itself up for the step
-
+        is_main_player_respawned = false;
         auto before = masses<float>();
         for (int tick = 0; tick < ticks_per_step(); tick++)
           engine_.tick(step_dt_);
@@ -114,7 +114,7 @@ namespace agario {
         auto rewards = masses<reward>();
         if(reward_type_){
           for (int i = 0; i < num_agents(); ++i)
-            rewards[i] -= (before[i] - c_death_);
+            rewards[i] -= (before[i] - ((is_main_player_respawned) ? c_death_ : 0));
         }
         return rewards;
       }
@@ -181,7 +181,7 @@ namespace agario {
 
         engine_.reset();
         pids_.clear();
-        c_death_ = 0;
+        // c_death_ = 0;
         // add players
         for (int i = 0; i < num_agents_; i++) {
           auto name = "agent" + std::to_string(i);
@@ -310,7 +310,7 @@ namespace agario {
         engine_.reset_state();
         pids_.clear();
         pids_.reserve(num_agents_);
-        c_death_ = 0;
+        // c_death_ = 0;
 
         engine_.load_env_state(filename);
 
@@ -343,6 +343,7 @@ namespace agario {
       int seed_ = 0;
       int curr_mode_number = 0;
       const int max_mass = 23000;
+      bool is_main_player_respawned = false;
 
 /* allows subclass to do something special at the beginning of each step */
       virtual void _step_hook() {};
