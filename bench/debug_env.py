@@ -52,7 +52,7 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 6,
+    'mode'          : 7,
     'number_steps'  : 3000,
     'env_type'      : 1, #0 -> episodic or 1 - > continuing
     'load_env_snapshot': 0,
@@ -117,6 +117,7 @@ def main():
             writer.writerow([global_step, reward, total_reward])
         # env.render()
         if(done):
+            import pdb; pdb.set_trace()
             env.reset()
             # env.enable_video_recorder()
         # Calculate SPS (Steps Per Second) for the episode
