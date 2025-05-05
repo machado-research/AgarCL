@@ -68,11 +68,6 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Bazel for google-benchmark
-RUN wget https://github.com/bazelbuild/bazelisk/releases/download/v1.15.0/bazelisk-linux-amd64 && \
-    chmod +x bazelisk-linux-amd64 && \
-    mv bazelisk-linux-amd64 /usr/local/bin/bazel
-
 # Set clang++ as the default C++ compiler
 RUN apt-get remove -y gcc && apt-get update -y && apt-get install -y clang
 RUN apt-get install -y libgbm-dev libdrm-dev
