@@ -35,8 +35,8 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
     'num_pellets':     500,
-    'num_viruses':     100,
-    'num_bots':        50,
+    'num_viruses':     0,
+    'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       128,
     'screen_len':      128,
@@ -52,10 +52,10 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 3,
+    'mode'          : 7,
     'number_steps'  : 3000,
     'env_type'      : 1, #0 -> episodic or 1 - > continuing
-    'load_env_snapshot': 1,
+    'load_env_snapshot': 0,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'
@@ -117,6 +117,7 @@ def main():
             writer.writerow([global_step, reward, total_reward])
         # env.render()
         if(done):
+            import pdb; pdb.set_trace()
             env.reset()
             # env.enable_video_recorder()
         # Calculate SPS (Steps Per Second) for the episode

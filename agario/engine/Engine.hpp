@@ -375,6 +375,12 @@ namespace agario {
         set_mode(4);
         agent_mass = 1000;
         break;
+      case 7:
+      case 8:
+      case 9:
+      case 10:
+        set_mode(4);
+        break;
       default:
         throw EngineException("Invalid mode number");
       }

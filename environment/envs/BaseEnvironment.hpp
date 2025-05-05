@@ -95,8 +95,21 @@ namespace agario {
 
         for (int agent = 0; agent < num_agents(); agent++)
           this->_partial_observation(agent, 0);
-        repsawn_all_players();
 
+        // std::cout <<"HELLO::" << curr_mode_number << std::endl;
+        if(curr_mode_number == 0)
+            repsawn_all_players();
+        else if(curr_mode_number > 6){ //other agents and Virus mini-games
+          // if any bot dies or me, end the game (dones = true)
+          for(auto &pair : this->engine_.state.players){
+            auto pid = pair.first;
+            auto player = pair.second;
+            if(player->dead()){
+              dones_[0] = true; // assuming the first agent is the main agent
+              break;
+            }
+          }
+        }
         // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
         if(reward_type_){
@@ -165,7 +178,7 @@ namespace agario {
 
         if(this->is_loading_env_state == true)
           return;
-        std::cout << "Resetting environment" << std::endl;
+
         engine_.reset();
         pids_.clear();
         c_death_ = 0;
@@ -178,14 +191,16 @@ namespace agario {
           dones_[i] = false;
         }
 
-        add_bots();
-
+        if(curr_mode_number == 0)
+          add_bots();
+        else
+          custom_add_bot(curr_mode_number - 7);
         // the following loop is needed to "initialize" the observation object
         // with the newly reset state so that a call to `get_state` directly
         // after `reset` will return a state representing the fresh beginning
-        // for (int frame_index = 0; frame_index < ticks_per_step(); frame_index++)
-          for (int agent_index = 0; agent_index < num_agents(); agent_index++)
-            this->_partial_observation(agent_index, 0);
+
+        for (int agent_index = 0; agent_index < num_agents(); agent_index++)
+          this->_partial_observation(agent_index, 0);
       }
 
       [[nodiscard]] std::vector<bool> dones() const { return dones_; }
@@ -369,6 +384,33 @@ namespace agario {
           }
         }
       }
+
+      void custom_add_bot(int index)
+      {
+        using HungryBot = agario::bot::HungryBot<renderable>;
+        using HungryShyBot = agario::bot::HungryShyBot<renderable>;
+        using AggressiveBot = agario::bot::AggressiveBot<renderable>;
+        using AggressiveShyBot = agario::bot::AggressiveShyBot<renderable>;
+
+        switch (index) {
+          case 0:
+            engine_.template add_player<HungryBot>();
+            break;
+          case 1:
+            engine_.template add_player<HungryShyBot>();
+            break;
+          case 2:
+            engine_.template add_player<AggressiveBot>();
+            break;
+          case 3:
+            engine_.template add_player<AggressiveShyBot>();
+            break;
+          default:
+            engine_.template add_player<HungryBot>();
+            break;
+        }
+      }
+
 
     };
 

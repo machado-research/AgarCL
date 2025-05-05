@@ -2,7 +2,7 @@
 File: AgarioEnv
 Date: 2019-07-30
 Author: Jon Deaton (jonpauldeaton@gmail.com)
-
+Edited By: Mohamed Ayman Mohamed (mamoham3@ualberta.ca)
 This file wraps the Agar.io Learning Environment (agarle)
 in an OpenAI gym interface. The interface offers three different
 kinds of observation types:
