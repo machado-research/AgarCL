@@ -166,8 +166,11 @@ class AgarioEnv(gym.Env):
             if self.obs_type == "grid":
                 return  self._env.get_frame()
 
-    def save(self, filename):
-        self._env.save(filename)
+    def load_env_state(self, filename):
+        self._env.load_env_state(filename)
+
+    def save_env_state(self, filename):
+        self._env.save_env_state(filename)
 
     def close(self):
         self._env.close()
@@ -356,6 +359,7 @@ class AgarioEnv(gym.Env):
         self.reward_type     = kwargs.get("reward_type", reward_type)
         self.c_death         = kwargs.get("c_death", -100)
         self.mode            = kwargs.get("mode", 0)
+        self.load_env_snapshot   = kwargs.get("load_env_snapshot", False)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
 
@@ -365,7 +369,8 @@ class AgarioEnv(gym.Env):
 
         return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
-               self.num_viruses, self.num_bots, self.reward_type, self.c_death, self.mode
+               self.num_viruses, self.num_bots, self.reward_type, self.c_death, self.mode, \
+               self.load_env_snapshot
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility

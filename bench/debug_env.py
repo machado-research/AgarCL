@@ -35,8 +35,8 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
     'num_pellets':     500,
-    'num_viruses':     0,
-    'num_bots':        0,
+    'num_viruses':     100,
+    'num_bots':        50,
     'pellet_regen':    True,
     'grid_size':       128,
     'screen_len':      128,
@@ -52,9 +52,10 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 1,
-    'number_steps'  : 500,
-    'env_type'      : 0, #0 -> episodic or 1 - > continuing
+    'mode'          : 3,
+    'number_steps'  : 3000,
+    'env_type'      : 1, #0 -> episodic or 1 - > continuing
+    'load_env_snapshot': 1,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'
@@ -82,11 +83,10 @@ def main():
     start_time = time.time()
     total_reward = 0
     num_steps = args.num_steps
-
-    import matplotlib.pyplot as plt
-
     episode_rewards = []
     env.enable_video_recorder()
+    if args.load_env_snapshot:
+        env.load_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
     for iter in tqdm.tqdm(range(num_steps), desc="Benchmarking Progress"):
         episode_reward = 0
         episode_start_time = time.time()
@@ -94,12 +94,23 @@ def main():
         agent_actions = []
         global_step += 1
         episode_steps += 1
+        # with open('agent_actions.csv', 'r') as csvfile:
+        #     reader = csv.reader(csvfile)
+        #     for row in reader:
+        #         if int(row[0]) == global_step:  # Match the global step with the row
+        #             x = float(row[2].strip('()').split(',')[:2][0][7:])
+        #             y = float(row[2].strip('()').split(',')[:2][1][2:-2])
+        #             discrete = int(row[2].split('),')[-1][1:-1])
+        #             agent_actions = [(np.array([x, y]), discrete)]
+        #             break
         for i in range(num_agents):
             c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
             d_target_space = gym.spaces.Discrete(3)
             action = (c_target_space.sample(), d_target_space.sample())
             agent_actions.append(action)
-        state, reward, done, truncations, step_num = env.step(agent_actions)
+
+
+        state,reward, done, truncations, step_num = env.step(agent_actions[0])
         total_reward += reward
         with open('step_rewards.csv', 'a', newline='') as csvfile:
             writer = csv.writer(csvfile)
@@ -113,7 +124,8 @@ def main():
     episode_SPS = episode_steps / episode_elapsed_time
     SPS_VALUES.append(episode_SPS)
     print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
-    env.generate_video('/home/mamm/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
+    env.save_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
+    env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_videox.avi')
     # Plotting SPS values
     # plt.figure()
     # plt.plot(SPS_VALUES)
@@ -135,7 +147,7 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
 
-    parser.add_argument("-n", "--num_steps", default=500, type=int, help="Number of steps")
+    parser.add_argument("-n", "--num_steps", default=3000, type=int, help="Number of steps")
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     parser.add_argument("--seed", default=0, type=int , help="Seed for running the environment")
     env_options = parser.add_argument_group("Environment")

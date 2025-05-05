@@ -83,6 +83,8 @@ set(AGARIO_RENDERING_SRC
         rendering/FrameBufferObject.hpp)
 
 set (UTILS
+        utils/json.hpp
+        utils/json_fwd.hpp
         utils/collision_detection.hpp
         utils/random.hpp
         utils/structures.hpp)

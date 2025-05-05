@@ -7,6 +7,7 @@
 #include <sstream>
 #include<set>
 #include <numeric>
+#include <fstream>
 #include<random>
 #include "agario/core/Player.hpp"
 #include "agario/core/settings.hpp"
@@ -15,6 +16,7 @@
 #include "agario/engine/GameState.hpp"
 #include "agario/utils/random.hpp"
 #include "agario/utils/collision_detection.hpp"
+#include "agario/utils/json.hpp"
 #include <thread>
 #include <chrono>
 namespace agario {
@@ -95,6 +97,14 @@ namespace agario {
     void reset() {
       state.clear();
       initialize_game();
+    }
+
+    void reset_state() {
+      state.clear();
+      state.ticks = 0;
+      state.next_pid = 0;
+      state.main_agent_pid = -1;
+      state.rng.seed(std::random_device{}());
     }
 
     void initialize_game() {
@@ -227,24 +237,99 @@ namespace agario {
 
     }
 
-
     void seed(unsigned s) {
       this->state.rng.seed(s);
       std::srand(s);
     }
 
+    void load_env_state(const std::string &filename) {
+      using json = nlohmann::json;
+
+      // Open the input file for reading
+      std::ifstream in_file(filename);
+      if (!in_file.is_open()) {
+        throw std::runtime_error("Failed to open " + filename + " for reading");
+      }
+
+      // Parse the JSON data
+      json agarcl_data;
+      in_file >> agarcl_data;
+
+      set_mode_number(agarcl_data["mode_number"]);
+
+      // Load players
+      state.players.clear();
+      for (const auto &player_data : agarcl_data["players"]) {
+        // auto pid = player_data["pid"].get<agario::pid>();
+        // if (state.players.find(pid) != state.players.end()) {
+        //   throw EngineException("Duplicate Player ID: " + std::to_string(pid));
+        // }
+        auto name = player_data["name"].get<std::string>();
+        auto pid_added = this->template add_player<Player>(name);
+        auto &player = this->player(pid_added);
+        player.cells.clear();
+        player.target.x = player_data["target_x"];
+        player.target.y = player_data["target_y"];
+        player.is_bot = player_data["is_bot"];
+        player.split_cooldown = player_data["split_cooldown"];
+        player.feed_cooldown = player_data["feed_cooldown"];
+        player.anti_team_decay = player_data["anti_team_decay"];
+        player.elapsed_ticks = player_data["elapsed_ticks"];
+        player.last_decay_tick = player_data["last_decay_tick"];
+        player.food_eaten = player_data["food_eaten"];
+        player.highest_mass = player_data["highest_mass"];
+        player.cells_eaten = player_data["cells_eaten"];
+        player.viruses_eaten = player_data["viruses_eaten"];
+        player.top_position = player_data["top_position"];
+
+        for (const auto &tick : player_data["virus_eaten_ticks"]) {
+          player.virus_eaten_ticks.push_back(tick);
+        }
+
+        for (const auto &cell_data : player_data["cells"]) {
+          agario::Location loc(cell_data["x"].get<float>(), cell_data["y"].get<float>());
+          agario::Velocity vel(static_cast<agario::distance>(cell_data["velocity_x"].get<float>()),
+           static_cast<agario::distance>(cell_data["velocity_y"].get<float>()));
+          Cell cell(std::move(loc), std::move(vel), cell_data["mass"].get<float>());
+          cell.id = cell_data["id"].get<int>();
+          player.cells.push_back(std::move(cell));
+        }
+      }
+
+      // Load pellets
+      state.pellets.clear();
+      for (const auto &pellet_data : agarcl_data["pellets"]) {
+        state.pellets.emplace_back(Location(static_cast<numWrapper<float, _distance>>(pellet_data["x"]),
+                                            static_cast<numWrapper<float, _distance>>(pellet_data["y"])));
+      }
+
+      // Load viruses
+      state.viruses.clear();
+        for (const auto &virus_data : agarcl_data["viruses"]) {
+          Virus virus(Location(static_cast<numWrapper<float, _distance>>(virus_data["x"]),
+                   static_cast<numWrapper<float, _distance>>(virus_data["y"])));
+          virus.velocity.dx = static_cast<float>(virus_data["velocity_x"]);
+          virus.velocity.dy = static_cast<float>(virus_data["velocity_y"]);
+          virus.set_mass(static_cast<float>(virus_data["mass"]));
+          state.viruses.push_back(std::move(virus));
+        }
+        // Reset ticks
+        state.ticks = 0;
+        seed(agarcl_data["seed"]);
+      }
+
     Engine(const Engine &) = delete; // no copy constructor
     Engine &operator=(const Engine &) = delete; // no copy assignments
     Engine(Engine &&) = delete; // no move constructor
     Engine &operator=(Engine &&) = delete; // no move assignment
-
+    int mode_number = 0;
   private:
     int pellets_grid_size;  int virus_grid_size;
     int pellets_grid_width; int virus_grid_width;
     int pellets_grid_height; int virus_grid_height;
     std::vector<std::vector<int>> pellets_grid;
     std::vector<std::vector<int>> virus_grid;
-    int mode_number = 0;
+
     bool mass_decay_ = true;
     bool is_squared_pellets_ = false;
     int agent_mass = 25;
