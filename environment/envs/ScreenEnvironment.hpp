@@ -234,9 +234,9 @@ namespace agario::env {
         _partial_observation(player, tick_index);
         if (player.dead())
         {
-
-          this->dones_[agent_index] = true;
-          return;
+          this->engine_.respawn(player);
+          // this->dones_[agent_index] = true;
+          // return;
         }
       }
     };
