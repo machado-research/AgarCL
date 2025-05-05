@@ -232,7 +232,7 @@ namespace agario {
           // }
             add_viruses(state.config.target_num_viruses - state.viruses.size());
         }
-    }
+      }
       state.ticks++;
 
     }
@@ -447,7 +447,6 @@ namespace agario {
       int mx_num_viruses = std::min(arena_height(), arena_width())/virus_radius;
         for (int v = 0; v < n; v++)
           state.viruses.emplace_back(random_location(virus_radius));
-
     }
 
     /**
@@ -658,9 +657,9 @@ namespace agario {
      * @param ball the ball to keep inside the arena
      */
     void check_boundary_collisions(Ball &ball) {
-      ball.x = clamp<agario::distance>(ball.x, ball.radius(), arena_width()-ball.radius());
-      ball.y = clamp<agario::distance>(ball.y, ball.radius(), arena_height()-ball.radius());
-    }
+            ball.x = std::max(static_cast<agario::distance>(0.0), clamp<agario::distance>(ball.x, ball.radius(), arena_width()-ball.radius()));
+            ball.y = std::max(static_cast<agario::distance>(0.0), clamp<agario::distance>(ball.y, ball.radius(), arena_height()-ball.radius()));
+        }
 
 
     void avoid_static_overlap(Cell &cell_a, Cell& cell_b)
@@ -707,6 +706,9 @@ namespace agario {
 
       cell_b.x += x_ratio * depth*cell_b_ratio.first;
       cell_b.y += y_ratio * depth*cell_b_ratio.second;
+
+      check_boundary_collisions(cell_a);
+      check_boundary_collisions(cell_b);
 
     }
 
@@ -843,6 +845,10 @@ namespace agario {
         else
           separate_cells(cell_a, cell_b, player_target);
       }
+
+      // Ensure cells remain within the arena boundaries
+      check_boundary_collisions(cell_a);
+      check_boundary_collisions(cell_b);
     }
 
     /**
@@ -1034,8 +1040,9 @@ namespace agario {
 
       auto dir = (player_target - cell.location()).normed();
       auto loc = cell.location() + dir * cell.radius();
-      loc.x = std::clamp(loc.x, cell.radius(), arena_width() - cell.radius());
-      loc.y = std::clamp(loc.y, cell.radius(), arena_height() - cell.radius());
+      loc.x = std::max(static_cast<agario::distance>(0.0), clamp<agario::distance>(loc.x, cell.radius(), arena_width() - cell.radius()));
+      loc.y = std::max(static_cast<agario::distance>(0.0), clamp<agario::distance>(loc.y, cell.radius(), arena_height() - cell.radius()));
+
       Velocity vel(dir * split_speed(split_mass));
 
       // todo: add constructor that takes splitting velocity (and color)

@@ -60,6 +60,7 @@ namespace agario {
         is_loading_env_state(load_env_snapshot)
       {
         std::cout <<"Mode Number: " <<  mode_number << std::endl;
+        curr_mode_number = mode_number;
         pids_.reserve(num_agents);
         std::cout << "LOADING Snapshot: " << load_env_snapshot << std::endl;
         reset();
@@ -102,7 +103,6 @@ namespace agario {
           for (int i = 0; i < num_agents(); ++i)
             rewards[i] -= (before[i] - c_death_);
         }
-
         return rewards;
       }
 
@@ -114,6 +114,10 @@ namespace agario {
         for (const auto &[pid, player] : engine_.players()) {
           if (player->is_bot) continue;
           masses_.push_back(static_cast<T>(player->mass()));
+          if(curr_mode_number == 3 && player->mass() >= max_mass)
+          {
+            dones_[0] = true; // assuming the first agent is the main agent
+          }
         }
         return masses_;
       }
@@ -314,7 +318,7 @@ namespace agario {
     protected:
       Engine <renderable> engine_;
       std::vector<agario::pid> pids_;
-      std::vector<bool> dones_;
+      mutable std::vector<bool> dones_;
       int c_death_;
       const int num_agents_;
       const int ticks_per_step_;
@@ -322,7 +326,10 @@ namespace agario {
       const agario::time_delta step_dt_;
       const bool reward_type_;
       int seed_ = 0;
-      /* allows subclass to do something special at the beginning of each step */
+      int curr_mode_number = 0;
+      const int max_mass = 23000;
+
+/* allows subclass to do something special at the beginning of each step */
       virtual void _step_hook() {};
 
       /* override this to allow environment to get it's state from
