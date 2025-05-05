@@ -44,7 +44,7 @@ namespace agario {
           int mode_number = 0) :
       state(agario::GameConfig(arena_width, arena_height, num_pellets, num_viruses, pellet_regen))
     {
-      set_mode(3);
+      set_mode(mode_number);
       std::srand(std::chrono::system_clock::now().time_since_epoch().count());
     }
     Engine() : Engine(DEFAULT_ARENA_WIDTH, DEFAULT_ARENA_HEIGHT) {}
@@ -294,9 +294,6 @@ namespace agario {
           cell.id = cell_data["id"].get<int>();
           player.cells.push_back(std::move(cell));
         }
-        std::cout << "HEY: " << player_data<< std::endl;
-        std::cout <<  player_data["cells"].size() << std::endl;
-        std::cout << player.cells.size() << std::endl;
       }
 
       // Load pellets

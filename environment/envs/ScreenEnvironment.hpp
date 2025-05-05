@@ -151,11 +151,12 @@ namespace agario::env {
         bool reward_type,
         int c_death,
         int mode_number,
+        bool load_env_snapshot,
         screen_len screen_width,
         screen_len screen_height,
         bool agent_view
       ):
-        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death, mode_number),
+        Super(num_agents, frames_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death, mode_number, load_env_snapshot),
         _observation(1, screen_width, screen_height, agent_view),
         frame_buffer(std::make_shared<FrameBufferObject>(screen_width, screen_height)),
         renderer(frame_buffer, this->engine_.arena_width(), this->engine_.arena_height()),

@@ -359,6 +359,7 @@ class AgarioEnv(gym.Env):
         self.reward_type     = kwargs.get("reward_type", reward_type)
         self.c_death         = kwargs.get("c_death", -100)
         self.mode            = kwargs.get("mode", 0)
+        self.load_env_snapshot   = kwargs.get("load_env_snapshot", False)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
 
@@ -368,7 +369,8 @@ class AgarioEnv(gym.Env):
 
         return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
-               self.num_viruses, self.num_bots, self.reward_type, self.c_death, self.mode
+               self.num_viruses, self.num_bots, self.reward_type, self.c_death, self.mode, \
+               self.load_env_snapshot
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility

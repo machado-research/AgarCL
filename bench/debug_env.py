@@ -85,7 +85,8 @@ def main():
     num_steps = args.num_steps
     episode_rewards = []
     env.enable_video_recorder()
-    env.load_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
+    if args.load_env_snapshot:
+        env.load_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
     for iter in tqdm.tqdm(range(num_steps), desc="Benchmarking Progress"):
         episode_reward = 0
         episode_start_time = time.time()
@@ -93,15 +94,20 @@ def main():
         agent_actions = []
         global_step += 1
         episode_steps += 1
-        with open('agent_actions.csv', 'r') as csvfile:
-            reader = csv.reader(csvfile)
-            for row in reader:
-                if int(row[0]) == global_step:  # Match the global step with the row
-                    x = float(row[2].strip('()').split(',')[:2][0][7:])
-                    y = float(row[2].strip('()').split(',')[:2][1][2:-2])
-                    discrete = int(row[2].split('),')[-1][1:-1])
-                    agent_actions = [(np.array([x, y]), discrete)]
-                    break
+        # with open('agent_actions.csv', 'r') as csvfile:
+        #     reader = csv.reader(csvfile)
+        #     for row in reader:
+        #         if int(row[0]) == global_step:  # Match the global step with the row
+        #             x = float(row[2].strip('()').split(',')[:2][0][7:])
+        #             y = float(row[2].strip('()').split(',')[:2][1][2:-2])
+        #             discrete = int(row[2].split('),')[-1][1:-1])
+        #             agent_actions = [(np.array([x, y]), discrete)]
+        #             break
+        for i in range(num_agents):
+            c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
+            d_target_space = gym.spaces.Discrete(3)
+            action = (c_target_space.sample(), d_target_space.sample())
+            agent_actions.append(action)
 
 
         state,reward, done, truncations, step_num = env.step(agent_actions[0])
@@ -118,7 +124,7 @@ def main():
     episode_SPS = episode_steps / episode_elapsed_time
     SPS_VALUES.append(episode_SPS)
     print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
-    # env.save_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
+    env.save_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
     env.generate_video('/home/ayman/thesis/AgarLE/bench/', 'bench_videox.avi')
     # Plotting SPS values
     # plt.figure()

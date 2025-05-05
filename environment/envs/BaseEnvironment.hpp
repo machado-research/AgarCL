@@ -46,7 +46,8 @@ namespace agario {
         int num_bots,
         bool reward_type,
         int c_death = 0,
-        int mode_number = 0
+        int mode_number = 0,
+        bool load_env_snapshot = false
       ):
         num_agents_(num_agents),
         dones_(num_agents),
@@ -55,10 +56,12 @@ namespace agario {
         num_bots_(num_bots),
         reward_type_(reward_type),
         step_dt_(DEFAULT_DT),
-        c_death_(c_death)
+        c_death_(c_death),
+        is_loading_env_state(load_env_snapshot)
       {
         std::cout <<"Mode Number: " <<  mode_number << std::endl;
         pids_.reserve(num_agents);
+        std::cout << "LOADING Snapshot: " << load_env_snapshot << std::endl;
         reset();
       }
 
@@ -158,7 +161,7 @@ namespace agario {
 
         if(this->is_loading_env_state == true)
           return;
-
+        std::cout << "Resetting environment" << std::endl;
         engine_.reset();
         pids_.clear();
         c_death_ = 0;
@@ -327,6 +330,7 @@ namespace agario {
       virtual void _partial_observation(int agent_index, int tick_index) {};
       virtual void _partial_observation(Player &player, int tick_index) {};
 
+      bool is_loading_env_state = false;
 
 
 
@@ -358,7 +362,6 @@ namespace agario {
           }
         }
       }
-      bool is_loading_env_state = false;
 
     };
 
