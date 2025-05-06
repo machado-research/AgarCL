@@ -99,6 +99,7 @@ namespace agario {
         // std::cout <<"HELLO::" << curr_mode_number << std::endl;
         if(curr_mode_number == 0)
             repsawn_all_players();
+
         else if(curr_mode_number > 6){ //other agents and Virus mini-games
           // if any bot dies or me, end the game (dones = true)
           for(auto &pair : this->engine_.state.players){
@@ -110,6 +111,10 @@ namespace agario {
             }
           }
         }
+
+        if(curr_mode_number != 0)
+          dones_[0] = is_main_player_respawned;
+
         // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
         if(reward_type_){
