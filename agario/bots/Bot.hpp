@@ -68,13 +68,14 @@ namespace agario {
 
       /* the largest cell that belongs to the bot */
       const Cell& largest_cell () const {
-        int largest = 0;
-        for (int i = 0; i < this->cells.size(); ++i) {
-          if (i == 0 || this->cells[i].mass() > this->cells[largest].mass()) {
-            largest = i;
-          }
-        }
-        return this->cells.at(largest);
+        // int largest = 0;
+        // for (int i = 0; i < this->cells.size(); ++i) {
+        //   if (i == 0 || this->cells[i].mass() > this->cells[largest].mass()) {
+        //     largest = i;
+        //   }
+        // }
+        // return this->cells.at(largest);
+        return this->cells[0];
       }
 
       agario::mass edible_mass (const Player &player, const Cell &largest_cell) const {
@@ -89,14 +90,18 @@ namespace agario {
 
       /* location of the nearest pellet */
       agario::Location nearest_pellet (const GameState &state) const {
-        distance min_distance = agario::distance::max();
+        // distance min_distance = agario::distance::max();
         agario::Location target;
-        for (auto &pellet : state.pellets) {
-          distance dist = pellet.location().distance_to(this->location());
-          if (dist < min_distance) {
-            target = pellet.location();
-            min_distance = dist;
-          }
+        // for (auto &pellet : state.pellets) {
+        //   distance dist = pellet.location().distance_to(this->location());
+        //   if (dist < min_distance) {
+        //     target = pellet.location();
+        //     min_distance = dist;
+        //   }
+        // }
+        if (!state.pellets.empty()) {
+          auto &pellet = state.pellets[rand() % state.pellets.size()];
+          target = pellet.location();
         }
         return target;
       }

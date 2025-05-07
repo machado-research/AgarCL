@@ -231,6 +231,7 @@ namespace agario {
             add_pellets(state.config.target_num_pellets - state.pellets.size());
           // }
             add_viruses(state.config.target_num_viruses - state.viruses.size());
+        sort(state.pellets.begin(), state.pellets.end());
         }
       }
       state.ticks++;
