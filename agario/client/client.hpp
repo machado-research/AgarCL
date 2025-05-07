@@ -66,7 +66,7 @@ namespace agario {
       using AggressiveBot = AggressiveBot<RENDERABLE>;
       using AggressiveShyBot = AggressiveShyBot<RENDERABLE>;
 
-      int n = 0;
+      int n = 4;
       range_bot_pids = std::make_pair(1e9,0);
       add_bot<HungryBot>(n);
       add_bot<HungryShyBot>(n);
@@ -131,7 +131,7 @@ namespace agario {
         renderer->render_screen(player, engine.game_state());
         glfwPollEvents();
         window->swap_buffers();
-        for (int i = 0 ; i < 4 ; i++)
+        // for (int i = 0 ; i < 4 ; i++)
           engine.tick(dt);
         auto tick_end = std::chrono::system_clock::now();
         auto tick_time = tick_end - tick_start;
