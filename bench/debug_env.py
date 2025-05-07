@@ -35,8 +35,8 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
     'num_pellets':     500,
-    'num_viruses':     10,
-    'num_bots':        8,
+    'num_viruses':     0,
+    'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       128,
     'screen_len':      128,
@@ -52,7 +52,7 @@ default_config = {
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 0,
+    'mode'          : 7,
     'number_steps'  : 3000,
     'env_type'      : 1, #0 -> episodic or 1 - > continuing
     'load_env_snapshot': 0,
@@ -94,15 +94,6 @@ def main():
         agent_actions = []
         global_step += 1
         episode_steps += 1
-        # with open('agent_actions.csv', 'r') as csvfile:
-        #     reader = csv.reader(csvfile)
-        #     for row in reader:
-        #         if int(row[0]) == global_step:  # Match the global step with the row
-        #             x = float(row[2].strip('()').split(',')[:2][0][7:])
-        #             y = float(row[2].strip('()').split(',')[:2][1][2:-2])
-        #             discrete = int(row[2].split('),')[-1][1:-1])
-        #             agent_actions = [(np.array([x, y]), discrete)]
-        #             break
         for i in range(num_agents):
             c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
             d_target_space = gym.spaces.Discrete(3)
@@ -112,9 +103,6 @@ def main():
 
         state,reward, done, truncations, step_num = env.step(agent_actions[0])
         total_reward += reward
-        with open('step_rewards.csv', 'a', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow([global_step, reward, total_reward])
         # env.render()
         if(done):
             import pdb; pdb.set_trace()

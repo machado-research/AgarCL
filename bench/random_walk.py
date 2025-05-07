@@ -35,8 +35,8 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
     'num_pellets':     500,
-    'num_viruses':     0,
-    'num_bots':        0,
+    'num_viruses':     10,
+    'num_bots':        8,
     'pellet_regen':    True,
     'grid_size':       128,
     'screen_len':      128,
@@ -52,7 +52,7 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 4,
+    'mode'          : 0,
     'number_steps'  : 3000,
     'env_type'      : 0, #0 -> episodic or 1 - > continuing
 }
@@ -84,9 +84,10 @@ def main():
 
     episode_rewards = []
     episode_reward = 0
+    episode_start_time = time.time()
     for iter in tqdm.tqdm(range(total_steps), desc="Benchmarking Progress"):
         # episode_reward = 0
-        episode_start_time = time.time()
+
         agent_actions = []
         global_step += 1
         # episode_steps += 1
@@ -101,7 +102,14 @@ def main():
             env.reset()
             episode_rewards.append(episode_reward)
             episode_reward = 0
+            
+            global_step = 0
 
+        if(global_step % 1000 == 0):
+            print(f"Episode: {len(episode_rewards)}, Episode Reward: {episode_reward}, Time: {time.time() - episode_start_time}, SPS: {1000 / (time.time() - episode_start_time)}")
+            episode_start_time = time.time()
+            # SPS_VALUES.append(global_step / (time.time() - start_time))
+            # print(f"SPS: {SPS_VALUES[-1]}")
 
     # Save rewards to CSV
     import os
