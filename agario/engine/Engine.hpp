@@ -17,6 +17,7 @@
 #include "agario/utils/random.hpp"
 #include "agario/utils/collision_detection.hpp"
 #include "agario/utils/json.hpp"
+#include <agario/bots/bots.hpp>
 #include <thread>
 #include <chrono>
 namespace agario {
@@ -244,7 +245,10 @@ namespace agario {
 
     void load_env_state(const std::string &filename) {
       using json = nlohmann::json;
-
+      using HungryBot = agario::bot::HungryBot<renderable>;
+      using HungryShyBot = agario::bot::HungryShyBot<renderable>;
+      using AggressiveBot = agario::bot::AggressiveBot<renderable>;
+      using AggressiveShyBot = agario::bot::AggressiveShyBot<renderable>;
       // Open the input file for reading
       std::ifstream in_file(filename);
       if (!in_file.is_open()) {
@@ -265,7 +269,20 @@ namespace agario {
         //   throw EngineException("Duplicate Player ID: " + std::to_string(pid));
         // }
         auto name = player_data["name"].get<std::string>();
-        auto pid_added = this->template add_player<Player>(name);
+
+        agario::pid pid_added;
+        if(name == "HungryBot")
+          pid_added = this->template add_player<HungryBot>(name);
+        else if(name == "HungryShyBot")
+          pid_added = this->template add_player<HungryShyBot>(name);
+        else if(name == "AggressiveBot")
+          pid_added = this->template add_player<AggressiveBot>(name);
+        else if(name == "AggressiveShyBot")
+          pid_added = this->template add_player<AggressiveShyBot>(name);
+        else
+          pid_added = this->template add_player<Player>(name);
+
+
         auto &player = this->player(pid_added);
         player.cells.clear();
         player.target.x = player_data["target_x"];

@@ -35,8 +35,8 @@ default_config = {
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
     'arena_size':      350,
     'num_pellets':     500,
-    'num_viruses':     0,
-    'num_bots':        0,
+    'num_viruses':     10,
+    'num_bots':        8,
     'pellet_regen':    True,
     'grid_size':       128,
     'screen_len':      128,
@@ -52,10 +52,10 @@ default_config = {
     'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 7,
+    'mode'          : 0,
     'number_steps'  : 3000,
     'env_type'      : 1, #0 -> episodic or 1 - > continuing
-    'load_env_snapshot': 0,
+    'load_env_snapshot': 1,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'
@@ -75,6 +75,8 @@ def main():
     print(env_config)
     num_agents =  default_config['num_agents']
     env = gym.make(args.env, **env_config)
+    if args.load_env_snapshot:
+        env.load_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
     env.reset()
     env.seed(args.seed)
     states = []
@@ -85,8 +87,7 @@ def main():
     num_steps = args.num_steps
     episode_rewards = []
     env.enable_video_recorder()
-    if args.load_env_snapshot:
-        env.load_env_state('/home/ayman/thesis/AgarLE/bench/test.json')
+
     for iter in tqdm.tqdm(range(num_steps), desc="Benchmarking Progress"):
         episode_reward = 0
         episode_start_time = time.time()
@@ -97,16 +98,16 @@ def main():
         for i in range(num_agents):
             c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
             d_target_space = gym.spaces.Discrete(3)
-            action = (c_target_space.sample(), d_target_space.sample())
+            action = (c_target_space.sample(), 0)
             agent_actions.append(action)
 
 
         state,reward, done, truncations, step_num = env.step(agent_actions[0])
         total_reward += reward
         # env.render()
-        if(done):
-            import pdb; pdb.set_trace()
-            env.reset()
+        # if(done):
+        #     import pdb; pdb.set_trace()
+        #     env.reset()
             # env.enable_video_recorder()
         # Calculate SPS (Steps Per Second) for the episode
     episode_elapsed_time = time.time() - episode_start_time

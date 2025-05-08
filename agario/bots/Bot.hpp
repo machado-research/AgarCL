@@ -68,14 +68,14 @@ namespace agario {
 
       /* the largest cell that belongs to the bot */
       const Cell& largest_cell () const {
-        // int largest = 0;
-        // for (int i = 0; i < this->cells.size(); ++i) {
-        //   if (i == 0 || this->cells[i].mass() > this->cells[largest].mass()) {
-        //     largest = i;
-        //   }
-        // }
-        // return this->cells.at(largest);
-        return this->cells[0];
+        int largest = 0;
+        for (int i = 0; i < this->cells.size(); ++i) {
+          if (i == 0 || this->cells[i].mass() > this->cells[largest].mass()) {
+            largest = i;
+          }
+        }
+        return this->cells.at(largest);
+        // return this->cells[0];
       }
 
       agario::mass edible_mass (const Player &player, const Cell &largest_cell) const {
@@ -89,23 +89,78 @@ namespace agario {
 
 
       /* location of the nearest pellet */
-      agario::Location nearest_pellet (const GameState &state) const {
-        // distance min_distance = agario::distance::max();
-        agario::Location target;
-        // for (auto &pellet : state.pellets) {
-        //   distance dist = pellet.location().distance_to(this->location());
-        //   if (dist < min_distance) {
-        //     target = pellet.location();
-        //     min_distance = dist;
-        //   }
-        // }
-        if (!state.pellets.empty()) {
-          auto &pellet = state.pellets[rand() % state.pellets.size()];
-          target = pellet.location();
+      agario::Location nearest_pellet(const GameState &state) const {
+        if (state.pellets.empty()) {
+          return agario::Location(
+          std::rand() % static_cast<int>(state.config.arena_width),
+          std::rand() % static_cast<int>(state.config.arena_height));
         }
+
+        // 1/10 chance to pick a random pellet
+        // if (std::rand() % 10 == 0) {
+        //   const auto &random_pellet = state.pellets[std::rand() % state.pellets.size()];
+        //   if (random_pellet.location().distance_to(this->location()) < 25) {
+        //         return agario::Location((std::rand() + static_cast<int>(random_pellet.location().x)) % static_cast<int>(state.config.arena_width),
+        //         (std::rand() + static_cast<int>(random_pellet.location().y)) % static_cast<int>(state.config.arena_height));
+        //   }
+        //   return random_pellet.location();
+        // }
+
+        agario::Location target;
+        distance min_distance = agario::distance::max();
+
+        for (const auto &pellet : state.pellets) {
+          distance dist = pellet.location().distance_to(this->location());
+          if (dist < min_distance && dist > 0.01) {
+              target = pellet.location();
+              min_distance = dist;
+          }
+        }
+
+        // If the nearest pellet is at the same location as the bot, adjust the target slightly
+        if (min_distance < 0.01) {
+          target += agario::Location( target.x +
+          std::rand() % static_cast<int>(state.config.arena_width),
+          target.y +
+          std::rand() % static_cast<int>(state.config.arena_height));
+        }
+
         return target;
       }
 
+      // agario::Location nearest_pellet (const GameState &state) const {
+      //   if(state.pellets.empty()) {
+      //       return agario::Location(std::rand() % static_cast<int>(state.config.arena_width), std::rand() % static_cast<int>(state.config.arena_height));
+      //   }
+      //   distance min_distance = agario::distance::max();
+      //   agario::Location target;
+
+      //   if(state.pellets.size() %10 == 0)
+      //   {
+      //       std::srand(std::chrono::system_clock::now().time_since_epoch().count());
+      //       auto &pellet = state.pellets[std::rand() % state.pellets.size()];
+      //       if (pellet.location().distance_to(this->location()) == 0) {
+      //           target = pellet.location() + agario::Location(std::rand() % static_cast<int>(state.config.arena_width), std::rand() % static_cast<int>(state.config.arena_height));
+
+      //       }
+      //       else
+      //         target = pellet.location();
+      //   }
+      //   else {
+      //       for (auto &pellet : state.pellets) {
+      //         distance dist = pellet.location().distance_to(this->location());
+      //         if (dist < min_distance) {
+      //           target = pellet.location();
+      //           min_distance = dist;
+      //         }
+      //       }
+      //       if (target.location().distance_to(this->location()) == 0) {
+      //         target = pellet.location() + agario::Location(std::rand() % static_cast<int>(state.config.arena_width), std::rand() % static_cast<int>(state.config.arena_height));
+
+      //     }
+      //   }
+      //   return target;
+      // }
       /* location of the nearest food */
       agario::Location nearest_food (const GameState &state) const {
         distance min_distance = agario::distance::max();
