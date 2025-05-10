@@ -357,7 +357,7 @@ class AgarioEnv(gym.Env):
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
         self.reward_type     = kwargs.get("reward_type", reward_type)
-        self.c_death         = kwargs.get("c_death", -100)
+        self.c_death         = kwargs.get("c_death", 0)
         self.mode            = kwargs.get("mode", 0)
         self.load_env_snapshot   = kwargs.get("load_env_snapshot", False)
 

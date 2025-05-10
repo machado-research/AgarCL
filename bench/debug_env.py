@@ -49,7 +49,7 @@ default_config = {
     'render_mode'    : "rgb_array", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
     'num_agents'     :  1,
-    'c_death'        : -100,  # reward = [diff or mass] - c_death if player is eaten
+    'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
     'mode'          : 0,
@@ -104,6 +104,10 @@ def main():
 
         state,reward, done, truncations, step_num = env.step(agent_actions[0])
         total_reward += reward
+        print("Reward: ", reward, "total_reward: ", total_reward)
+        if(total_reward < 0):
+            print("Total reward is negative, exiting...")
+            import pdb; pdb.set_trace()
         # env.render()
         # if(done):
         #     import pdb; pdb.set_trace()

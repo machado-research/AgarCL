@@ -105,16 +105,13 @@ namespace agario {
           for(auto &pair : this->engine_.state.players){
             auto pid = pair.first;
             auto player = pair.second;
+            dones_[0] = player->dead() | is_main_player_respawned;
             if(player->dead()){
               dones_[0] = true; // assuming the first agent is the main agent
               break;
             }
           }
         }
-
-        if(curr_mode_number != 0)
-          dones_[0] = is_main_player_respawned;
-
         // reward could be the current mass or the difference in mass from the last step
         auto rewards = masses<reward>();
         if(reward_type_){
@@ -198,7 +195,7 @@ namespace agario {
 
         if(curr_mode_number == 0)
           add_bots();
-        else
+        else if(curr_mode_number > 6)
           custom_add_bot(curr_mode_number - 7);
         // the following loop is needed to "initialize" the observation object
         // with the newly reset state so that a call to `get_state` directly
