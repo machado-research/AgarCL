@@ -17,6 +17,7 @@ import numpy as np
 import cProfile
 from abc import ABC, abstractmethod
 import time
+import os
 # import tqdm
 def mass():
     return 0
@@ -54,7 +55,7 @@ default_config = {
     'add_noise'     : True,
     'mode'          : 0,
     'number_steps'  : 3000,
-    'env_type'      : 0, #0 -> episodic or 1 - > continuing
+    'env_type'      : 1, #0 -> episodic or 1 - > continuing
 }
 
 
@@ -77,20 +78,21 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    total_steps =  5 * 10**6
-    # num_episodes = (total_steps // args.num_steps)
-    # print(f"Total Steps: {total_steps}, Num Episodes: {num_episodes}")
+    total_steps = int(1e6)
+
     import matplotlib.pyplot as plt
 
     episode_rewards = []
     episode_reward = 0
     episode_start_time = time.time()
+    sps_data = []  # To store Episode and SPS values
+    output_dir = 'random_walk_mode_CPU_4_Skipping'
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, f'episodic_rewards_sps_{args.seed}.csv')
     for iter in tqdm.tqdm(range(total_steps), desc="Benchmarking Progress"):
-        # episode_reward = 0
 
         agent_actions = []
         global_step += 1
-        # episode_steps += 1
         for i in range(num_agents):
             c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
             d_target_space = gym.spaces.Discrete(3)
@@ -108,22 +110,18 @@ def main():
         if(global_step % 100 == 0):
             print(f"Episode: {len(episode_rewards)}, Episode Reward: {episode_reward}, Time: {time.time() - episode_start_time}, SPS: {1000 / (time.time() - episode_start_time)}")
             episode_start_time = time.time()
-            # SPS_VALUES.append(global_step / (time.time() - start_time))
-            # print(f"SPS: {SPS_VALUES[-1]}")
+            # Write to CSV every timestep
+            with open(output_file, 'a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                if global_step == 100:  # Write header only once
+                    writer.writerow(['Timestep', 'SPS'])
+                writer.writerow([global_step, sps])
 
-    # Save rewards to CSV
-    import os
-    output_dir = 'random_walk_mode'
-    # Ensure the output directory exists
-    os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, f'episodic_rewards_{args.seed}.csv')
-    with open(output_file, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['Episode', 'Reward'])
-        for i, reward in enumerate(episode_rewards):
-            writer.writerow([i + 1, reward])
+
+
 
     env.close()
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")
