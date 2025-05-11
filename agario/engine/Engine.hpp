@@ -328,18 +328,18 @@ namespace agario {
           virus.velocity.dx = static_cast<float>(virus_data["velocity_x"]);
           virus.velocity.dy = static_cast<float>(virus_data["velocity_y"]);
           virus.set_mass(static_cast<float>(virus_data["mass"]));
-          state.viruses.push_back(std::move(virus));
+          state.viruses.emplace_back(std::move(virus));
         }
 
         // Load foods
         state.foods.clear();
         for (const auto &food_data : agarcl_data["foods"]) {
-          Food food(Location(static_cast<numWrapper<float, _distance>>(food_data["x"]),
-                   static_cast<numWrapper<float, _distance>>(food_data["y"])));
-          food.velocity.dx = static_cast<float>(food_data["velocity_x"]);
-          food.velocity.dy = static_cast<float>(food_data["velocity_y"]);
-          food.set_mass(static_cast<float>(food_data["mass"]));
-          state.foods.push_back(std::move(food));
+          Location loc(static_cast<numWrapper<float, _distance>>(food_data["x"]),
+          static_cast<numWrapper<float, _distance>>(food_data["y"]));
+          Velocity vel(static_cast<numWrapper<float, _distance>>(food_data["velocity_x"]),
+          static_cast<numWrapper<float, _distance>>(food_data["velocity_y"]));
+          Food food(loc, vel);
+          state.foods.emplace_back(std::move(food));
         }
         // Reset ticks
         state.ticks = 0;

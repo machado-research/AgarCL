@@ -304,7 +304,7 @@ namespace agario {
           food_data["y"] = static_cast<float>(food.y);
           food_data["velocity_x"] = static_cast<float>(food.velocity.dx);
           food_data["velocity_y"] = static_cast<float>(food.velocity.dy);
-          food_data["mass"] = static_cast<float>(food.mass());
+          // food_data["mass"] = static_cast<float>(food.mass());
           agarcl_data["foods"].push_back(food_data);
         }
 
