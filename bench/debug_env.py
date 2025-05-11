@@ -33,17 +33,17 @@ import tqdm
 default_config = {
     'ticks_per_step':  4,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      350,
-    'num_pellets':     500,
+    'arena_size':      144,
+    'num_pellets':     1000,
     'num_viruses':     10,
-    'num_bots':        8,
+    'num_bots':        0,
     'pellet_regen':    True,
-    'grid_size':       128,
+    'grid_size':       84,
     'screen_len':      128,
-    'observe_cells':   False,
+    'observe_cells':   True,
     'observe_others':  False,
     'observe_viruses': False,
-    'observe_pellets': False,
+    'observe_pellets': True,
     'obs_type'       : "screen",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     'render_mode'    : "rgb_array", # Two options: "human", "rgb_array"
@@ -55,7 +55,7 @@ default_config = {
     'mode'          : 0,
     'number_steps'  : 3000,
     'env_type'      : 1, #0 -> episodic or 1 - > continuing
-    'load_env_snapshot': 1,
+    'load_env_snapshot': 0,
 }
 
 # config_file = 'bench/tasks_configs/Exploration.json'

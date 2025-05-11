@@ -31,14 +31,14 @@ import tqdm
 
 # Default configuration for the environment
 default_config = {
-    'ticks_per_step':  4,
+    'ticks_per_step':  1,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      350,
-    'num_pellets':     500,
-    'num_viruses':     10,
-    'num_bots':        8,
+    'arena_size':      32,
+    'num_pellets':     75,
+    'num_viruses':     2,
+    'num_bots':        0,
     'pellet_regen':    True,
-    'grid_size':       128,
+    'grid_size':       84,
     'screen_len':      128,
     'observe_cells':   False,
     'observe_others':  False,
@@ -102,10 +102,10 @@ def main():
             env.reset()
             episode_rewards.append(episode_reward)
             episode_reward = 0
-            
+
             global_step = 0
 
-        if(global_step % 1000 == 0):
+        if(global_step % 100 == 0):
             print(f"Episode: {len(episode_rewards)}, Episode Reward: {episode_reward}, Time: {time.time() - episode_start_time}, SPS: {1000 / (time.time() - episode_start_time)}")
             episode_start_time = time.time()
             # SPS_VALUES.append(global_step / (time.time() - start_time))

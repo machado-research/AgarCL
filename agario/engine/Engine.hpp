@@ -330,6 +330,17 @@ namespace agario {
           virus.set_mass(static_cast<float>(virus_data["mass"]));
           state.viruses.push_back(std::move(virus));
         }
+
+        // Load foods
+        state.foods.clear();
+        for (const auto &food_data : agarcl_data["foods"]) {
+          Food food(Location(static_cast<numWrapper<float, _distance>>(food_data["x"]),
+                   static_cast<numWrapper<float, _distance>>(food_data["y"])));
+          food.velocity.dx = static_cast<float>(food_data["velocity_x"]);
+          food.velocity.dy = static_cast<float>(food_data["velocity_y"]);
+          food.set_mass(static_cast<float>(food_data["mass"]));
+          state.foods.push_back(std::move(food));
+        }
         // Reset ticks
         state.ticks = 0;
         seed(agarcl_data["seed"]);

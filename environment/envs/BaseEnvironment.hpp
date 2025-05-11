@@ -296,6 +296,18 @@ namespace agario {
           agarcl_data["viruses"].push_back(virus_data);
         }
 
+        //Fppd
+        agarcl_data["foods"] = json::array();
+        for (const auto &food : engine_.state.foods) {
+          nlohmann::json food_data;
+          food_data["x"] = static_cast<float>(food.x);
+          food_data["y"] = static_cast<float>(food.y);
+          food_data["velocity_x"] = static_cast<float>(food.velocity.dx);
+          food_data["velocity_y"] = static_cast<float>(food.velocity.dy);
+          food_data["mass"] = static_cast<float>(food.mass());
+          agarcl_data["foods"].push_back(food_data);
+        }
+
         // Open the output file for writing
         std::ofstream out_file(filename);
         if (!out_file.is_open()) {
