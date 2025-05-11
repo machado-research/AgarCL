@@ -17,6 +17,7 @@ import numpy as np
 import cProfile
 from abc import ABC, abstractmethod
 import time
+import os
 # import tqdm
 def mass():
     return 0
@@ -31,11 +32,11 @@ import tqdm
 
 # Default configuration for the environment
 default_config = {
-    'ticks_per_step':  4,
+    'ticks_per_step':  1,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      350,
-    'num_pellets':     500,
-    'num_viruses':     0,
+    'arena_size':      144,
+    'num_pellets':     1000,
+    'num_viruses':     10,
     'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       128,
@@ -44,7 +45,7 @@ default_config = {
     'observe_others':  False,
     'observe_viruses': False,
     'observe_pellets': False,
-    'obs_type'       : "screen",   #Two options: screen, grid
+    'obs_type'       : "gobigger",   #Two options: screen, grid
     'reward_type'    : diff(), # Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     'render_mode'    : "rgb_array", # Two options: "human", "rgb_array"
     # 'multi_agent'    :  True,
@@ -52,8 +53,8 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 4,
-    'number_steps'  : 3000,
+    'mode'          : 0,
+    'number_steps'  : 14400,
     'env_type'      : 0, #0 -> episodic or 1 - > continuing
 }
 
@@ -77,19 +78,25 @@ def main():
     global_step = 0
     start_time = time.time()
     total_reward = 0
-    total_steps =  5 * 10**6
-    # num_episodes = (total_steps // args.num_steps)
-    # print(f"Total Steps: {total_steps}, Num Episodes: {num_episodes}")
+    total_steps = int(1e6)
+
     import matplotlib.pyplot as plt
 
     episode_rewards = []
     episode_reward = 0
+    episode_start_time = time.time()
+    sps_data = []  # To store Episode and SPS values
+    output_dir = 'GoBigger_SPS_ours_CPUONLY'
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, f'episodic_rewards_sps_{args.seed}.csv')
+
+    with open(output_file, 'a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(['Timestep', 'SPS'])
     for iter in tqdm.tqdm(range(total_steps), desc="Benchmarking Progress"):
-        # episode_reward = 0
-        episode_start_time = time.time()
+
         agent_actions = []
         global_step += 1
-        # episode_steps += 1
         for i in range(num_agents):
             c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
             d_target_space = gym.spaces.Discrete(3)
@@ -97,25 +104,21 @@ def main():
             agent_actions.append(action)
         state, reward, done, truncations, step_num = env.step(agent_actions)
         episode_reward += reward
-        if(done):
+
+        if(global_step % 100 == 0):
+            sps = 100 / (time.time() - episode_start_time)
+            episode_start_time = time.time()
+            # Write to CSV every timestep
+            with open(output_file, 'a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow([global_step, sps])
+
+
+        if done:
             env.reset()
-            episode_rewards.append(episode_reward)
-            episode_reward = 0
-
-
-    # Save rewards to CSV
-    import os
-    output_dir = 'random_walk_mode'
-    # Ensure the output directory exists
-    os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, f'episodic_rewards_{args.seed}.csv')
-    with open(output_file, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['Episode', 'Reward'])
-        for i, reward in enumerate(episode_rewards):
-            writer.writerow([i + 1, reward])
 
     env.close()
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark Agar.io Learning Environment")

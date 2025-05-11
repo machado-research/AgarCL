@@ -116,7 +116,7 @@ def main():
     SPS_VALUES.append(episode_SPS)
     print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
-    env.generate_video('/home/mamm/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
+    # env.generate_video('/home/mamm/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
     # Plotting SPS values
     # plt.figure()
     # plt.plot(SPS_VALUES)
