@@ -296,7 +296,7 @@ namespace agario {
           agarcl_data["viruses"].push_back(virus_data);
         }
 
-        //Fppd
+        //Food
         agarcl_data["foods"] = json::array();
         for (const auto &food : engine_.state.foods) {
           nlohmann::json food_data;
