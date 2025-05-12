@@ -34,9 +34,9 @@ import tqdm
 default_config = {
     'ticks_per_step':  1,
     'num_frames':      1, # We should change it to make it always 1 : Skipping the num of frames
-    'arena_size':      32,
-    'num_pellets':     75,
-    'num_viruses':     2,
+    'arena_size':      350,
+    'num_pellets':     1024,
+    'num_viruses':     0,
     'num_bots':        0,
     'pellet_regen':    True,
     'grid_size':       84,
@@ -53,7 +53,7 @@ default_config = {
     'c_death'        : 0,  # reward = [diff or mass] - c_death if player is eaten
     'agent_view'     : True,
     'add_noise'     : True,
-    'mode'          : 0,
+    'mode'          : 7,
     'number_steps'  : 3000,
     'env_type'      : 1, #0 -> episodic or 1 - > continuing
 }
@@ -88,6 +88,7 @@ def main():
     sps_data = []  # To store Episode and SPS values
     output_dir = 'random_walk_mode_CPU_4_Skipping'
     os.makedirs(output_dir, exist_ok=True)
+    bot_total_reward = 0
     output_file = os.path.join(output_dir, f'episodic_rewards_sps_{args.seed}.csv')
     for iter in tqdm.tqdm(range(total_steps), desc="Benchmarking Progress"):
 
@@ -100,22 +101,26 @@ def main():
             agent_actions.append(action)
         state, reward, done, truncations, step_num = env.step(agent_actions)
         episode_reward += reward
+        bot_total_reward += step_num['bot_reward']
+        if global_step % 100 == 0:
+            print(f"Step: {global_step}, Episode Reward: {episode_reward}, Bot Reward: {bot_total_reward}, Time: {time.time() - episode_start_time}, SPS: {global_step / (time.time() - start_time)}")
+            import pdb; pdb.set_trace()
         if(done):
             env.reset()
             episode_rewards.append(episode_reward)
             episode_reward = 0
-
+            import pdb; pdb.set_trace()
             global_step = 0
 
-        if(global_step % 100 == 0):
-            print(f"Episode: {len(episode_rewards)}, Episode Reward: {episode_reward}, Time: {time.time() - episode_start_time}, SPS: {1000 / (time.time() - episode_start_time)}")
-            episode_start_time = time.time()
-            # Write to CSV every timestep
-            with open(output_file, 'a', newline='') as csvfile:
-                writer = csv.writer(csvfile)
-                if global_step == 100:  # Write header only once
-                    writer.writerow(['Timestep', 'SPS'])
-                writer.writerow([global_step, sps])
+        # if(global_step % 100 == 0):
+        #     print(f"Episode: {len(episode_rewards)}, Episode Reward: {episode_reward}, Time: {time.time() - episode_start_time}, SPS: {1000 / (time.time() - episode_start_time)}")
+        #     episode_start_time = time.time()
+        #     # Write to CSV every timestep
+        #     with open(output_file, 'a', newline='') as csvfile:
+        #         writer = csv.writer(csvfile)
+        #         if global_step == 100:  # Write header only once
+        #             writer.writerow(['Timestep', 'SPS'])
+        #         writer.writerow([global_step, sps])
 
 
 
