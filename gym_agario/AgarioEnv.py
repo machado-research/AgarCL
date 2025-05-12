@@ -91,6 +91,10 @@ class AgarioEnv(gym.Env):
         self.add_noise             = kwargs.get("add_noise", True)
         self.number_of_steps       = kwargs.get("number_steps", 500)
         self.mode                  = kwargs.get("mode", 0)
+
+        if(self.mode < 6):
+            raise ValueError("Mode should be greater than 6")
+
         self.env_type              = kwargs.get("env_type", 0) #0 -> Episodic or 1 -> Continuing
         self._seed = None
 
@@ -112,7 +116,9 @@ class AgarioEnv(gym.Env):
         self._env.take_actions(actions)
 
         # step the environment forwards through time
-        rewards = self._env.step()
+        all_rewards = self._env.step()
+        rewards = all_rewards[0]
+        bot_rewards = all_rewards[1]
         assert len(rewards) == self.num_agents
 
         # observe the new state of the environment for each agent
@@ -140,7 +146,7 @@ class AgarioEnv(gym.Env):
 
 
         self.steps += 1
-        return self.observations, rewards, dones, truncations, {'steps': self.steps, 'untransformed_rewards': rewards}
+        return self.observations, rewards, dones, truncations, {'steps': self.steps, 'untransformed_rewards': rewards, 'bot_reward': bot_rewards[0]}
 
     def reset(self, **kwargs):
         """ resets the environment

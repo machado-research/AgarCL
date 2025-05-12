@@ -86,10 +86,12 @@ namespace agario {
        * frames, which is equal to the difference in it's mass before
        * and after the step
        */
-      std::vector<reward> step() {
+      std::vector<std::vector<reward>> step() {
         this->_step_hook(); // allow subclass to set itself up for the step
         is_main_player_respawned = false;
-        auto before = masses<float>();
+        auto full_mass = masses<float>();
+        auto before = full_mass.first;
+        auto before_bot = full_mass.second;
         for (int tick = 0; tick < ticks_per_step(); tick++)
           engine_.tick(step_dt_);
 
@@ -113,29 +115,48 @@ namespace agario {
           }
         }
         // reward could be the current mass or the difference in mass from the last step
-        auto rewards = masses<reward>();
+        auto after = masses<reward>();
+        auto rewards = after.first;
+        auto rewards_bot = after.second;
         if(reward_type_){
           for (int i = 0; i < num_agents(); ++i)
+          {
             rewards[i] -= (before[i] - ((is_main_player_respawned) ? c_death_ : 0));
+            rewards_bot[i] -= (before_bot[i] - ((is_main_player_respawned) ? c_death_ : 0));
+          }
         }
-        return rewards;
+
+        return {rewards, rewards_bot};
+
+
       }
 
         /* the mass of each rl-controlled player */
       template<typename T>
-      std::vector<T> masses() const {
+      std::pair<std::vector<T>,std::vector<T>> masses() const {
         std::vector<T> masses_;
+        std::vector<T> masses_bot;
+        masses_.reserve(num_agents());
         masses_.reserve(num_agents());
         for (const auto &[pid, player] : engine_.players()) {
-          if (player->is_bot) continue;
-          masses_.push_back(static_cast<T>(player->mass()));
-          if(curr_mode_number == 3 && player->mass() >= max_mass)
+          std::cout << "Player ID: " << pid << " Mass: " << player->mass() << std::endl;
+          if (player->is_bot)
           {
-            dones_[0] = true; // assuming the first agent is the main agent
+              masses_bot.push_back(static_cast<T>(player->mass()));
+          }
+          else
+          {
+              masses_.push_back(static_cast<T>(player->mass()));
+              if(curr_mode_number == 3 && player->mass() >= max_mass)
+              {
+                dones_[0] = true; // assuming the first agent is the main agent
+                is_main_player_respawned = true;
+              }
           }
         }
-        return masses_;
+        return {masses_, masses_bot};
       }
+
 
       /* take an action for each agent */
       void take_actions(const std::vector<Action> &actions) {
@@ -357,7 +378,7 @@ namespace agario {
       int seed_ = 0;
       int curr_mode_number = 0;
       const int max_mass = 23000;
-      bool is_main_player_respawned = false;
+      mutable bool is_main_player_respawned = false;
 
 /* allows subclass to do something special at the beginning of each step */
       virtual void _step_hook() {};
