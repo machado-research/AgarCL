@@ -139,7 +139,6 @@ namespace agario {
         masses_.reserve(num_agents());
         masses_.reserve(num_agents());
         for (const auto &[pid, player] : engine_.players()) {
-          std::cout << "Player ID: " << pid << " Mass: " << player->mass() << std::endl;
           if (player->is_bot)
           {
               masses_bot.push_back(static_cast<T>(player->mass()));
