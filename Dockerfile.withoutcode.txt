@@ -87,3 +87,6 @@ RUN python3 -m pip install --upgrade pip && \
 
 # Additional tools
 RUN apt install -y nano
+RUN sudo apt-get install -y libglib2.0-0
+RUN pip install tqdm
+RUN pip install opencv-python
