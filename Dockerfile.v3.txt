@@ -1,13 +1,19 @@
 # syntax=docker/dockerfile:1
 FROM ubuntu:22.04
 # GitHub token
-ARG GITHUB_TOKEN=$GITHUB_TOKEN
-ENV EGL_PLATFORM=surfaceless
+ARG GITHUB_TOKEN
+ENV GITHUB_TOKEN=${GITHUB_TOKEN}
+
 
 # Set environment variables
+ENV EGL_PLATFORM=surfaceless
 ENV CPLUS_INCLUDE_PATH=/usr/local/include
 ENV LIBRARY_PATH=/usr/local/lib
 ENV CPATH=/usr/local/include
+ENV __NV_PRIME_RENDER_OFFLOAD=1
+ENV __GLX_VENDOR_LIBRARY_NAME=nvidia
+
+# Update and install sudo separately to debug the error
 RUN apt-get update && apt-get install -y sudo
 
 # Create a non-root user and add them to the sudo group, allow passwordless sudo
@@ -16,11 +22,9 @@ RUN useradd -m -s /bin/bash newuser && \
     usermod -aG sudo newuser && \
     echo 'newuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-
-RUN apt-get update && apt-get install -y sudo
-
-# Install app dependencies and clean up
-RUN  apt-get update && apt-get install -y \
+# Install app dependencies
+RUN apt-get update && apt-get install -y \
+    apt-utils \
     python3 \
     python3-pip \
     git \
@@ -64,32 +68,48 @@ RUN  apt-get update && apt-get install -y \
     libgl1-mesa-dri \
     libglx-mesa0 \
     mesa-utils && \
-    sudo apt-get clean && \
-    sudo rm -rf /var/lib/apt/lists/*
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set clang++ as the default C++ compiler
-RUN sudo apt-get remove -y gcc
-RUN sudo apt-get update -y
-RUN sudo apt-get install -y clang
-RUN sudo apt-get install -y libgbm-dev libdrm-dev
+RUN apt-get remove -y gcc && apt-get update -y && apt-get install -y clang
+RUN apt-get install -y libgbm-dev libdrm-dev
 ENV CXX=clang++
 
+# Install GLM
+RUN mkdir -p build && cd build && \
+    git clone https://github.com/g-truc/glm && \
+    cd glm && \
+    cmake -DGLM_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -B build . && \
+    cmake --build build --target all && \
+    cmake --build build --target install
 
-# Install AgarLE
-WORKDIR /home/newuser
-RUN git clone --recursive https://$GITHUB_TOKEN@github.com/machado-research/AgarLE.git
-RUN git clone https://$GITHUB_TOKEN@github.com/machado-research/AgarLE-benchmark.git
-WORKDIR /home/newuser/AgarLE-benchmark
-RUN python setup.py install --user
+# Install Python dependencies
+RUN python3 -m pip install --upgrade pip && \
+    pip3 install stable_baselines3==2.3.2 tyro==0.8.5 wandb==0.17.3 tensorboard==2.17.0 gymnasium==0.29.1
 
-# && \
-    # sudo pip3 install -r requirements.txt
-RUN pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu124
-RUN pip install git+https://github.com/mayman150/pfrl.git@gymnasium_support
-
+# Additional tools
+RUN apt install -y nano
 RUN sudo apt-get install -y libglib2.0-0
 RUN pip install tqdm
 RUN pip install opencv-python
+
+# Additional packages for running the agents
+RUN pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu124
+RUN pip install git+https://github.com/mayman150/pfrl.git@gymnasium_support
+
 RUN pip install matplotlib
 RUN pip install packaging
 RUN pip install wandb
+
+# change the directory
+WORKDIR /home/newuser/
+
+# Install AgarLE-benchmark
+RUN git clone https://$GITHUB_TOKEN@github.com/machado-research/AgarLE-benchmark.git
+WORKDIR /home/newuser/AgarLE-benchmark
+
+# Install AgarLE
+RUN git clone --recursive https://$GITHUB_TOKEN@github.com/machado-research/AgarLE.git
+WORKDIR /home/newuser/AgarLE-benchmark/AgarLE
+RUN python3 setup.py install --user
