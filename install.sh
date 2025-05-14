@@ -1,156 +1,112 @@
-os_name=$(uname -s)
+#!/usr/bin/env bash
+set -euo pipefail
+
+#----------------------------------------
+# Detect OS and current dir
+#----------------------------------------
+os_name="$(uname -s)"
 echo "Operating System: $os_name"
+project_dir="$(pwd)"
 
-current_dir=$(pwd)
+#----------------------------------------
+# Core environment exports
+#----------------------------------------
+# Your requested EGL_PLATFORM
+export EGL_PLATFORM=surfaceless
+# Prepare include/lib paths (may get prepended below)
+export CPLUS_INCLUDE_PATH="${CPLUS_INCLUDE_PATH:-}"
+export LIBRARY_PATH="${LIBRARY_PATH:-}"
 
-# Check if the OS is MacOS
-if [ "$os_name" == "Darwin" ]; then
-    arch=$(uname -m)
-    echo "Architecture: $arch"
+#----------------------------------------
+# macOS (Darwin)
+#----------------------------------------
+if [[ "$os_name" == "Darwin" ]]; then
+  echo "==> macOS detected: using Homebrew"
 
-    # Step 1: Install packages
-    if ! command -v brew &> /dev/null; then
-        echo "Homebrew is not installed. Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  # 1) Ensure Homebrew is installed
+  if ! command -v brew &>/dev/null; then
+    echo "Homebrew not found → installing…"
+    /bin/bash -c \
+      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
+
+  # 2) Core packages
+  brew update
+  pkgs=(cmake glm glfw cxxopts pybind11)
+  for p in "${pkgs[@]}"; do
+    if brew list "$p" &>/dev/null; then
+      echo "$p already installed"
     else
-        echo "Homebrew is already installed."
+      echo "Installing $p…"
+      brew install "$p"
     fi
+  done
 
-    packages=(cmake cxxopts glm glfw)
-    for package in "${packages[@]}"; do
-        if brew list "$package" &>/dev/null; then
-            echo "$package is already installed."
-        else
-            echo "Installing $package..."
-            brew install "$package"
-        fi
-    done
+  # 3) Shell init updates (~/.zshrc by default)
+  rc="$HOME/.zshrc"
+  touch "$rc"
+  # Export include/lib paths and CXX
+  grep -q "^export CPLUS_INCLUDE_PATH=" "$rc" \
+    || echo "export CPLUS_INCLUDE_PATH=\$(brew --prefix)/include:\$CPLUS_INCLUDE_PATH" >> "$rc"
+  grep -q "^export LIBRARY_PATH=" "$rc" \
+    || echo "export LIBRARY_PATH=\$(brew --prefix)/lib:\$LIBRARY_PATH" >> "$rc"
+  # Also set CXX to clang++
+  grep -q "^export CXX=" "$rc" \
+    || echo "export CXX=$(which clang++)" >> "$rc"
 
-    #Step 2: Update Include Paths
-    ZSHRC_PATH="$HOME/.zshrc"
-    if [ ! -f "$ZSHRC_PATH" ]; then
-        echo "$ZSHRC_PATH not found. Creating $ZSHRC_PATH"
-        touch "$ZSHRC_PATH"
-    fi
+  echo "Sourcing $rc…"
+  # shellcheck disable=SC1090
+  source "$rc"
 
-    if ! grep -q "CPLUS_INCLUDE_PATH" "$ZSHRC_PATH"; then
-        echo "Updating include paths in $ZSHRC_PATH"
+#----------------------------------------
+# Linux (Debian/Ubuntu)
+#----------------------------------------
+elif [[ "$os_name" == "Linux" ]]; then
+  echo "==> Linux detected: using apt"
 
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH' >> "$ZSHRC_PATH"
-    fi
+  sudo apt-get update
+  sudo apt-get install -y \
+    build-essential cmake git clang \
+    libglm-dev libglfw3-dev libgtest-dev \
+    libglobjects-dev libgl1-mesa-dev libglu1-mesa-dev
 
-    if grep -q "CPATH" "$ZSHRC_PATH"; then
-        echo "CPATH already in $ZSHRC_PATH"
-    else
-        echo "Include CPATH in $ZSHRC_PATH"
-        if [ "$arch" == "x86_64" ]; then
-            echo "export CPATH=/usr/local/include" >> "$ZSHRC_PATH"
-        else
-            echo "export CPATH=/opt/homebrew/include" >> "$ZSHRC_PATH"
-        fi
-    fi
+  # Export CXX here and in bashrc
+  export CXX=clang++
+  rc="$HOME/.bashrc"
+  touch "$rc"
+  # Add include/lib paths
+  line1="export CPLUS_INCLUDE_PATH=/usr/local/include:\$CPLUS_INCLUDE_PATH"
+  grep -qF "$line1" "$rc" || echo "$line1" >> "$rc"
+  line2="export LIBRARY_PATH=/usr/local/lib:\$LIBRARY_PATH"
+  grep -qF "$line2" "$rc" || echo "$line2" >> "$rc"
+  # Add CXX export
+  line3="export CXX=clang++"
+  grep -qF "$line3" "$rc" || echo "$line3" >> "$rc"
 
-    if grep -q "LIBRARY_PATH" "$ZSHRC_PATH"; then
-        echo "LIBRARY_PATH already in $ZSHRC_PATH"
-    else
-        echo "Include LIBRARY_PATH in $ZSHRC_PATH"
-        if [ "$arch" == "x86_64" ]; then
-            echo "export LIBRARY_PATH=/usr/local/lib" >> "$ZSHRC_PATH"
-        else
-            echo "export LIBRARY_PATH=/opt/homebrew/lib" >> "$ZSHRC_PATH"
-        fi
-    fi
+  # Build & install GLM from source (if needed)
+  if [ ! -d build/glm ]; then
+    git clone https://github.com/g-truc/glm build/glm
+    mkdir -p build/glm/build
+    cmake -DGLM_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF \
+      -B build/glm/build build/glm
+    cmake --build build/glm/build --target install
+  fi
 
-    source "$ZSHRC_PATH"
-    # Step 3: Install pybind11
-    if ! command -v pip3 &> /dev/null; then
-        echo "pip3 is not installed. Installing pip3..."
-        brew install python3
-    else
-        echo "pip3 is already installed."
-    fi
+#   # Build & install Cxxopts from source
+#   if [ ! -d build/cxxopts ]; then
+#     git clone https://github.com/jarro2783/cxxopts.git build/cxxopts
+#     mkdir -p build/cxxopts/build
+#     cmake -B build/cxxopts/build build/cxxopts
+#     cmake --build build/cxxopts/build --target install
+#   fi
 
-    pybind11_path="$current_dir/environment/pybind11"
-    if [ ! -d "$pybind11_path" ]; then
-        echo "No pybind11 directory found. Cloning pybind11..."
-        git submodule update --init --recursive
-    fi
-
-    cd "$pybind11_path" || { echo "Error: Cannot change to directory $PROJECT_DIR"; exit 1; }
-
-    pip install -e .
-    echo "Pybind11 installed successfully."
-
-    # Step 4: Running the code
-    python3 setup.py install
-
-# Check if the OS is Linux
-elif [ "$os_name" == "Linux" ]; then
-    # Step 1: Install CMake
-    sudo apt-get install -y libglm-dev
-    sudo apt-get install -y libglobjects-dev
-    sudo apt-get install -y cmake
-    sudo apt-get install -y libgtest-dev
-
-    # Step 2: Install GLM
-    mkdir -p "$current_dir/build"
-    cd "$current_dir/build"
-
-    git clone https://github.com/g-truc/glm
-    cmake \
-        -DGLM_BUILD_TESTS=OFF \
-        -DBUILD_SHARED_LIBS=OFF \
-        -B build .
-    cmake --build build -- all
-    cmake --build build -- install
-
-    # Step 3: Install Cxxopts
-    git clone https://github.com/jarro2783/cxxopts.git
-    cmake ${current_dir}/build/cxxopts
-    make
-
-    # Step 4: Install required packages
-    sudo apt-get install -y libgl1-mesa-dev
-    sudo apt-get install -y libglu1-mesa-dev
-    sudo apt-get install -y libglfw3-dev
-    sudo apt-get install -y freeglut3-dev
-    sudo apt install -y libstdc++-12-dev
-    sudo apt-get install libglfw3-dev libgles2-mesa-dev
-
-    # Step 5: USE CLANG Compiler
-    if command -v gcc &> /dev/null; then
-        sudo apt-get remove -y gcc
-    fi
-
-    if ! command -v clang &> /dev/null; then
-        sudo apt-get install -y clang
-    fi
-    CXX=`which clang++`
-
-    # Step 6: Exporting right paths to bashrc
-    if ! grep -q "CPLUS_INCLUDE_PATH" "$HOME/.bashrc"; then
-        echo "Updating include paths in $HOME/.bashrc"
-
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glfw/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/cxxopts/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
-        echo 'export CPLUS_INCLUDE_PATH=/usr/local/opt/glm/include:$CPLUS_INCLUDE_PATH' >> "$HOME/.bashrc"
-    fi
-
-    # Step 7: Benchmarking
-    cd build
-    git clone https://github.com/google/benchmark.git
-    cd benchmark
-    cmake -E make_directory "build"
-    cmake -E chdir "build" cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../
-    cmake --build "build" --config Release
-    sudo cmake --build "build" --config Release --target install
-
-    # Step 8: Running the code
-    sudo python3 setup.py install
+  echo "Sourcing $rc…"
+  # shellcheck disable=SC1090
+  source "$rc"
 
 else
-    echo "Unsupported Operating System: $os_name"
-    exit 1
+  echo "Unsupported OS: $os_name"
+  exit 1
 fi
+
+echo "✅ All done! You can now build your project in $project_dir"

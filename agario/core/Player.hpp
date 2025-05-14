@@ -206,6 +206,7 @@ class Player {
     Player &operator=(const Player & /* other */) = default;
     Player(Player && /* other */) noexcept = default;
     Player &operator=(Player && /* other */) noexcept = default;
+    void set_name(const std::string &name) { _name = name; }
   private:
     agario::pid _pid;
     std::string _name;

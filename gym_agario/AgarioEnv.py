@@ -2,13 +2,13 @@
 File: AgarioEnv
 Date: 2019-07-30
 Author: Jon Deaton (jonpauldeaton@gmail.com)
-
-This file wraps the Agar.io Learning Environment (agarle)
+Edited By: Mohamed Ayman Mohamed (mamoham3@ualberta.ca)
+This file wraps the Agar.io Learning Environment (agarcl)
 in an OpenAI gym interface. The interface offers three different
 kinds of observation types:
 
 1. screen   - rendering of the agar.io game screen
-              (only available if agarle was compiled with OpenGL)
+              (only available if agarcl was compiled with OpenGL)
 
 2. grid     - an image-like grid with channels for pellets, cells, viruses, boundaries, etc.
               I recommend this one the most since it produces fixed-size image-like data
@@ -60,7 +60,7 @@ from gymnasium import spaces
 import numpy as np
 import cv2
 import os
-import agarle
+import agarcl
 from .agar_utils import get_color_array, Color
 import random
 class AgarioEnv(gym.Env):
@@ -166,8 +166,11 @@ class AgarioEnv(gym.Env):
             if self.obs_type == "grid":
                 return  self._env.get_frame()
 
-    def save(self, filename):
-        self._env.save(filename)
+    def load_env_state(self, filename):
+        self._env.load_env_state(filename)
+
+    def save_env_state(self, filename):
+        self._env.save_env_state(filename)
 
     def close(self):
         self._env.close()
@@ -240,7 +243,7 @@ class AgarioEnv(gym.Env):
                 'observe_pellets': True,
                 'c_death': 0,
             }
-            env = agarle.GridEnvironment(*base_args)
+            env = agarcl.GridEnvironment(*args)
             env.configure_observation(kwargs | grid_defaults)
 
             channels, width, height = env.observation_shape()
@@ -248,14 +251,9 @@ class AgarioEnv(gym.Env):
             dtype = np.int32
             observation_space = spaces.Box(-1, np.iinfo(dtype).max, shape, dtype=dtype)
 
-        elif obs_type == "ram":
-            env = agarle.RamEnvironment(*base_args)
-            shape = env.observation_shape()
-            observation_space = spaces.Box(-np.inf, np.inf, shape)
-
         elif obs_type == "screen":
-            if not agarle.has_screen_env:
-                raise ValueError("agarle was not compiled to include ScreenEnvironment")
+            if not agarcl.has_screen_env:
+                raise ValueError("agarcl was not compiled to include ScreenEnvironment")
 
             # the screen environment requires the additional
             # arguments of screen width and height. We don't use
@@ -268,7 +266,7 @@ class AgarioEnv(gym.Env):
 
             args = base_args  + (screen_len, screen_len)
             args += (self.agent_view, )
-            env = agarle.ScreenEnvironment(*args)
+            env = agarcl.ScreenEnvironment(*args)
             observation_space = spaces.Box(low=0, high=255, shape=env.observation_shape(), dtype=np.uint8)
         elif obs_type == "gobigger":
 
@@ -277,12 +275,6 @@ class AgarioEnv(gym.Env):
             frame_limit = kwargs.get("frame_limit", 1000)
             agent_view  = kwargs.get("agent_view", False)
 
-
-
-            # GoBiggerEnvironment(map_width, map_height, frame_limit,
-            #                     num_agents, ticks_per_step, arena_size,
-            #                     pellet_regen, num_pellets, num_viruses,
-            #                     num_bots, reward_type, c_death,mode_number, agent_view)
             full_args = (map_width, map_height, frame_limit) + base_args + (agent_view,)
             env = agarle.GoBiggerEnvironment(*full_args)
             # Here we assume that the observation is returned as a NumPy array;
@@ -375,8 +367,9 @@ class AgarioEnv(gym.Env):
         self.pellet_regen    = kwargs.get("pellet_regen", pellet_regen)
         self.allow_respawn   = kwargs.get("allow_respawn", allow_respawn)
         self.reward_type     = kwargs.get("reward_type", reward_type)
-        self.c_death         = kwargs.get("c_death", -100)
+        self.c_death         = kwargs.get("c_death", 0)
         self.mode            = kwargs.get("mode", 0)
+        self.load_env_snapshot   = kwargs.get("load_env_snapshot", False)
 
         self.multi_agent = self.multi_agent or self.num_agents > 1
 
@@ -386,7 +379,8 @@ class AgarioEnv(gym.Env):
 
         return self.num_agents, self.ticks_per_step, self.arena_size, \
                self.pellet_regen, self.num_pellets, \
-               self.num_viruses, self.num_bots, self.reward_type, self.c_death, self.mode
+               self.num_viruses, self.num_bots, self.reward_type, self.c_death, self.mode, \
+               self.load_env_snapshot
 
     def seed(self, seed=None):
         # sets the random seed for reproducibility

@@ -1,4 +1,131 @@
-<img width="380" alt="AgarLE" src="https://user-images.githubusercontent.com/15920014/60447827-9d1a1a00-9c24-11e9-8a8b-a8043e8e1302.png">
+# AgarCL
+
+<div align="center">
+    <img src="assets/agarcl_logo.png" alt="AgarCL logo" width="200"/>
+</div>
+
+
+A research platform for continual RL that allows for a progression of increasingly sophisticated behaviour.
+
+<div align="center">
+    <img src="assets/game_description.png" alt="AgarCL description" width="600"/>
+</div>
+
+**AgarCL is based on the game Agar.io.** It's a non-episodic, high-dimensional problem featuring stochastic, ever-evolving dynamics, continuous actions, and partial observability.
+
+## Installation instructions
+
+The recommended way to use AgarCL is within a Docker container running a Linux OS. This ensures there are no conflicts with other installed packages or platforms. This installation script will allow you to interact with AgarCL in a headless mode.
+
+### Setting up the container
+Follow these steps to set up the container:
+
+1. **Download the Dockerfile**
+   - Download the [Dockerfile.withoutcode.txt](https://github.com/machado-research/AgarLE/blob/master/Dockerfile.withoutcode.txt).
+
+2. **Navigate to the Directory Containing the Dockerfile**
+   - Open your terminal and navigate to the folder where the `Dockerfile.withoutcode.txt` is located:
+     ```bash
+     cd /path/to/Dockerfile/directory
+     ```
+
+3. **Build the Docker Image**
+   - Build the Docker image by specifying the custom Dockerfile using the `-f` flag:
+     ```bash
+     docker build -f Dockerfile.withoutcode.txt -t agarclimage .
+     ```
+
+4. **Run the Docker Container**
+   - Once the image has been built, run the container:
+     ```bash
+     docker run --gpus all -it --name agarclcontainer agarclimage
+     ```
+   - This command will start the container with the name `agarclcontainer`. The `--gpus all` flag tells Docker to use all available GPUs on your host system for the container.
+
+### Installing the AgarCL Platform
+
+Now, let's install the platform on your system (`agarclcontainer` container):
+
+1. **Clone the AgarCL Repository**
+   - Clone the repository with the `--recursive` flag to ensure all submodules are included:
+     ```bash
+     git clone --recursive git@github.com:machado-research/AgarLE.git
+     ```
+
+2. **Install the Platform**
+   - Change into the `AgarLE` directory:
+     ```bash
+     cd AgarLE
+     ```
+
+   - Run the installation command to set up the platform:
+     ```bash
+     python3 setup.py install --user
+     ```
+
+   - This will install the platform in your local user environment.
+
+#### Done!
+
+## Running the code
+If you want the crafted observations and run it over python, execute the following line: 
+
+```python
+python project_path/bench/agarle_bench.py
+```
+
+## Using the environment
+
+
+```python
+import gymnasium as gym
+
+# Initialise the environment
+env = gym.make("agario-grid-v0", render_mode="human")
+
+# Reset the environment to generate the first observation
+observation = env.reset()
+for _ in range(1000):
+    # this is where you would insert your policy
+    action_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
+    action = (action_space.sample(), np.random.randint(0, 3))
+
+    # step (transition) through the environment with the action
+    # receiving the next observation, reward and if the episode has terminated or truncated
+    observation, reward, terminated, truncated, info = env.step(action)
+
+    # If the episode has ended then we can reset to start a new episode
+    if terminated or truncated:
+        observation = env.reset()
+
+env.close()
+```
+
+### Self-Play setup
+
+In order to play the game yourself or enable rendering in the gym environment, you will need to build the game 
+client yourself on a system where OpenGL has been installed. Issue the following commands:
+
+
+```shell
+git submodule update --init --recursive
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make -j 2 client agarle
+```
+
+This will output an executable named client in the directory agario
+
+```shell
+agario/client
+```
+
+Use your cursor to control the agent.
+
+
+
+
+<!-- <img width="380" alt="AgarLE" src="https://user-images.githubusercontent.com/15920014/60447827-9d1a1a00-9c24-11e9-8a8b-a8043e8e1302.png">
 
 The Agar.io Learning Environment (AgarLE) is a performant implementation of the popular online multi-player game agar.io along with an [OpenAI Gym](https://gym.openai.com/) interface suitable for reinforcement learning in Python.
 
@@ -16,8 +143,7 @@ The Agar.io Learning Environment (AgarLE) is a performant implementation of the 
 Additionally, you will need to install some essential packages for OpenGL development: **GLFW** and **GLAD**. -->
 
 
-
-## Clone this repository (with submodules)
+<!-- ## Clone this repository (with submodules)
 ```sh
 git clone --recursive git@github.com:machado-research/AgarLE.git
 ```
@@ -74,7 +200,7 @@ config = {
 }
 
 env = gym.make("agario-grid-v0", **config)
-```
+``` -->
 <!-- 
 # Multi-Agent Environments
 
@@ -129,7 +255,7 @@ done by following the advanced set up guide. Rendering will not work
 with the "screen" environment, despite the fact that that environment uses
 the screen image as the environment's observation. -->
 
-# Self-Play setup
+<!-- # Self-Play setup
 In order to play the game yourself or enable rendering in the gym environment,
 you will need to build the game client yourself on a system where OpenGL has
 been installed. This is most likely to succeed on macOS, but will probably work
@@ -158,4 +284,7 @@ compilation by using the following cmake command instead of the one shown above.
     cmake -DCMAKE_BUILD_TYPE=Release -DRENDERABLE=ON ..
 # Debugging 
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
+cmake --build build  -->
+
+## Acknowledgment
+This implementation builds upon the [AgarLE repository](https://github.com/jondeaton/AgarLE).
