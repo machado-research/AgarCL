@@ -6,7 +6,6 @@
 #include <tuple>
 #include <iostream>
 #include <environment/envs/GridEnvironment.hpp>
-#include <environment/envs/RamEnvironment.hpp>
 
 #ifdef INCLUDE_SCREEN_ENV
 #include <environment/envs/ScreenEnvironment.hpp>
@@ -69,7 +68,7 @@ py::list get_state(const Environment &environment) {
 }
 
 
-PYBIND11_MODULE(agarle, module) {
+PYBIND11_MODULE(agarcl, module) {
   using namespace py::literals;
   module.doc() = "Agar.io Learning Environment";
 
@@ -111,22 +110,6 @@ PYBIND11_MODULE(agarle, module) {
     .def("get_state", &get_state<GridEnvironment>)
     .def("close", &GridEnvironment::close)
     .def("save_env_state", &GridEnvironment::save_env_state);
-  /* ================ Ram Environment ================ */
-  // using RamEnvironment = agario::env::RamEnvironment<renderable>;
-
-  // py::class_<RamEnvironment>(module, "RamEnvironment")
-  //   .def(py::init<int, int, int, bool, int, int, int>())
-  //   .def("seed", &RamEnvironment::seed)
-  //   .def("observation_shape", &RamEnvironment::observation_shape)
-  //   .def("dones", &RamEnvironment::dones)
-  //   .def("take_actions", [](RamEnvironment &env, const py::list &actions) {
-  //     env.take_actions(to_action_vector(actions));
-  //   })
-  //   .def("reset", &RamEnvironment::reset)
-  //   .def("render", &RamEnvironment::render)
-  //   .def("step", &RamEnvironment::step)
-  //   .def("get_state", &get_state<RamEnvironment>);
-
 
   /* ================ Screen Environment ================ */
   /* we only include this conditionally if OpenGL was found available for linking */

@@ -2,11 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 project (AvarioEnv)
 
 set(CMAKE_CXX_STANDARD 17)
-# set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -fsanitize=address  -fsanitize=leak -g")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=leak -g")
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fsanitize=leak -g")
-# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -fsanitize=leak")
-# set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address -fsanitize=leak")
 
 include_directories("." "..")
 add_subdirectory(pybind11)
@@ -39,8 +34,7 @@ endif ()
 
 set(AGARIO_ENVS_SOURCE
         envs/BaseEnvironment.hpp
-        envs/GridEnvironment.hpp
-        envs/RamEnvironment.hpp)
+        envs/GridEnvironment.hpp)
 
 set(AGARIO_SCREEN_ENV_SOURCE
         envs/BaseEnvironment.hpp
@@ -70,25 +64,25 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
 
     add_definitions(${GLM_DEFINITIONS})
 
-    pybind11_add_module(agarle bindings.cpp renderable.hpp
+    pybind11_add_module(agarcl bindings.cpp renderable.hpp
             ${AGARIO_ENVS_SOURCE}
             ${AGARIO_SCREEN_ENV_SOURCE})
 
-    target_include_directories(agarle PRIVATE "..")
-    target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
+    target_include_directories(agarcl PRIVATE "..")
+    target_include_directories(agarcl  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
+    target_link_libraries(agarcl PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
 
 else()
 
-    # standard compilation with Grid and Ram environments only
-    pybind11_add_module(agarle bindings.cpp renderable.hpp
+    # standard compilation with Grid environments only
+    pybind11_add_module(agarcl bindings.cpp renderable.hpp
             ${AGARIO_ENVS_SOURCE})
 
-    target_include_directories(agarle PRIVATE "..")
-    target_include_directories(agarle  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarle PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
+    target_include_directories(agarcl PRIVATE "..")
+    target_include_directories(agarcl  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
+    target_link_libraries(agarcl PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
 
-    target_compile_options(agarle PUBLIC -fsized-deallocation)
+    target_compile_options(agarcl PUBLIC -fsized-deallocation)
 
 endif()
 

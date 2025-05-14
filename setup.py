@@ -52,7 +52,7 @@ class CMakeBuild(build_ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
-        subprocess.check_call(['cmake', '--build', '.', '--target', 'agarle'] + build_args, cwd=self.build_temp)
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'agarcl'] + build_args, cwd=self.build_temp)
 
 
 with open("README.md", "r") as f:
@@ -60,13 +60,13 @@ with open("README.md", "r") as f:
 
 setup(name='GymAgario',
       version='0.0.1',
-      author="Jon Deaton - modified by Mohamed Ayman",
-      author_email="mamoham3@ualberta.ca",
+      author="The Authors of the Paper",
+      author_email="agarcl.2025@gmail.com",
       description="Agar.io as continual learning environment for OpenAI Gym",
-      url="https://github.com/jondeaton/AgarLE",
+      url="",
       install_requires=["gymnasium~=0.29", "numpy"],
       packages=["gym_agario"],
       long_description=long_description,
-      ext_modules=[CMakeExtension('agarle')],
+      ext_modules=[CMakeExtension('agarcl')],
       cmdclass=dict(build_ext=CMakeBuild),
       license="MIT")

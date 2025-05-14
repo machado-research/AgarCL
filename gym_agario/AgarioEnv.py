@@ -3,12 +3,12 @@ File: AgarioEnv
 Date: 2019-07-30
 Author: Jon Deaton (jonpauldeaton@gmail.com)
 Edited By: Mohamed Ayman Mohamed (mamoham3@ualberta.ca)
-This file wraps the Agar.io Learning Environment (agarle)
+This file wraps the Agar.io Learning Environment (agarcl)
 in an OpenAI gym interface. The interface offers three different
 kinds of observation types:
 
 1. screen   - rendering of the agar.io game screen
-              (only available if agarle was compiled with OpenGL)
+              (only available if agarcl was compiled with OpenGL)
 
 2. grid     - an image-like grid with channels for pellets, cells, viruses, boundaries, etc.
               I recommend this one the most since it produces fixed-size image-like data
@@ -60,7 +60,7 @@ from gymnasium import spaces
 import numpy as np
 import cv2
 import os
-import agarle
+import agarcl
 from .agar_utils import get_color_array, Color
 import random
 class AgarioEnv(gym.Env):
@@ -241,7 +241,7 @@ class AgarioEnv(gym.Env):
                 'observe_pellets': True,
                 'c_death': 0,
             }
-            env = agarle.GridEnvironment(*args)
+            env = agarcl.GridEnvironment(*args)
             env.configure_observation(kwargs | grid_defaults)
 
             channels, width, height = env.observation_shape()
@@ -250,13 +250,13 @@ class AgarioEnv(gym.Env):
             observation_space = spaces.Box(-1, np.iinfo(dtype).max, shape, dtype=dtype)
 
         elif obs_type == "ram":
-            env = agarle.RamEnvironment(*args)
+            env = agarcl.RamEnvironment(*args)
             shape = env.observation_shape()
             observation_space = spaces.Box(-np.inf, np.inf, shape)
 
         elif obs_type == "screen":
-            if not agarle.has_screen_env:
-                raise ValueError("agarle was not compiled to include ScreenEnvironment")
+            if not agarcl.has_screen_env:
+                raise ValueError("agarcl was not compiled to include ScreenEnvironment")
 
             # the screen environment requires the additional
             # arguments of screen width and height. We don't use
@@ -269,7 +269,7 @@ class AgarioEnv(gym.Env):
 
             args += (screen_len, screen_len)
             args += (self.agent_view, )
-            env = agarle.ScreenEnvironment(*args)
+            env = agarcl.ScreenEnvironment(*args)
             observation_space = spaces.Box(low=0, high=255, shape=env.observation_shape(), dtype=np.uint8)
 
         else:
