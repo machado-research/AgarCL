@@ -370,5 +370,6 @@ PYBIND11_MODULE(agarcl, module) {
       .def("step", &GoBiggerEnv::step, "Step through the environment")
       .def("render", &GoBiggerEnv::render, "Render the current state")
       .def("close", &GoBiggerEnv::close, "Close the environment")
-      .def("save", &GoBiggerEnv::save, "Save the current state");
+      .def("load_env_state", &GoBiggerEnv::load_env_state)
+      .def("save_env_state", &GoBiggerEnv::save_env_state);
 }
