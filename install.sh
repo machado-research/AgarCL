@@ -82,25 +82,15 @@ elif [[ "$os_name" == "Linux" ]]; then
   echo "==> Linux detected: using apt"
 
   sudo apt-get update
+  sudo apt upgrade -y
+
   sudo apt-get install -y \
     build-essential cmake git clang \
     libglm-dev libglfw3-dev libgtest-dev \
-    libglobjects-dev libgl1-mesa-dev libglu1-mesa-dev
+    libglobjects-dev libgl1-mesa-dev libglu1-mesa-dev \
+    libegl1-mesa-dev
 
-  # Export CXX here and in bashrc
-  export CXX=clang++
-  rc="$HOME/.bashrc"
-  touch "$rc"
-  # Add include/lib paths
-  line1="export CPLUS_INCLUDE_PATH=/usr/local/include:\$CPLUS_INCLUDE_PATH"
-  grep -qF "$line1" "$rc" || echo "$line1" >> "$rc"
-  line2="export LIBRARY_PATH=/usr/local/lib:\$LIBRARY_PATH"
-  grep -qF "$line2" "$rc" || echo "$line2" >> "$rc"
-  # Add CXX export
-  line3="export CXX=clang++"
-  grep -qF "$line3" "$rc" || echo "$line3" >> "$rc"
-
-  # Build & install GLM from source (if needed)
+      # Build & install GLM from source (if needed)
   if [ ! -d build/glm ]; then
     git clone https://github.com/g-truc/glm build/glm
     mkdir -p build/glm/build
@@ -109,13 +99,58 @@ elif [[ "$os_name" == "Linux" ]]; then
     cmake --build build/glm/build --target install
   fi
 
-#   # Build & install Cxxopts from source
-#   if [ ! -d build/cxxopts ]; then
-#     git clone https://github.com/jarro2783/cxxopts.git build/cxxopts
-#     mkdir -p build/cxxopts/build
-#     cmake -B build/cxxopts/build build/cxxopts
-#     cmake --build build/cxxopts/build --target install
-#   fi
+  # Install clang++ if it does not exist
+  if ! command -v clang++ &>/dev/null; then
+    echo "clang++ not found → installing…"
+    sudo apt-get install -y clang
+  fi
+    # Export CXX here and in bashrc
+    export CXX=clang++
+    rc="$HOME/.bashrc"
+    touch "$rc"
+
+    # Ensure PS1 is set to avoid unbound variable errors
+    if [[ -z "${PS1+x}" ]]; then
+      echo "export PS1=''" >> "$rc"
+      export PS1=''
+    fi
+    echo "export CXX=$CXX" >> "$rc"
+    echo "[[ -z \"\${PS1+x}\" ]] && export PS1=''" >> "$rc"
+    # Add include/lib paths
+    line1="export CPLUS_INCLUDE_PATH=/usr/local/include:\$CPLUS_INCLUDE_PATH"
+    grep -qF "$line1" "$rc" || echo "$line1" >> "$rc"
+    line2="export LIBRARY_PATH=/usr/local/lib:\$LIBRARY_PATH"
+    grep -qF "$line2" "$rc" || echo "$line2" >> "$rc"
+    # Add CXX export
+    line3="export CXX=clang++"
+    grep -qF "$line3" "$rc" || echo "$line3" >> "$rc"
+    # Add EGL path
+    line4="export EGL_PLATFORM=surfaceless"
+    grep -qF "$line4" "$rc" || echo "$line4" >> "$rc"
+    # Add PATH export for EGL
+    line5="export PATH=\$PATH:/usr/include/EGL"
+    grep -qF "$line5" "$rc" || echo "$line5" >> "$rc"
+
+    # Install Python 3.11 if it does not exist
+    if ! python3.11 --version &>/dev/null; then
+      echo "Python 3.11 not found → installing…"
+      sudo apt-get update
+      sudo apt-get install -y software-properties-common
+      sudo add-apt-repository -y ppa:deadsnakes/ppa
+      sudo apt-get update
+      sudo apt-get install -y python3.11 python3.11-distutils
+    fi
+
+    # Ensure pip is installed for Python 3.11
+    if ! python3.11 -m pip --version &>/dev/null; then
+      echo "pip for Python 3.11 not found → installing…"
+      curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+    fi
+
+    # Install Python dependencies
+    echo "Installing Python dependencies…"
+    python3.11 -m pip install --upgrade pip setuptools wheel
+    python3.11 -m pip install -r "$project_dir/requirements.txt"
 
   echo "Sourcing $rc…"
   # shellcheck disable=SC1090
