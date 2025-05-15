@@ -3,7 +3,6 @@ contourpy==1.3.2
 cycler==0.12.1
 Farama-Notifications==0.0.4
 fonttools==4.58.0
-GymAgario==0.0.1
 gymnasium==0.29.1
 kiwisolver==1.4.8
 matplotlib==3.10.3
