@@ -121,7 +121,7 @@ def parse_args():
     parser.add_argument("--config_file", default='./tasks_configs/Exploration.json', type=str, help="Config file for the environment")
     parser.add_argument("--seed", default=0, type=int , help="Seed for running the environment")
     env_options = parser.add_argument_group("Environment")
-    env_options.add_argument("--env", default="agario-grid-v0")
+    env_options.add_argument("--env", default="agario-screen-v0")
     for param in default_config:
         env_options.add_argument("--" + param, default=default_config[param], type=type(default_config[param]))
 
