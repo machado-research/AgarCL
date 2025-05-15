@@ -21,10 +21,10 @@ The recommended way to use AgarCL is within a Docker container running a Linux O
 Follow these steps to set up the container:
 
 1. **Download the Dockerfile**
-   - Download the [Dockerfile.withoutcode.txt](https://github.com/machado-research/AgarLE/blob/master/Dockerfile.withoutcode.txt).
+   - Download the [Dockerfile.txt](https://github.com/machado-research/AgarCL/blob/master/Dockerfile.txt).
 
 2. **Navigate to the Directory Containing the Dockerfile**
-   - Open your terminal and navigate to the folder where the `Dockerfile.withoutcode.txt` is located:
+   - Open your terminal and navigate to the folder where the `Dockerfile.txt` is located:
      ```bash
      cd /path/to/Dockerfile/directory
      ```
@@ -32,7 +32,7 @@ Follow these steps to set up the container:
 3. **Build the Docker Image**
    - Build the Docker image by specifying the custom Dockerfile using the `-f` flag:
      ```bash
-     docker build -f Dockerfile.withoutcode.txt -t agarclimage .
+     docker build -f Dockerfile.txt -t agarclimage .
      ```
 
 4. **Run the Docker Container**
@@ -49,13 +49,13 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 1. **Clone the AgarCL Repository**
    - Clone the repository with the `--recursive` flag to ensure all submodules are included:
      ```bash
-     git clone --recursive git@github.com:machado-research/AgarLE.git
+     git clone --recursive git@github.com:machado-research/AgarCL.git
      ```
 
 2. **Install the Platform**
-   - Change into the `AgarLE` directory:
+   - Change into the `AgarCL` directory:
      ```bash
-     cd AgarLE
+     cd AgarCL
      ```
 
    - Run the installation command to set up the platform:
@@ -67,11 +67,119 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 
 #### Done!
 
+### Installing the AgarCL Platform and benchmarking tools
+
+1. **Clone the AgarLE-benchmark Repository**
+   - Clone the repository:
+     ```bash
+     git clone git@github.com/machado-research/AgarLE-benchmark.git
+     ```
+
+2. **Navigate to the AgarLE-Benchmark Directory**
+   - Change into the `AgarLE-benchmark` directory:
+     ```bash
+     cd AgarLE-benchmark
+     ```
+
+4. **Clone the AgarCLgit  Repository**
+   - Clone the `AgarCL` repository with the `--recursive` flag to ensure all submodules are included:
+     ```bash
+     git clone --recursive git@github.com:machado-research/AgarCL.git
+     ```
+
+5. **Navigate to the AgarCL Directory**
+   - Change into the `AgarCL` directory:
+     ```bash
+     cd AgarCL
+     ```
+
+6. **Install the Platform**
+   - Run the installation command to set up the platform:
+     ```bash
+     python3 setup.py install --user
+     ```
+
+#### Done!
+
+### macOS Installation Guide
+
+Follow the instructions [here](https://brew.sh/) and make sure you have homebrew correctly installed and updated.
+
+Then follow these steps to set up the AgarCL environment on macOS:
+
+1. **Clone the repository:**
+   ```bash
+   git clone --recursive git@github.com:machado-research/AgarCL.git
+   ```
+2. **Change into the project directory:**
+   ```bash
+   cd AgarCL
+   ```
+3. **Create a Python virtual environment:**
+   ```bash
+   python3 -m venv agarclenv
+   ```
+4. **Activate the virtual environment:**
+   ```bash
+   source agarclenv/bin/activate
+   ```
+5. **Run the installer script:**
+   ```bash
+   ./install.sh
+   ```
+6. **Install Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+7. **Build & install the Python package:**
+   ```bash
+   python3 setup.py install
+    ```
+
+#### Done!
+
+### Linux Installation Guide
+
+1. **Clone the repository:**
+   ```bash
+   git clone --recursive git@github.com:machado-research/AgarCL.git
+   ```
+2. **Change into the project directory:**
+   ```bash
+   cd AgarCL
+   ```
+3. **Create a Python virtual environment:**
+   ```bash
+   python3 -m venv agarclenv
+   ```
+4. **Activate the virtual environment:**
+   ```bash
+   source agarclenv/bin/activate
+   ```
+5. **Run the installer script:**
+   ```bash
+   ./install.sh
+   ```
+6. **Install Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+7. **Build & install the Python package:**
+   ```bash
+   python3 setup.py install
+    ```
+
 ## Running the code
-If you want the crafted observations and run it over python, execute the following line: 
+To run the Go Bigger example, execute the following line: 
 
 ```python
-python project_path/bench/agarle_bench.py
+python3 project_path/bench/go_bigger_example.py
+```
+
+To run the Screen Observations example, execute the following line: 
+
+```python
+python3 project_path/bench/screen_obs_example.py
 ```
 
 ## Using the environment
@@ -111,7 +219,7 @@ client yourself on a system where OpenGL has been installed. Issue the following
 git submodule update --init --recursive
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
-make -j 2 client agarle
+make -j 2 client agario
 ```
 
 This will output an executable named client in the directory agario
