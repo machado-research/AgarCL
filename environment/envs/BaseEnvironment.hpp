@@ -176,11 +176,9 @@ namespace agario {
       }
 
       /* resets the environment by resetting the game engine. */
-      void reset() {
-
+      virtual void reset() {
         if(this->is_loading_env_state == true)
           return;
-
         engine_.reset();
         pids_.clear();
         // c_death_ = 0;

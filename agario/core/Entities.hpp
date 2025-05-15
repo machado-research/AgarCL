@@ -163,6 +163,10 @@ namespace agario {
       this->y += (this->velocity.dy + splitting_velocity.dy) * dt;
     }
 
+    agario::Velocity get_velocity() const {
+      return this->velocity;
+    }
+
 
     void set_mass(agario::mass new_mass) {
 

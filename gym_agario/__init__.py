@@ -16,3 +16,8 @@ if agarcl.has_screen_env:
     register(id='agario-screen-v0',
              entry_point='gym_agario.AgarioEnv:AgarioEnv',
              kwargs={'obs_type': 'screen'})
+
+
+register(id='agario-gobigger-v0',
+            entry_point='gym_agario.AgarioEnv:AgarioEnv',
+            kwargs={'obs_type': 'gobigger'})

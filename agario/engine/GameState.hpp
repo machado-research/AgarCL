@@ -19,19 +19,22 @@ namespace agario {
       const size_t target_num_pellets;
       const size_t target_num_viruses;
       const bool pellet_regen;
+      const bool multi_channel_observation = false;
 
       explicit GameConfig(
         agario::distance w,
         agario::distance h,
         size_t num_pellets,
         size_t num_viruses,
-        bool pellet_regen
+        bool pellet_regen,
+        bool multi_channel = false
       ):
         arena_width(w),
         arena_height(h),
         target_num_pellets(num_pellets),
         target_num_viruses(num_viruses),
-        pellet_regen(pellet_regen)
+        pellet_regen(pellet_regen),
+        multi_channel_observation(multi_channel)
       {}
   };
 
