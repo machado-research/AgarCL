@@ -1,9 +1,3 @@
-"""
-File: __init__.py
-Date: 9/7/19 
-Author: Jon Deaton (jonpauldeaton@gmail.com)
-"""
-
 import numpy as np
 
 null_action = (np.zeros(2), 0)
@@ -23,4 +17,3 @@ default_config = {
             'observe_viruses': True,
             'observe_pellets': True
         }
-

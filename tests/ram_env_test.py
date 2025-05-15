@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 
-"""
-File: ram_env_test
-Date: 9/7/19 
-Author: Jon Deaton (jonpauldeaton@gmail.com)
-"""
-
 import gymnasium as gym
 import gym_agario
 

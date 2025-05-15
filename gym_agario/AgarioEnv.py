@@ -1,8 +1,4 @@
 """
-File: AgarioEnv
-Date: 2019-07-30
-Author: Jon Deaton (jonpauldeaton@gmail.com)
-Edited By: Mohamed Ayman Mohamed (mamoham3@ualberta.ca)
 This file wraps the Agar.io Learning Environment (agarcl)
 in an OpenAI gym interface. The interface offers three different
 kinds of observation types:
@@ -13,24 +9,10 @@ kinds of observation types:
 2. grid     - an image-like grid with channels for pellets, cells, viruses, boundaries, etc.
               I recommend this one the most since it produces fixed-size image-like data
               is much faster than the "screen" type and doesn't require compiling with
-              OpenGL (which works fine on my machine, but probably won't work on your machine LOL)
-
-3. ram      - raw positions and velocities of every entity in a fixed-size vector
-              I haven't tried this one, but I'm guessing that this is harder than "grid".
+              OpenGL
+3. GoBigger  - An observation of GoBigger Paper on a single agent
 
 
-This gym supports multiple agents in the same game. By default, there will
-only be a single agent, and the gym will conform to the typical gym interface.
-(note that there may still be any number of "bots" in this environment)
-
-However, if you pass "multi_agent": True to the environment configuration
-then the environment will have multiple agents all interacting within the
-same agar.io game simultaneously.
-
-    env = gym.make("agario-grid-v0", **{
-        "multi_agent": True,
-        "num_agents": 5
-    })
 
 In this setting, the environment object will no longer conform to the
 typical gym interface in the following ways.
@@ -50,8 +32,6 @@ typical gym interface in the following ways.
     may still be stepped while some agents are not done. Only when
     all agents are done must the environment be reset.
 
-Note that if you pass "num_agents" greater than 1, "multi_agent"
-will be set True automatically.
 
 """
 from typing import List, Tuple
@@ -221,14 +201,14 @@ class AgarioEnv(gym.Env):
 
     def _make_environment(self, obs_type, kwargs):
         """ Instantiates and configures the underlying Agar.io environment (C++ implementation)
-        :param obs_type: the observation type one of "ram", "screen", or "grid"
+        :param obs_type: the observation type one of "gobigger", "screen", or "grid"
         :param kwargs: environment configuration parameters
         :return: tuple of
                     1) the environment object
                     2) observation space
         """
 
-        assert obs_type in ("ram", "screen", "grid", "gobigger")
+        assert obs_type in ("screen", "grid", "gobigger")
 
         base_args = self._get_env_args(kwargs)
 
@@ -414,8 +394,6 @@ class AgarioEnv(gym.Env):
                 for frame in self.video_recorder:
                     if not isinstance(frame, np.ndarray):
                         raise TypeError("Error: A frame is not a numpy array.")
-                    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    cv2.imwrite(f"{path}/frame_0.png", rgb_frame)
                     video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))  # Ensure correct format
 
 

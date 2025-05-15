@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 
-"""
-File: grid_test
-Date: 6/7/19 
-Author: Jon Deaton (jonpauldeaton@gmail.com)
-"""
-
 import gymnasium as gym
 import gym_agario
 import numpy as np
@@ -41,7 +35,7 @@ class GridGymTest(unittest.TestCase):
         """ tests that resetting the environment returns a valid state
         """
         env = gym.make(env_name, **default_config)
-        
+
         state = env.reset()
         self._assertValidState(env, state)
 
