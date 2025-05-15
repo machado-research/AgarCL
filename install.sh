@@ -35,28 +35,45 @@ if [[ "$os_name" == "Darwin" ]]; then
   pkgs=(cmake glm glfw cxxopts pybind11)
   for p in "${pkgs[@]}"; do
     if brew list "$p" &>/dev/null; then
-      echo "$p already installed"
+      echo "${p} already installed"
     else
-      echo "Installing $p…"
+      echo "Installing ${p}…"
       brew install "$p"
     fi
   done
 
   # 3) Shell init updates (~/.zshrc by default)
-  rc="$HOME/.zshrc"
-  touch "$rc"
+  env_file="$HOME/.agarcl_env"
+  touch "$env_file"
   # Export include/lib paths and CXX
-  grep -q "^export CPLUS_INCLUDE_PATH=" "$rc" \
-    || echo "export CPLUS_INCLUDE_PATH=\$(brew --prefix)/include:\$CPLUS_INCLUDE_PATH" >> "$rc"
-  grep -q "^export LIBRARY_PATH=" "$rc" \
-    || echo "export LIBRARY_PATH=\$(brew --prefix)/lib:\$LIBRARY_PATH" >> "$rc"
+  grep -q "^export CPLUS_INCLUDE_PATH=" "$env_file" \
+    || echo "export CPLUS_INCLUDE_PATH=\$(brew --prefix)/include:\$CPLUS_INCLUDE_PATH" >> "$env_file"
+  grep -q "^export LIBRARY_PATH=" "$env_file" \
+    || echo "export LIBRARY_PATH=\$(brew --prefix)/lib:\$LIBRARY_PATH" >> "$env_file"
   # Also set CXX to clang++
-  grep -q "^export CXX=" "$rc" \
-    || echo "export CXX=$(which clang++)" >> "$rc"
+  grep -q "^export CXX=" "$env_file" \
+    || echo "export CXX=$(which clang++)" >> "$env_file"
 
-  echo "Sourcing $rc…"
+  echo "Sourcing ${env_file}…"
   # shellcheck disable=SC1090
-  source "$rc"
+  source "$env_file"
+
+  echo "Your project env has been loaded."
+  echo ""
+  echo "👉 To auto-load in every new shell, add this line to your ~/.zshrc:"
+  echo ""
+  echo "     source ~/.agarcl_env"
+  echo ""
+  echo "👉 Or, for per-project activation, install direnv and in your project root:"
+  echo ""
+  echo "     echo 'source ~/.agarcl_env' > .envrc"
+  echo "     direnv allow"
+  echo ""
+  echo "  Then your env is loaded whenever you cd into the project."
+  echo ""
+  echo "👉 If you only want to load your project env one time (i.e. in the current shell) and not have it re-appear in every new terminal, just run:"
+  echo ""
+  echo "    source ~/.agarcl_env"
 
 #----------------------------------------
 # Linux (Debian/Ubuntu)
@@ -104,9 +121,9 @@ elif [[ "$os_name" == "Linux" ]]; then
   # shellcheck disable=SC1090
   source "$rc"
 
+  echo "✅ All done! You can now build your project in $project_dir"
+
 else
   echo "Unsupported OS: $os_name"
   exit 1
 fi
-
-echo "✅ All done! You can now build your project in $project_dir"

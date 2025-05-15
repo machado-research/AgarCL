@@ -21,16 +21,23 @@ if (RENDERABLE)
 
 endif ()
 
-
-
 # Allow for USE_EGL
-option(USE_EGL "Make environments headlessly renderable" OFF) # Disabled by default
+option(USE_EGL "Make environments headlessly renderable" ON)
+
+# On Apple platforms, always disable EGL
+if(APPLE)
+  message(STATUS "macOS detected → disabling headless EGL support")
+  set(USE_EGL OFF CACHE BOOL "Make environments headlessly renderable" FORCE)
+endif()
+
 if (USE_EGL)
-    message("Headlessly renderable")
-    add_definitions(-DUSE_EGL)
-endif ()
+  message(STATUS "Headlessly renderable (EGL ON)")
+  add_definitions(-DUSE_EGL)
+else()
+  message(STATUS "Headlessly renderable (EGL OFF)")
+endif()
 
-
+message(STATUS "Final setting: USE_EGL=${USE_EGL}")
 
 set(AGARIO_ENVS_SOURCE
         envs/BaseEnvironment.hpp
@@ -71,7 +78,11 @@ if (INCLUDE_SCREEN_ENV AND OpenGL_FOUND)
 
     target_include_directories(agarcl PRIVATE "..")
     target_include_directories(agarcl  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarcl PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
+    if(APPLE)
+        target_link_libraries(agarcl PUBLIC ${OPENGL_LIBRARIES} glad glm glfw)
+    else()
+        target_link_libraries(agarcl PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
+    endif()
 
 else()
 
@@ -81,7 +92,11 @@ else()
 
     target_include_directories(agarcl PRIVATE "..")
     target_include_directories(agarcl  PRIVATE ${OPENGL_INCLUDE_DIR} ${GLM_INCLUDE_DIRS})
-    target_link_libraries(agarcl PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
+    if(APPLE)
+        target_link_libraries(agarcl PUBLIC ${OPENGL_LIBRARIES} glad glm glfw)
+    else()
+        target_link_libraries(agarcl PUBLIC ${OPENGL_LIBRARIES} glad glm glfw OpenGL::EGL)
+    endif()
 
     target_compile_options(agarcl PUBLIC -fsized-deallocation)
 
