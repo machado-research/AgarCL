@@ -1,6 +1,8 @@
 # macOS Installation Guide
 
-Follow these steps to set up the AgarCL environment on macOS:
+First of all, follow the instructions here [https://brew.sh/](https://brew.sh/) and make sure you have homebrew installed and updated.
+
+Then follow these steps to set up the AgarCL environment on macOS:
 
 1. **Clone the repository:**
    ```bash
