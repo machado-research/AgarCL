@@ -276,7 +276,7 @@ make an environment in the standard way
 import gym
 import gym_agario
     
-env = gym.make("agario-grid-v0")
+env = gym.make("agario-screen-v0") # or gym.make("agario-gobigger-v0")
     
 game_state = env.reset()
 print(game_state.shape) # (128, 128, 10) , (grid_size, grid_size, num_channels)
