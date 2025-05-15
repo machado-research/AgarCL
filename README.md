@@ -21,7 +21,7 @@ The recommended way to use AgarCL is within a Docker container running a Linux O
 Follow these steps to set up the container:
 
 1. **Download the Dockerfile**
-   - Download the [Dockerfile.txt](https://github.com/machado-research/AgarCL/blob/master/Dockerfile.txt).
+   - Download the [Dockerfile.txt](https://github.com/AgarCL/AgarCL/blob/master/Dockerfile.txt).
 
 2. **Navigate to the Directory Containing the Dockerfile**
    - Open your terminal and navigate to the folder where the `Dockerfile.txt` is located:
@@ -49,7 +49,7 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 1. **Clone the AgarCL Repository**
    - Clone the repository with the `--recursive` flag to ensure all submodules are included:
      ```bash
-     git clone --recursive git@github.com:machado-research/AgarCL.git
+     git clone --recursive git@github.com:AgarCL/AgarCL.git
      ```
 
 2. **Install the Platform**
@@ -69,22 +69,22 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 
 ### Installing the AgarCL Platform and benchmarking tools
 
-1. **Clone the AgarLE-benchmark Repository**
+1. **Clone the AgarCL-benchmark Repository**
    - Clone the repository:
      ```bash
-     git clone git@github.com/machado-research/AgarLE-benchmark.git
+     git clone git@github.com/AgarCL/AgarCL-benchmark.git
      ```
 
 2. **Navigate to the AgarLE-Benchmark Directory**
-   - Change into the `AgarLE-benchmark` directory:
+   - Change into the `AgarCL-benchmark` directory:
      ```bash
-     cd AgarLE-benchmark
+     cd AgarCL-benchmark
      ```
 
 4. **Clone the AgarCLgit  Repository**
    - Clone the `AgarCL` repository with the `--recursive` flag to ensure all submodules are included:
      ```bash
-     git clone --recursive git@github.com:machado-research/AgarCL.git
+     git clone --recursive git@github.com:AgarCL/AgarCL.git
      ```
 
 5. **Navigate to the AgarCL Directory**
@@ -96,7 +96,7 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 6. **Install the Platform**
    - Run the installation command to set up the platform:
      ```bash
-     python3 setup.py install --user
+     python setup.py install --user
      ```
 
 #### Done!
