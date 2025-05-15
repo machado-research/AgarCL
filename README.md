@@ -109,7 +109,7 @@ Then follow these steps to set up the AgarCL environment on macOS:
 
 1. **Clone the repository:**
    ```bash
-   git clone --recursive git@github.com:machado-research/AgarCL.git
+   git clone --recursive git@github.com:AgarCL/AgarCL.git
    ```
 2. **Change into the project directory:**
    ```bash
@@ -142,7 +142,7 @@ Then follow these steps to set up the AgarCL environment on macOS:
 
 1. **Clone the repository:**
    ```bash
-   git clone --recursive git@github.com:machado-research/AgarCL.git
+   git clone --recursive git@github.com:AgarCL/AgarCL.git
    ```
 2. **Change into the project directory:**
    ```bash
@@ -253,7 +253,7 @@ Additionally, you will need to install some essential packages for OpenGL develo
 
 <!-- ## Clone this repository (with submodules)
 ```sh
-git clone --recursive git@github.com:machado-research/AgarLE.git
+git clone --recursive git@github.com:AgarCL/AgarLE.git
 ```
 # Installation 
 Run the following line in the terminal:
