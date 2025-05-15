@@ -184,7 +184,6 @@ namespace agario {
 
     }
 
-
     void close_program()
     {
       shader.cleanup();

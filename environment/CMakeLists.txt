@@ -41,7 +41,8 @@ message(STATUS "Final setting: USE_EGL=${USE_EGL}")
 
 set(AGARIO_ENVS_SOURCE
         envs/BaseEnvironment.hpp
-        envs/GridEnvironment.hpp)
+        envs/GridEnvironment.hpp
+        envs/GoBiggerEnvironment.hpp)
 
 set(AGARIO_SCREEN_ENV_SOURCE
         envs/BaseEnvironment.hpp

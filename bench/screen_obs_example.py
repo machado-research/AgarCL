@@ -37,7 +37,7 @@ default_config = {
     'num_bots'          :   8,
     'pellet_regen'      :   True,
     'screen_len'        :   128,
-    'obs_type'          :   "screen",    #Two options: screen, grid
+    'obs_type'          :   "screen",    #Two options: screen, gobigger
     'reward_type'       :   diff(),      #Two options: "mass:reward=mass", "diff = reward=mass(t)-mass(t-1)"
     'render_mode'       :   "rgb_array", #Two options: "human", "rgb_array"
     'num_agents'        :   1,
@@ -48,7 +48,7 @@ default_config = {
     'env_type'          :   1,           #0 -> episodic or 1 - > continuing
     'number_steps'      :   3000,        #Number of steps to run the environment in case it is episodic
     'load_env_snapshot' :   0,           #Do you want to load a snapshot of the environment?
-    'record_video'      :   False,       #Do you want to record a video of the environment?
+    'record_video'      :   True,       #Do you want to record a video of the environment?
     'save_env_snapshot' :   True,       #Do you want to save a snapshot of the environment?
 }
 
