@@ -349,6 +349,35 @@ env.disable_video_recorder()
 env.close()
 ```
 
+### Real-Time Render View
+
+Display the environment in a live GUI window for debugging, demos, and visually tracking your agent’s decisions as they happen.
+
+An example of how to invoke the window:
+
+```python
+import gymnasium as gym
+
+# Initialize the environment
+env = gym.make("agario-screen-v0", render_mode="human")
+
+# Reset the environment
+env.reset()
+
+# Perform some steps
+for _ in range(100):
+   action = [(env.action_space.sample(), env.action_space.sample())]
+   observation, reward, terminated, truncated, info = env.step(action)
+
+   # Update the on-screen display
+   env.render()
+   if terminated or truncated:
+      break
+
+env.close()
+```
+
+
 This functionality allows you to capture and analyze the agent's performance visually.
 
 
