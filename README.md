@@ -22,6 +22,7 @@ Follow these steps to set up the container:
 
 1. **Download the Dockerfile**
    - Download the [Dockerfile.txt](https://github.com/AgarCL/AgarCL/blob/master/Dockerfile.txt).
+   - You can jump to step 4 for instructions to use a pre-built [image](https://hub.docker.com/repository/docker/agarcl/agarclimage/general) that we share.
 
 2. **Navigate to the Directory Containing the Dockerfile**
    - Open your terminal and navigate to the folder where the `Dockerfile.txt` is located:
@@ -34,8 +35,14 @@ Follow these steps to set up the container:
      ```bash
      docker build -f Dockerfile.txt -t agarclimage .
      ```
+   - Skip to step 5, now that your image is built.
+4. **Directly use the pre-built image**
+   - ```bash
+     docker pull agarcl/agarclimage
+     ```
+     
 
-4. **Run the Docker Container**
+5. **Run the Docker Container**
    - Once the image has been built, run the container:
      ```bash
      docker run --gpus all -it --name agarclcontainer agarclimage

@@ -63,6 +63,10 @@ RUN apt-get update && apt-get install -y \
     libgles2-mesa-dev \
     libgl1-mesa-dri \
     libglx-mesa0 \
+    pkg-config \
+    libsdl2-dev \
+    libsdl2-image-dev \
+    libsdl2-mixer-dev \
     mesa-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
