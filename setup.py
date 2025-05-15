@@ -37,6 +37,10 @@ class CMakeBuild(build_ext):
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
 
+        # force USE_EGL=OFF on macOS
+        if platform.system() == "Darwin":
+            cmake_args.append('-DUSE_EGL=OFF')
+
         if platform.system() == "Windows":
             cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
             if sys.maxsize > 2**32:
