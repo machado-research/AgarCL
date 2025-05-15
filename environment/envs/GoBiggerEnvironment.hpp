@@ -572,8 +572,9 @@ template <bool renderable>
                                      int ticks_per_step, int arena_size, bool pellet_regen, int num_pellets,
                                      int num_viruses, int num_bots, bool reward_type, int c_death = 0,
                                      int mode_number = 0,
+                                    bool load_env_snapshot = false,
                                      bool agent_view = false)
-            : Super(num_agents, ticks_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death, mode_number),
+            : Super(num_agents, ticks_per_step, arena_size, pellet_regen, num_pellets, num_viruses, num_bots, reward_type, c_death, mode_number, load_env_snapshot),
               observation(map_width, map_height, frame_limit, 0, num_agents),
               last_frame_index(0),
               last_player(nullptr),
@@ -699,7 +700,7 @@ template <bool renderable>
             BaseEnvironment<renderable>::reset();
             observation.clear();
             for ( auto &pid: this->pids_ )
-            {   
+            {
                 observation.update_player_state(pid,
                     std::vector<FoodInfo>{},
                     std::vector<VirusInfo>{},

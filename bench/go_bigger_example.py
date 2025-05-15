@@ -109,29 +109,12 @@ def main():
         # env.render()
         if(done):
             env.reset()
-            # env.enable_video_recorder()
-        # Calculate SPS (Steps Per Second) for the episode
+
     episode_elapsed_time = time.time() - episode_start_time
     episode_SPS = episode_steps / episode_elapsed_time
     SPS_VALUES.append(episode_SPS)
     print(f"Episode {iter} finished in {episode_SPS:.2f} seconds")
 
-    # env.generate_video('/home/mamm/ayman/thesis/AgarLE/bench/', 'bench_video.avi')
-    # Plotting SPS values
-    # plt.figure()
-    # plt.plot(SPS_VALUES)
-    # plt.xlabel('Step')
-    # plt.ylabel('SPS (Steps Per Second)')
-    # plt.title('Steps Per Second over Time')
-    # plt.savefig('/home/ayman/thesis/AgarLE/bench/sps_over_time.png')
-    # plt.close()
-
-    # Save rewards to CSV
-    # with open(f'episodic_rewards_{args.seed}.csv', 'w', newline='') as csvfile:
-    #     writer = csv.writer(csvfile)
-    #     writer.writerow(['Episode', 'Reward'])
-    #     for i, reward in enumerate(episode_rewards):
-    #         writer.writerow([i + 1, reward])
 
     env.close()
 

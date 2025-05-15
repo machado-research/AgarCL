@@ -276,7 +276,7 @@ class AgarioEnv(gym.Env):
             agent_view  = kwargs.get("agent_view", False)
 
             full_args = (map_width, map_height, frame_limit) + base_args + (agent_view,)
-            env = agarle.GoBiggerEnvironment(*full_args)
+            env = agarcl.GoBiggerEnvironment(*full_args)
             # Here we assume that the observation is returned as a NumPy array;
             # adjust dtype and bounds as necessary.
             shape = env.observation_shape()
