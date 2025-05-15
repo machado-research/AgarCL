@@ -232,5 +232,125 @@ agario/client
 Use your cursor to control the agent.
 
 
+
+### Loading and Saving Environment Snapshots
+
+AgarCL allows you to save and load snapshots of the environment's state. This feature is useful for debugging, benchmarking, or resuming training from a specific point.
+
+#### Saving a Snapshot
+
+To save the current state of the environment, use the `save_env_state` method:
+
+```python
+env.save_env_state('path_to_save_snapshot.json')
+```
+
+This will save the environment's state to a JSON file at the specified path.
+
+#### Loading a Snapshot
+
+To load a previously saved snapshot, use the `load_env_state` method:
+
+```python
+env.load_env_state('path_to_snapshot.json')
+```
+Before loading a snapshot, ensure that the `load_env_state` option is enabled in the environment configuration. This will allow the environment to restore its state from the specified JSON file.
+
+#### Example Usage
+
+Here is an example of how to use these methods in a script:
+
+```python
+import gymnasium as gym
+
+# Initialize the environment
+env = gym.make("agario-screen-v0", render_mode="human")
+
+# Load a snapshot if available
+env.load_env_state('snapshot.json')
+
+# Reset the environment
+env.reset()
+
+# Perform some steps
+for _ in range(100):
+   action = [(env.action_space.sample(), env.action_space.sample())]
+   observation, reward, terminated, truncated, info = env.step(action)
+   if terminated or truncated:
+      break
+
+# Save the environment's state
+env.save_env_state('snapshot.json')
+
+env.close()
+```
+
+This functionality ensures reproducibility and allows for efficient experimentation with different configurations.
+
+### Recording and Saving Videos
+
+AgarCL provides functionality to record and save videos of the environment's execution. This is useful for visualizing agent behavior or debugging.
+
+#### Enabling Video Recording
+
+To enable video recording, set the `record_video` parameter to `True` in the environment configuration. You can also enable video recording programmatically:
+
+```python
+env.enable_video_recorder()
+```
+
+#### Saving the Video
+
+To save the recorded video, use the `generate_video` method:
+
+```python
+env.generate_video('path_to_save_video', 'video_name.avi')
+```
+
+This will save the video to the specified path with the given file name.
+
+#### Disabling Video Recording
+
+To stop recording, use the `disable_video_recorder` method:
+
+```python
+env.disable_video_recorder()
+```
+
+#### Example Usage
+
+Here is an example of how to record and save a video:
+
+```python
+import gymnasium as gym
+
+# Initialize the environment
+env = gym.make("agario-screen-v0", render_mode="rgb_array")
+
+# Enable video recording
+env.enable_video_recorder()
+
+# Reset the environment
+env.reset()
+
+# Perform some steps
+for _ in range(100):
+   action = [(env.action_space.sample(), env.action_space.sample())]
+   observation, reward, terminated, truncated, info = env.step(action)
+   if terminated or truncated:
+      break
+
+# Save the video
+env.generate_video('videos', 'example_run.avi')
+
+# Disable video recording
+env.disable_video_recorder()
+
+env.close()
+```
+
+This functionality allows you to capture and analyze the agent's performance visually.
+
+
 ## Acknowledgment
 This implementation is built upon the [AgarLE repository](https://github.com/jondeaton/AgarLE).
