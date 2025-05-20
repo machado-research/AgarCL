@@ -23,6 +23,21 @@ export LIBRARY_PATH="${LIBRARY_PATH:-}"
 if [[ "$os_name" == "Darwin" ]]; then
   echo "==> macOS detected: using Homebrew"
 
+  # Install CMake 3.22 to /opt/cmake-3.22 if not already installed
+  if [ ! -x /opt/cmake-3.22/CMake.app/Contents/bin/cmake ]; then
+    echo "Installing CMake 3.22 to /opt/cmake-3.22…"
+    curl -LO https://cmake.org/files/v3.22/cmake-3.22.0-macos-universal.tar.gz
+    tar -xzf cmake-3.22.0-macos-universal.tar.gz
+    sudo mv cmake-3.22.0-macos-universal /opt/cmake-3.22
+    rm cmake-3.22.0-macos-universal.tar.gz
+  else
+    echo "CMake 3.22 already installed in /opt/cmake-3.22"
+  fi
+
+  # Add CMake to PATH early in this session
+  export PATH="/opt/cmake-3.22/CMake.app/Contents/bin:$PATH"
+
+
   # 1) Ensure Homebrew is installed
   if ! command -v brew &>/dev/null; then
     echo "Homebrew not found → installing…"
@@ -32,7 +47,7 @@ if [[ "$os_name" == "Darwin" ]]; then
 
   # 2) Core packages
   brew update
-  pkgs=(cmake glm glfw cxxopts pybind11)
+  pkgs=(glm glfw cxxopts pybind11)
   for p in "${pkgs[@]}"; do
     if brew list "$p" &>/dev/null; then
       echo "${p} already installed"
@@ -53,6 +68,9 @@ if [[ "$os_name" == "Darwin" ]]; then
   # Also set CXX to clang++
   grep -q "^export CXX=" "$env_file" \
     || echo "export CXX=$(which clang++)" >> "$env_file"
+  grep -q "^export PATH=.*cmake-3.22" "$env_file" \
+    || echo 'export PATH="/opt/cmake-3.22/CMake.app/Contents/bin:$PATH"' >> "$env_file"
+
 
   echo "Sourcing ${env_file}…"
   # shellcheck disable=SC1090

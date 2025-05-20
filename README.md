@@ -7,6 +7,8 @@
 
 A research platform for continual RL that allows for a progression of increasingly sophisticated behaviour.
 
+Please find the documentation [here](https://agarcl.github.io/).
+
 <div align="center">
     <img src="assets/game_description.png" alt="AgarCL description" width="600"/>
 </div>
@@ -40,7 +42,7 @@ Follow these steps to set up the container:
    - ```bash
      docker pull agarcl/agarclimage
      ```
-     
+
 
 5. **Run the Docker Container**
    - Once the image has been built, run the container:
@@ -67,7 +69,7 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 
    - Run the installation command to set up the platform:
      ```bash
-     python3 setup.py install --user
+     python setup.py install --user
      ```
 
    - This will install the platform in your local user environment.
@@ -82,7 +84,7 @@ Now, let's install the platform on your system (`agarclcontainer` container):
      git clone git@github.com/AgarCL/AgarCL-benchmark.git
      ```
 
-2. **Navigate to the AgarLE-Benchmark Directory**
+2. **Navigate to the AgarCL-Benchmark Directory**
    - Change into the `AgarCL-benchmark` directory:
      ```bash
      cd AgarCL-benchmark
@@ -108,9 +110,23 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 
 #### Done!
 
+## macOS and Linux Installation Guide
+
+### Installation notes:
+
+Ensure the project is compiled with clang++, not g++
+
 ### macOS Installation Guide
 
-Follow the instructions [here](https://brew.sh/) and make sure you have homebrew correctly installed and updated.
+> 💡 Before starting:
+>
+> Follow the instructions [here](https://brew.sh/) and make sure you have **homebrew** correctly installed and updated.
+>
+> Make sure **Command Line Tools** are installed properly, follow the [documentation](https://developer.apple.com/xcode/resources/).
+>
+> Note: The installer will automatically install **CMake 3.22** (a compatible version for this project)
+
+
 
 Then follow these steps to set up the AgarCL environment on macOS:
 
@@ -124,40 +140,7 @@ Then follow these steps to set up the AgarCL environment on macOS:
    ```
 3. **Create a Python virtual environment:**
    ```bash
-   python3 -m venv agarclenv
-   ```
-4. **Activate the virtual environment:**
-   ```bash
-   source agarclenv/bin/activate
-   ```
-5. **Run the installer script:**
-   ```bash
-   ./install.sh
-   ```
-6. **Install Python dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-7. **Build & install the Python package:**
-   ```bash
-   python3 setup.py install
-    ```
-
-#### Done!
-
-### Linux Installation Guide
-
-1. **Clone the repository:**
-   ```bash
-   git clone --recursive git@github.com:AgarCL/AgarCL.git
-   ```
-2. **Change into the project directory:**
-   ```bash
-   cd AgarCL
-   ```
-3. **Create a Python virtual environment:**
-   ```bash
-   python3 -m venv agarclenv
+   python -m venv agarclenv
    ```
 4. **Activate the virtual environment:**
    ```bash
@@ -175,6 +158,44 @@ Then follow these steps to set up the AgarCL environment on macOS:
    ```bash
    python setup.py install
     ```
+
+#### Done!
+
+### Linux Installation Guide
+
+1. **Clone the repository:**
+   ```bash
+   git clone --recursive git@github.com:AgarCL/AgarCL.git
+   ```
+2. **Change into the project directory:**
+   ```bash
+   cd AgarCL
+   ```
+3. **Create a Python virtual environment:**
+   ```bash
+   python -m venv agarclenv
+   ```
+4. **Activate the virtual environment:**
+   ```bash
+   source agarclenv/bin/activate
+   ```
+5. **Make the install script executable:**
+   ```bash
+   chmod +x install.sh
+   ```
+
+6. **Run the installer script (may require sudo):**
+   ```bash
+   sudo ./install.sh
+   ```
+7. **Install Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+8. **Build and install the Python package:**
+   ```bash
+   python setup.py install
+   ```
 
 ## Running the code
 To run the Go Bigger example, execute the following line:
