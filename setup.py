@@ -71,6 +71,7 @@ setup(name='GymAgario',
     install_requires=[
         "gymnasium~=0.29",
         "numpy",
+        "setuptools"
     ],
     packages=["gym_agario"],
     long_description=long_description,
