@@ -87,7 +87,10 @@
         "execution": "cpp",
         "ios": "cpp",
         "locale": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "cfenv": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "files.trimTrailingWhitespace": true,

@@ -37,6 +37,10 @@ class CMakeBuild(build_ext):
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
 
+        # force USE_EGL=OFF on macOS
+        if platform.system() == "Darwin":
+            cmake_args.append('-DUSE_EGL=OFF')
+
         if platform.system() == "Windows":
             cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
             if sys.maxsize > 2**32:
@@ -52,7 +56,7 @@ class CMakeBuild(build_ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
-        subprocess.check_call(['cmake', '--build', '.', '--target', 'agarle'] + build_args, cwd=self.build_temp)
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'agarcl'] + build_args, cwd=self.build_temp)
 
 
 with open("README.md", "r") as f:
@@ -60,17 +64,17 @@ with open("README.md", "r") as f:
 
 setup(name='GymAgario',
     version='0.0.1',
-    author="Jon Deaton",
-    author_email="jonpauldeaton@gmail.com",
-    description="Agar.io RL gym",
-    url="https://github.com/jondeaton/AgarLE",
+    author="Mohamed A. Mohamed",
+    author_email="mamoham3@ualberta.ca",
+    description="Agar.io as continual learning environment for OpenAI Gym",
+    url="",
     install_requires=[
         "gymnasium~=0.29",
         "numpy",
     ],
     packages=["gym_agario"],
     long_description=long_description,
-    ext_modules=[CMakeExtension('agarle')],
+    ext_modules=[CMakeExtension('agarcl')],
     cmdclass=dict(build_ext=CMakeBuild),
     license="MIT",
 )

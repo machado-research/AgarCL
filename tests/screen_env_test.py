@@ -1,9 +1,3 @@
-"""
-File: screen_test
-Date: 5/18/19 
-Author: Jon Deaton (jdeaton@stanford.edu)
-"""
-
 import gymnasium as gym
 import gym_agario
 
@@ -25,7 +19,7 @@ class ScreenGymTest(unittest.TestCase):
         'screen_len': 1024,
         "c_death": 0
     }
-    
+
     def gen_random_actions(self):
         max_val, min_val = 1, -1
         range_size = max_val - min_val
@@ -39,7 +33,7 @@ class ScreenGymTest(unittest.TestCase):
     def test_step(self):
         env = gym.make(self.env_name, **self.env_config)
         env.reset()
-        
+
         next_state, reward, done, info = env.step(self.gen_random_actions())
 
         self.assertIsInstance(next_state, np.ndarray)
@@ -56,7 +50,7 @@ class ScreenGymTest(unittest.TestCase):
         env = gym.make(self.env_name, **self.env_config)
         env.reset()
         for _ in range(10):
-            
+
             next_state, reward, done, info = env.step(self.gen_random_actions())
 
             self.assertIsInstance(next_state, np.ndarray)
@@ -68,7 +62,7 @@ class ScreenGymTest(unittest.TestCase):
 
             self.assertGreater(np.sum(next_state), 0)
             self.assertFalse(np.all(next_state == 255))
-            
+
 
 
 # if you wanna just run these tests, you can

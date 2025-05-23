@@ -1,20 +1,24 @@
 #pragma once
 
 #include <math.h>
-
 #include "agario/core/types.hpp"
 
 #define CELL_EAT_MARGIN 1.1
+
 
 namespace agario {
 
   class Ball {
   public:
+    int id;
     Ball() = delete;
+    static int global_id;
 
-    explicit Ball(const Location &loc) : x(loc.x), y(loc.y) {}
 
-    Ball(distance x, distance y) : Ball(Location(x, y)) {}
+    explicit Ball(const Location &loc) : x(loc.x), y(loc.y) {id = ++global_id;}
+
+    Ball(distance x, distance y) : Ball(Location(x, y)) {
+    }
 
     virtual distance radius() const = 0;
 
@@ -46,8 +50,8 @@ namespace agario {
 
     // mass based comparison, useful for sorting and such
     bool operator==(const Ball &other) const { return mass() == other.mass(); }
-    bool operator<(const Ball &other) const { return mass() < other.mass(); }
-    bool operator>(const Ball &other) const { return mass() > other.mass(); }
+    bool operator<(const Ball &other) const { return id < other.id; }
+    bool operator>(const Ball &other) const { return id > other.id; }
 
     distance x;
     distance y;
@@ -90,3 +94,4 @@ namespace agario {
   };
 
 }
+int agario::Ball::global_id = 1;

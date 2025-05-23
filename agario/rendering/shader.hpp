@@ -5,6 +5,11 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#ifdef USE_EGL
+  #include <EGL/egl.h>
+#endif
+
+
 #define GL_SILENCE_DEPRECATION
 class ShaderException : public std::runtime_error {
   using runtime_error::runtime_error;
@@ -61,15 +66,21 @@ public:
 
     //Check whether it is already compiled
     // std::cout << "Compiling vertex shader" << std::endl;
-
+#ifdef USE_EGL
+    if(!gladLoadGLLoader((GLADloadproc)eglGetProcAddress))
+    {
+        fprintf(stderr, "Failed to initialize GLAD\n");
+        return;
+    }
+#else
       if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         fprintf(stderr, "Failed to initialize GLAD\n");
         return;
-        
-    }
-    gladLoadGL();
 
+    }
+#endif
+    gladLoadGL();
     // vertex shader
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, nullptr);
@@ -128,7 +139,7 @@ public:
     return std::string((const char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
   }
 
-  ~Shader() { 
+  ~Shader() {
   }
 
 private:

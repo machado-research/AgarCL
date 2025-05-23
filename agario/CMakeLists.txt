@@ -4,7 +4,7 @@ cmake_policy(SET CMP0048 NEW)
 project(Agario
         VERSION 0.1
         DESCRIPTION "Agar.io Game Engine"
-        HOMEPAGE_URL "https://github.com/jondeaton/AgarLE"
+        HOMEPAGE_URL "https://github.com/AgarCL/AgarCL"
         LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -27,6 +27,23 @@ endfunction(make_includable)
 make_includable(rendering/shaders/vertex.glsl rendering/shaders/_vertex.glsl)
 make_includable(rendering/shaders/fragment.glsl rendering/shaders/_fragment.glsl)
 
+# Allow for USE_EGL
+option(USE_EGL "Make environments headlessly renderable" ON)
+
+# On Apple platforms, always disable EGL
+if(APPLE)
+  message(STATUS "macOS detected → disabling headless EGL support")
+  set(USE_EGL OFF CACHE BOOL "Make environments headlessly renderable" FORCE)
+endif()
+
+if (USE_EGL)
+  message(STATUS "Headlessly renderable (EGL ON)")
+  add_definitions(-DUSE_EGL)
+else()
+  message(STATUS "Headlessly renderable (EGL OFF)")
+endif()
+
+message(STATUS "Final setting: USE_EGL=${USE_EGL}")
 
 IF(APPLE)
     # Fix linking on 10.14+. See https://stackoverflow.com/questions/54068035
@@ -73,31 +90,30 @@ set(AGARIO_RENDERING_SRC
         rendering/window.hpp
         rendering/FrameBufferObject.hpp)
 
+set (UTILS
+        utils/json.hpp
+        utils/json_fwd.hpp
+        utils/collision_detection.hpp
+        utils/random.hpp
+        utils/structures.hpp)
+
 set(AGARIO_SRC ${AGARIO_CORE_SRC} ${AGARIO_ENGINE_SRC})
 
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 #find_library(GLFW REQUIRED)
 find_package(glfw3 REQUIRED)
-#NEW
-# find_package(GLEW REQUIRED)
-#NEW
-#NEW
-# include_directories(${GLEW_INCLUDE_DIRS})
-
-#NEW
-# link_directories(${GLEW_LIBRARY_DIRS})
 
 include_directories(client engine ${OPENGL_INCLUDE_DIR})
 
 set(AGARIO_CLIENT_SRC
         ${AGARIO_BOT_SRC}
         ${AGARIO_RENDERING_SRC}
+        ${UTILS}
         core/Entities.hpp
         client/client.hpp
         rendering/renderer.hpp
         rendering/shader.hpp
-        # /usr/include/glad/include/glad/glad.h
         )
 
 
@@ -111,7 +127,13 @@ set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(glad PUBLIC ${EXT_INCLUDE_DIR})
 
 add_executable(client ${AGARIO_CLIENT_SRC} ${AGARIO_BOT_SRC}  client/main.cpp)
-target_link_libraries(client ${OPENGL_LIBRARIES} glad glfw glm)
+# target_link_libraries(client ${OPENGL_LIBRARIES} OpenGL::EGL glad glfw glm)
+if(APPLE)
+    target_link_libraries(client ${OPENGL_LIBRARIES} glad glfw glm)
+else()
+    target_link_libraries(client ${OPENGL_LIBRARIES} OpenGL::EGL glad glfw glm)
+endif()
+
 
 include_directories(server)
 set(AGARIO_SERVER_SRC
@@ -153,7 +175,12 @@ if (GTEST_FOUND)
         add_executable(test-engine-renderable ${TEST_SRC} ${AGARIO_SRC})
         target_include_directories(test-engine-renderable PRIVATE ${OPENGL_INCLUDE_DIR})
 
-        target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} glad glm glfw)
+        # target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} OpenGL::EGL glad glm glfw)
+        if(APPLE)
+            target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} glad glm glfw)
+        else()
+            target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} OpenGL::EGL glad glm glfw)
+        endif()
         target_compile_definitions(test-engine-renderable PUBLIC RENDERABLE)
 
     else()

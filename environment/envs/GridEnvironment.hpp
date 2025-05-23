@@ -367,11 +367,11 @@ namespace agario::env {
       using Observation = GridObservation;
 
       explicit GridEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots, bool reward_type=0) :
+                               int num_pellets, int num_viruses, int num_bots, int reward_type=0, int c_death = 0, int mode_number = 0) :
         Super(num_agents, ticks_per_step, arena_size, pellet_regen,
-              num_pellets, num_viruses, num_bots,reward_type),
-        frame_observation(ticks_per_step, 512, 512),
-        frame_buffer(std::make_shared<FrameBufferObject>(512, 512)) {
+              num_pellets, num_viruses, num_bots,reward_type , 0, mode_number),
+        frame_observation(1, 512, 512),
+        frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {
 
 #ifdef RENDERABLE
         renderer = std::make_unique<agario::Renderer>(frame_buffer,
@@ -411,25 +411,26 @@ namespace agario::env {
 
       /* allows for intermediate grid frames to be stored in the GridObservation */
       void _partial_observation(int agent_index, int tick_index) override {
+
         assert(agent_index < this->num_agents());
         assert(tick_index < this->ticks_per_step());
 
-        auto &player = this->engine_.player(this->pids_[agent_index]);
-        this-> c_death_ = 0;
+          auto &player = this->engine_.player(this->pids_[agent_index]);
+          this-> c_death_ = 0;
 
-        Observation &observation = observations[agent_index];
+          Observation &observation = observations[agent_index];
 
 
-        auto &state = this->engine_.game_state();
-        // we store in the observation the last `num_frames` frames between each step
-        int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
-        if (frame_index >= 0)
-          observation.add_frame(player, state, frame_index);
+          auto &state = this->engine_.game_state();
+          // we store in the observation the last `num_frames` frames between each step
+          int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
+          if (frame_index >= 0) // frame skipping
+            observation.add_frame(player, state, frame_index);
+
 
         last_player = &player;
         last_frame_index = frame_index;
       }
-
       void render() override {
 #ifdef RENDERABLE
 
@@ -464,7 +465,7 @@ namespace agario::env {
         for (int frame_index = 0; frame_index < frame_observation.num_frames(); ++frame_index) {
             renderer->render_screen(*last_player, this->engine_.game_state());
             void *data = frame_observation.frame_data(frame_index);
-            frame_buffer->copy(data);
+            frame_buffer->copy(data, 0);
         }
       }
 #endif

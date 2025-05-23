@@ -18,7 +18,7 @@
 #define WINDOW_NAME "AgarIO"
 #define DEFAULT_SCREEN_WIDTH 640
 #define DEFAULT_SCREEN_HEIGHT 480
-#define MAX_FPS 60
+#define MAX_FPS 30
 
 #define RENDERABLE true
 
@@ -52,6 +52,7 @@ namespace agario {
     template<typename... Args>
     void set_player(agario::pid pid) {
       player_pid = pid;
+      engine.state.main_agent_pid = pid;
     }
 
     agario::pid add_player(const std::string &name) {
@@ -65,7 +66,7 @@ namespace agario {
       using AggressiveBot = AggressiveBot<RENDERABLE>;
       using AggressiveShyBot = AggressiveShyBot<RENDERABLE>;
 
-      int n = 7;
+      int n = 6;
       range_bot_pids = std::make_pair(1e9,0);
       add_bot<HungryBot>(n);
       add_bot<HungryShyBot>(n);
@@ -106,8 +107,10 @@ namespace agario {
       long _tick_time = 1000 / MAX_FPS;
       auto target_tick_time = std::chrono::milliseconds(_tick_time);
       auto before = std::chrono::system_clock::now();
+      int steps = 0 ;
+      int mx_episode = 3000;
       while (!window->should_close()) {
-
+        steps++;
         auto tick_start = std::chrono::system_clock::now();
         auto dt = tick_start - before;
         before = tick_start;
@@ -126,11 +129,10 @@ namespace agario {
 
         process_input();
         renderer->render_screen(player, engine.game_state());
-
         glfwPollEvents();
         window->swap_buffers();
-
-        engine.tick(dt);
+        // for (int i = 0 ; i < 4 ; i++)
+          engine.tick(dt);
         auto tick_end = std::chrono::system_clock::now();
         auto tick_time = tick_end - tick_start;
         auto sleep_time = std::chrono::duration_cast<std::chrono::milliseconds>(target_tick_time - tick_time);

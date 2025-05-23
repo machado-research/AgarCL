@@ -103,6 +103,36 @@ namespace agario {
       circle.set_color(c);
     }
 
+    void draw(Shader &shader, int type) {
+      if (!_initialized) _initialize();
+
+      if(type == 0) // pellets
+        shader.setVec4("color", 1.00f, 0.00f, 0.00f, 1.0);
+      else if(type == 1) //Players
+        shader.setVec4("color", 0.00f, 1.00f, 0.00f, 1.0);
+      else if(type == 2) //Viruses
+        shader.setVec4("color", 0.00f, 0.00f, 1.00f, 1.0);
+      else if(type == 3) //Main Player
+        shader.setVec4("color", 0.9f, 0.0f, 0.0f, 1.0);
+
+
+      // world location
+      auto location = glm::vec3(x, y, 0);
+      glm::mat4 position_transform(1);
+      position_transform = glm::translate(position_transform, location);
+
+      // scaling
+      glm::mat4 scale_transform(1);
+      scale_transform = glm::scale(scale_transform, glm::vec3(radius(), radius(), 0));
+
+      shader.setMat4("model_transform", position_transform * scale_transform);
+
+      // draw them!
+      glBindVertexArray(circle.vao);
+      glDrawArrays(GL_TRIANGLE_FAN, 0, NVertices);
+      glBindVertexArray(0);
+    }
+
     void draw(Shader &shader) {
       if (!_initialized) _initialize();
 
@@ -258,8 +288,8 @@ namespace agario {
       _create_vertices();
 
       color[0] = 0.1;
-      color[1] = 0.1;
-      color[2] = 0.1;
+      color[1] = 0.0;
+      color[2] = 0.0;
 
       glGenVertexArrays(1, &vao);
       glGenBuffers(1, &vbo);

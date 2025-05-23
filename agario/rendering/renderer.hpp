@@ -23,7 +23,7 @@
 #include "agario/rendering/Canvas.hpp"
 #include "agario/rendering/shader.hpp"
 
-#define NUM_GRID_LINES 11
+#define NUM_GRID_LINES 8
 
 const char* vertex_shader_src =
 #include "shaders/_vertex.glsl"
@@ -38,7 +38,7 @@ namespace agario {
   class Renderer {
   public:
     typedef Player<true> Player;
-    
+
     explicit Renderer(std::shared_ptr<Canvas> canvas,
                       agario::distance arena_width,
                       agario::distance arena_height) :
@@ -125,6 +125,41 @@ namespace agario {
      * @param player player to reneder the game for
      * @param state current state of the game
      */
+    void multi_channel_render_screen(Player &player, agario::GameState<true> &state) {
+      shader.use();
+
+      make_projections(player);
+
+      glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+      glClear(GL_COLOR_BUFFER_BIT);
+
+      grid.draw(shader);
+
+      for (auto &pellet : state.pellets)
+        pellet.draw(shader, 0);
+
+      for (auto &food : state.foods)
+        food.draw(shader, 0);
+
+      // main agent pid is the first player in the map
+      auto main_agent = state.players[state.main_agent_pid];
+      main_agent->draw(shader, 3);
+      //other players
+      for (auto &pair : state.players){
+        if(pair.first != state.main_agent_pid)
+          pair.second->draw(shader, 1);
+      }
+
+      for (auto &virus : state.viruses)
+        virus.draw(shader, 2);
+    }
+
+/**
+     * renders a single frame of the game from the perspective
+     * of the given player.
+     * @param player player to reneder the game for
+     * @param state current state of the game
+     */
     void render_screen(Player &player, agario::GameState<true> &state) {
       shader.use();
 
@@ -148,9 +183,10 @@ namespace agario {
         virus.draw(shader);
 
     }
+
     void close_program()
     {
-      shader.cleanup(); 
+      shader.cleanup();
     }
     /**
      * Sets the canvas to render to

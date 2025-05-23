@@ -27,14 +27,14 @@ namespace {
   /* Constructor tests */
   TEST(GridEnvTest, NumAgents) {
     for (int num_agents = 0; num_agents < 10; num_agents++) {
-      GridEnvironment env(num_agents, 1, 0, false, 0, 0, 0);
+      GridEnvironment env(num_agents, 1, 0, false, 0, 0, 0, true, 0);
       ASSERT_EQ(num_agents, env.num_agents()) << "Number of agents didn't match";
     }
   }
 
   TEST(GridEnvTest, TicksPerStep) {
     for (int ticks_per_step = 0; ticks_per_step < 10; ticks_per_step++) {
-      GridEnvironment env(4, ticks_per_step, 0, false, 0, 0, 0);
+      GridEnvironment env(4, ticks_per_step, 0, false, 0, 0, 0, true, 0);
       ASSERT_EQ(ticks_per_step, env.ticks_per_step()) << "Ticks per step didn't match";
     }
   }
@@ -42,7 +42,7 @@ namespace {
   /* make sure that the observation shape is correct */
   TEST(GridEnvTest, ObservationShape) {
     GridEnvironment env(4, 4, 1000, false,
-      0, 0, 0);
+      0, 0, 0, false, 0);
 
     for (int num_frames = 0; num_frames <  4; num_frames++)
       for (int grid_size = 0; grid_size <  4; grid_size++)
@@ -94,7 +94,7 @@ namespace {
 
       env = new GridEnvironment(num_agents, ticks_per_step, arena_size,
                                 pellet_regen, num_pellets,
-                                num_viruses, num_bots);
+                                num_viruses, num_bots, true, 0);
 
       env->configure_observation(2, 128, true, true, true, true);
     }
