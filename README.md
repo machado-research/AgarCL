@@ -408,6 +408,18 @@ env.close()
 
 This functionality allows you to capture and analyze the agent's performance visually.
 
+## Citation 
+If you use our environment, cite the following reference: 
+```
+@article{aymanagarcl,
+  title={The Cell Must Go On: Agar.io for Continual Reinforcement Learning},
+  author={Mohamed A. Mohamed, Kateryna Nekhomiazh, Vedant Vyas,
+Marcos M. José, Andrew Patterson, Marlos C. Machado},
+  journal={},
+  year={2023}
+}
+```
+
 
 ## Acknowledgment
 This implementation is built upon the [AgarLE repository](https://github.com/jondeaton/AgarLE).
