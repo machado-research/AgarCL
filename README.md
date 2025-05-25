@@ -413,8 +413,8 @@ If you use our environment, cite the following reference:
 ```
 @article{aymanagarcl,
   title={The Cell Must Go On: Agar.io for Continual Reinforcement Learning},
-  author={Mohamed A. Mohamed, Kateryna Nekhomiazh, Vedant Vyas,
-Marcos M. José, Andrew Patterson, Marlos C. Machado},
+  author={Mohamed A. Mohamed and Kateryna Nekhomiazh and Vedant Vyas,
+Marcos M. Jos\'e and Andrew Patterson and Marlos C. Machado},
   journal={},
   year={2023}
 }
