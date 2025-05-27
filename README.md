@@ -415,7 +415,7 @@ If you use our environment, cite the following reference:
   title={The Cell Must Go On: Agar.io for Continual Reinforcement Learning},
   author={Mohamed A. Mohamed and Kateryna Nekhomiazh and Vedant Vyas,
 Marcos M. Jos\'e and Andrew Patterson and Marlos C. Machado},
-  journal={},
+  journal={https://arxiv.org/abs/2505.18347},
   year={2023}
 }
 ```
