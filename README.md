@@ -416,7 +416,7 @@ If you use our environment, cite the following reference:
   author={Mohamed A. Mohamed and Kateryna Nekhomiazh and Vedant Vyas,
 Marcos M. Jos\'e and Andrew Patterson and Marlos C. Machado},
   journal={https://arxiv.org/abs/2505.18347},
-  year={2023}
+  year={2025}
 }
 ```
 
