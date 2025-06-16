@@ -58,7 +58,7 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 1. **Clone the AgarCL Repository**
    - Clone the repository with the `--recursive` flag to ensure all submodules are included:
      ```bash
-     git clone --recursive git@github.com:AgarCL/AgarCL.git
+     git clone --recursive git@github.com:machado-research/AgarCL.git
      ```
 
 2. **Install the Platform**
