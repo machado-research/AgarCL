@@ -179,6 +179,7 @@ namespace agario {
 
           if (it != player.cells.end()) {
             it->increment_mass(cell.mass());
+            player.cells_eaten++;
           }
 
           auto eaten_it = std::lower_bound(eaten_player_cells.begin(), eaten_player_cells.end(), cell.id, [](const Cell& c, int id) {
@@ -227,7 +228,7 @@ namespace agario {
       move_foods(elapsed_seconds);
 
       if(regen_pellets){ // if there is regeneration to the pellets.
-        if(state.ticks%720 == 0){ //every 12 seconds
+        if(state.ticks%400 == 0){ //every 6 seconds
           // if (state.config.pellet_regen) {
             add_pellets(state.config.target_num_pellets - state.pellets.size());
           // }
@@ -506,14 +507,15 @@ namespace agario {
 
       bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT));
 
-      player.highest_mass = std::max(player.highest_mass, player.mass());
 
       if(optimized_check_virus_collisions(player.cells, created_cells, create_limit, can_eat_virus, viruses_to_remove)){
         player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
         player.viruses_eaten++;
       }
-
+      int before = pellets_to_remove.size();
       get_pellets_to_remove_and_increment_cells(player.cells, pellets_to_remove);
+      player.food_eaten  += pellets_to_remove.size() - before;
+      player.highest_mass = std::max(player.highest_mass, player.mass());
 
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
