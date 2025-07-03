@@ -228,7 +228,7 @@ namespace agario {
       move_foods(elapsed_seconds);
 
       if(regen_pellets){ // if there is regeneration to the pellets.
-        if(state.ticks%400 == 0){ //every 6 seconds
+        if(state.ticks%120 == 0){ //every 6 seconds
           // if (state.config.pellet_regen) {
             add_pellets(state.config.target_num_pellets - state.pellets.size());
           // }
