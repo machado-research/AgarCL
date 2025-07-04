@@ -108,7 +108,7 @@ class AgarioEnv(gym.Env):
 
         # set the "truncation" status of each agent to 'False'
         truncations = [False] * len(dones)
-        if(self.steps >=  self.number_of_steps and self.mode != 0 and self.env_type == 0): #Episodic
+        if(self.steps >=  self.number_of_steps and self.env_type == 0): #Episodic
             dones = [True] * len(dones)
         # unwrap observations, rewards, dones if not mult-agent
         if not self.multi_agent:
