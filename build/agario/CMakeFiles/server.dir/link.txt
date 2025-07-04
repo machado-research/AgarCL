@@ -1,1 +1,0 @@
-/usr/bin/clang++ -g -O0 -fpermissive -fsized-deallocation CMakeFiles/server.dir/server/main.cpp.o -o server 
