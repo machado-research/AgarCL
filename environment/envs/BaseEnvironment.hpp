@@ -195,6 +195,7 @@ namespace agario {
           add_bots();
         else if(curr_mode_number > 6)
           custom_add_bot(curr_mode_number - 7);
+
         // the following loop is needed to "initialize" the observation object
         // with the newly reset state so that a call to `get_state` directly
         // after `reset` will return a state representing the fresh beginning
@@ -404,6 +405,7 @@ namespace agario {
         using HungryShyBot = agario::bot::HungryShyBot<renderable>;
         using AggressiveBot = agario::bot::AggressiveBot<renderable>;
         using AggressiveShyBot = agario::bot::AggressiveShyBot<renderable>;
+        using StillBot = agario::bot::StillBot<renderable>;
 
         switch (index) {
           case 0:
@@ -419,7 +421,7 @@ namespace agario {
             engine_.template add_player<AggressiveShyBot>();
             break;
           default:
-            engine_.template add_player<HungryBot>();
+            engine_.template add_player<StillBot>();
             break;
         }
       }

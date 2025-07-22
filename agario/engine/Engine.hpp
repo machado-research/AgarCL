@@ -45,7 +45,7 @@ namespace agario {
           int mode_number = 0) :
       state(agario::GameConfig(arena_width, arena_height, num_pellets, num_viruses, pellet_regen))
     {
-      set_mode(mode_number);
+      set_mode(11);
       std::srand(std::chrono::system_clock::now().time_since_epoch().count());
     }
     Engine() : Engine(DEFAULT_ARENA_WIDTH, DEFAULT_ARENA_HEIGHT) {}
@@ -119,7 +119,10 @@ namespace agario {
     void respawn(Player &player) {
       player.kill();
       int player_mass = std::max(CELL_MIN_SIZE, agent_mass); //agent_mass is the mass of the agent.
-      if (!state.pellets.empty()) {
+      if(player.is_bot)
+        player_mass = 6000;
+      else player_mass = 4000;
+      if (!state.pellets.empty() && !player.is_bot) {
        if(is_squared_pellets_ == true){
         auto random_index = 0;
         auto loc = state.pellets[random_index].location();
@@ -131,8 +134,35 @@ namespace agario {
        }
        else
        player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), player_mass);
-      } else {
-        player.add_cell(random_location(agario::radius_conversion(CELL_MIN_SIZE)), player_mass);
+      }
+      else {
+        if(!player.is_bot)
+          {
+            agario::Location loc = agario::Location(arena_height() - agario::radius_conversion(player_mass),
+                                                    arena_width() - agario::radius_conversion(player_mass));
+            player.add_cell(loc, player_mass);
+          }
+        else {
+          player.add_cell(agario::Location(arena_width()/2, arena_height()/4), player_mass);
+          agario::distance virus_radius = agario::radius_conversion(VIRUS_INITIAL_MASS);
+          int num_viruses = 10;         // Number of viruses in the horizontal line
+          int vertical_padding = 3;    // How far above the bot the line appears (in spacing units)
+
+          auto bot_loc = player.location();
+          agario::distance spacing = 2 * virus_radius;
+          agario::distance line_length = (num_viruses - 1) * spacing;
+          agario::distance offset_y = vertical_padding * spacing;
+
+          // Horizontal line centered at bot.x, vertically above the bot
+          agario::distance start_x = std::max(virus_radius, bot_loc.x - line_length / 2);
+          agario::distance y = bot_loc.y + offset_y + virus_radius;  // Above the bot
+          for (int i = 0; i < num_viruses; ++i) {
+            agario::Location loc(start_x + i * spacing, y);
+            if (loc.x < arena_width() && loc.y < arena_height() && loc.x >= 0 && loc.y >= 0) {
+              state.viruses.emplace_back(loc);
+            }
+          }
+        }
       }
     }
 
@@ -410,8 +440,15 @@ namespace agario {
       case 10:
         set_mode(4);
         break;
+      case 11:
+        mass_decay_ = false;
+        is_squared_pellets_ = false;
+        regen_pellets = false;
+        agent_mass = 2000;
+        break;
       default:
-        throw EngineException("Invalid mode number");
+        throw EngineException("Invalid mode number: " + std::to_string(mode));
+
       }
     }
 
@@ -505,8 +542,8 @@ namespace agario {
       std::vector<Cell> created_cells; // list of new cells that will be created
       int create_limit = PLAYER_CELL_LIMIT - prev_player_cells;
 
-      bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT));
-
+      // bool can_eat_virus = ((player.cells.size() >= NUM_CELLS_TO_SPLIT));
+      bool can_eat_virus = false;
 
       if(optimized_check_virus_collisions(player.cells, created_cells, create_limit, can_eat_virus, viruses_to_remove)){
         player.virus_eaten_ticks.emplace_back(player.elapsed_ticks);
@@ -518,7 +555,7 @@ namespace agario {
       player.highest_mass = std::max(player.highest_mass, player.mass());
 
       for (Cell &cell : player.cells) {
-        can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
+        // can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
         // player.food_eaten +=eat_pellets(cell);
         player.food_eaten +=eat_food(cell);
@@ -1076,8 +1113,8 @@ namespace agario {
 
       auto dir = (player_target - cell.location()).normed();
       auto loc = cell.location() + dir * cell.radius();
-      loc.x = std::max(static_cast<agario::distance>(0.0), clamp<agario::distance>(loc.x, cell.radius(), arena_width() - cell.radius()));
-      loc.y = std::max(static_cast<agario::distance>(0.0), clamp<agario::distance>(loc.y, cell.radius(), arena_height() - cell.radius()));
+      // loc.x = std::max(static_cast<agario::distance>(0.0), clamp<agario::distance>(loc.x, cell.radius(), arena_width() - cell.radius()));
+      // loc.y = std::max(static_cast<agario::distance>(0.0), clamp<agario::distance>(loc.y, cell.radius(), arena_height() - cell.radius()));
 
       Velocity vel(dir * split_speed(split_mass));
 
@@ -1262,7 +1299,6 @@ namespace agario {
      * The new cells that are created are added to `created_cells */
     void disrupt(Cell &cell, Virus &virus, std::vector<Cell> &created_cells, int create_limit) {
       agario::mass total_mass = cell.mass(); // mass to conserve
-
       // reduce the cell by roughly this ratio CELL_POP_REDUCTION, making sure the
       // amount removes is divisible by CELL_POP_SIZE
       cell.reduce_mass_by_factor(CELL_POP_REDUCTION);

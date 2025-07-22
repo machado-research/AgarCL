@@ -89,7 +89,7 @@ namespace agario {
      * @return  z-coordinate for the camera positiooning
      */
     GLfloat camera_z(const Player &player) {
-      return clamp(100 + player.mass() / 10.0, 100.0, 900.0);
+      return 650;//clamp(300 + player.mass() / 10.0, 100.0, 900.0);
     }
 
     /**
