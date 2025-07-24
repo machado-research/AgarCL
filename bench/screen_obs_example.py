@@ -31,10 +31,10 @@ import tqdm
 # Default configuration for the environment
 default_config = {
     'ticks_per_step'    :   4,          #Frame Skipping
-    'arena_size'        :   500,
-    'num_pellets'       :   350,
-    'num_viruses'       :   10,
-    'num_bots'          :   8,
+    'arena_size'        :   280,
+    'num_pellets'       :   0,
+    'num_viruses'       :   0,
+    'num_bots'          :   0,
     'pellet_regen'      :   True,
     'screen_len'        :   128,
     'obs_type'          :   "screen",    #Two options: screen, gobigger
@@ -44,7 +44,7 @@ default_config = {
     'c_death'           :   0,           #reward = [diff or mass] - c_death if player is eaten [It is zero in the original paper]
     'agent_view'        :   True,        #Do you want to have the observation as 4 channels or RGB?
     'add_noise'         :   True,
-    'mode'              :   0,
+    'mode'              :   11,
     'env_type'          :   1,           #0 -> episodic or 1 - > continuing
     'number_steps'      :   3000,        #Number of steps to run the environment in case it is episodic
     'load_env_snapshot' :   0,           #Do you want to load a snapshot of the environment?

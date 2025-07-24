@@ -145,7 +145,7 @@ namespace agario {
         else {
           player.add_cell(agario::Location(arena_width()/2, arena_height()/4), player_mass);
           agario::distance virus_radius = agario::radius_conversion(VIRUS_INITIAL_MASS);
-          int num_viruses = 10;         // Number of viruses in the horizontal line
+          int num_viruses = 25;         // Number of viruses in the horizontal line
           int vertical_padding = 3;    // How far above the bot the line appears (in spacing units)
 
           auto bot_loc = player.location();
