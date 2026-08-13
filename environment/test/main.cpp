@@ -2,6 +2,7 @@
 
 #include <environment/test/grid-env-test.hpp>
 #include <environment/test/ram-env-test.hpp>
+#include <environment/test/screen-env-test.hpp>
 
 namespace { }
 
