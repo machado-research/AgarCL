@@ -143,19 +143,9 @@ class Player {
 
     bool operator<(const Player &other) const { return mass() < other.mass(); }
 
-    template <typename T, bool enable = renderable>
-    typename std::enable_if<enable, void>::type
-    draw(T &shader, int type) {
-      for (auto &cell : cells)
-        cell.draw(shader, type);
-    }
-
-    template <typename T, bool enable = renderable>
-    typename std::enable_if<enable, void>::type
-    draw(T &shader) {
-      for (auto &cell : cells)
-        cell.draw(shader);
-    }
+    /* NOTE: players/cells are drawn by the renderer's InstancedBatch, which
+     * reads cell position/radius/color directly. There is deliberately no
+     * per-entity draw() anymore. */
 
     /* override this function to define a bot's behavior */
     virtual void take_action(const GameState<renderable> &state) {

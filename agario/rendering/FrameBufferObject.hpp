@@ -27,6 +27,8 @@ static const EGLint configAttribs[] = {
         EGL_BLUE_SIZE, 8,
         EGL_GREEN_SIZE, 8,
         EGL_RED_SIZE, 8,
+        EGL_ALPHA_SIZE, 8, // agent_view reads GL_RGBA; a 0-bit-alpha surface
+                           // would return alpha=255 for every pixel
         EGL_DEPTH_SIZE, 8,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
         EGL_NONE
@@ -44,9 +46,25 @@ static EGLint pbufferAttribs[] = {
 
 
 
+/* GLFW invokes this from C code: throwing across C frames is undefined
+ * behaviour (in practice std::terminate), so record the message and let
+ * the caller turn a failed GLFW call into an exception. */
+inline std::string &glfw_last_error() {
+  static std::string last_error;
+  return last_error;
+}
+
 void glfw_error_callback(int error, const char *description) {
   static_cast<void>(error);
-  throw FBOException(description);
+  glfw_last_error() = description ? description : "unknown GLFW error";
+}
+
+/* GLFW init/terminate are process-global, so they must be reference
+ * counted: terminating when a single environment is destroyed would
+ * invalidate the contexts of every other environment in the process. */
+inline int &glfw_refcount() {
+  static int count = 0;
+  return count;
 }
 
 class FrameBufferObject : public Canvas {
@@ -139,14 +157,29 @@ public:
     glDeleteRenderbuffers(1, &rbo_color);
     glDeleteRenderbuffers(1, &rbo_depth);
     #ifdef USE_EGL
-      eglDestroySurface(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
-      eglDestroyContext(eglGetCurrentDisplay(), eglGetCurrentContext());
-      eglTerminate(eglGetCurrentDisplay());
+      // tear down only the handles this object created; querying
+      // eglGetCurrent* would destroy whichever context happens to be
+      // current, which may belong to a different environment
+      if (egl_display != EGL_NO_DISPLAY) {
+        eglMakeCurrent(egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        if (egl_surface != EGL_NO_SURFACE)
+          eglDestroySurface(egl_display, egl_surface);
+        if (egl_context != EGL_NO_CONTEXT)
+          eglDestroyContext(egl_display, egl_context);
+        // eglTerminate is per-display and would break other environments
+        // sharing the default display, so it is deliberately not called
+      }
     #else
-      glfwDestroyWindow(window);
-      glfwTerminate();
+      if (window != nullptr)
+        glfwDestroyWindow(window);
+      // glfwTerminate is process-global: only the last environment may call it
+      if (owns_glfw && --glfw_refcount() == 0)
+        glfwTerminate();
     #endif
   }
+
+  FrameBufferObject(const FrameBufferObject &) = delete;
+  FrameBufferObject &operator=(const FrameBufferObject &) = delete;
 
 private:
   const screen_len _width;
@@ -158,12 +191,24 @@ private:
   GLuint rbo_color;
 
   GLFWwindow *window;
+  bool owns_glfw = false;
+
+#ifdef USE_EGL
+  EGLDisplay egl_display = EGL_NO_DISPLAY;
+  EGLSurface egl_surface = EGL_NO_SURFACE;
+  EGLContext egl_context = EGL_NO_CONTEXT;
+#endif
 
   void _initialize_context() {
     glfwSetErrorCallback(glfw_error_callback);
 
-    if (!glfwInit())
-      throw FBOException("GLFW initialization failed.");
+    if (glfw_refcount() == 0) {
+      glfw_last_error().clear();
+      if (!glfwInit())
+        throw FBOException("GLFW initialization failed. " + glfw_last_error());
+    }
+    glfw_refcount()++;
+    owns_glfw = true;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -173,11 +218,16 @@ private:
 #endif
 
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // GLFW_FALSE - window is not visible by default, GLFW_TRUE - window is visible by default
+    glfw_last_error().clear();
     window = glfwCreateWindow(_width, _height, "", nullptr, nullptr);
 
     if (window == nullptr) {
-      glfwTerminate();
-      throw FBOException("Off-screen window creation failed");
+      // release only this object's reference; other environments in the
+      // process keep GLFW alive
+      if (--glfw_refcount() == 0)
+        glfwTerminate();
+      owns_glfw = false;
+      throw FBOException("Off-screen window creation failed. " + glfw_last_error());
     }
 
     glfwHideWindow(window);
@@ -249,26 +299,34 @@ private:
 
 #ifdef USE_EGL
   void _initialize_egl() {
-    EGLDisplay eglDpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    // handles are retained as members so the destructor tears down exactly
+    // what this object created (see ~FrameBufferObject)
+    egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (egl_display == EGL_NO_DISPLAY)
+      throw FBOException("eglGetDisplay failed: no EGL display available");
 
     EGLint major, minor;
-    eglInitialize(eglDpy, &major, &minor);
+    if (!eglInitialize(egl_display, &major, &minor))
+      throw FBOException("eglInitialize failed");
 
-    // 2. Select an appropriate configuration
-    EGLint numConfigs;
+    EGLint numConfigs = 0;
     EGLConfig eglCfg;
-    eglChooseConfig(eglDpy, configAttribs, &eglCfg, 1, &numConfigs);
+    if (!eglChooseConfig(egl_display, configAttribs, &eglCfg, 1, &numConfigs) || numConfigs == 0)
+      throw FBOException("eglChooseConfig found no matching EGL config");
 
-    // 3. Create a surface
-    EGLSurface eglSurf = eglCreatePbufferSurface(eglDpy, eglCfg, pbufferAttribs);
+    egl_surface = eglCreatePbufferSurface(egl_display, eglCfg, pbufferAttribs);
+    if (egl_surface == EGL_NO_SURFACE)
+      throw FBOException("eglCreatePbufferSurface failed");
 
-    // 4. Bind the API
-    eglBindAPI(EGL_OPENGL_API);
+    if (!eglBindAPI(EGL_OPENGL_API))
+      throw FBOException("eglBindAPI(EGL_OPENGL_API) failed");
 
-    // 5. Create a context and make it current
-    EGLContext eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT, NULL);
+    egl_context = eglCreateContext(egl_display, eglCfg, EGL_NO_CONTEXT, NULL);
+    if (egl_context == EGL_NO_CONTEXT)
+      throw FBOException("eglCreateContext failed");
 
-    eglMakeCurrent(eglDpy, eglSurf, eglSurf, eglCtx);
+    if (!eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context))
+      throw FBOException("eglMakeCurrent failed");
   }
 #endif
 

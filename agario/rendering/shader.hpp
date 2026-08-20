@@ -120,11 +120,19 @@ public:
     loc_color      = glGetUniformLocation(program, "color");
   }
 
+  /* the program is a GL handle with single ownership: copying would give two
+   * owners of one program and a double glDeleteProgram */
+  Shader(const Shader &) = delete;
+  Shader &operator=(const Shader &) = delete;
+
   void use() {
     glUseProgram(program);
   }
   void cleanup() {
-    glDeleteProgram(program);
+    if (program != 0) {
+      glDeleteProgram(program);
+      program = 0;
+    }
   }
   void setBool(const std::string &name, bool value) const {
     glUniform1i(glGetUniformLocation(program, name.c_str()), (int) value);

@@ -67,7 +67,10 @@ namespace agario {
       }
 
       virtual void close(){}
-      ~BaseEnvironment()=default;
+      /* virtual: this class has virtual methods and derived environments own
+       * resources (GL context, observation buffers), so destroying through a
+       * base pointer must run the derived destructor */
+      virtual ~BaseEnvironment()=default;
       [[nodiscard]] int num_agents() const { return num_agents_; }
 
       void repsawn_all_players(){

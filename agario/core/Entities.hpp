@@ -55,25 +55,12 @@ namespace agario {
   };
 
   /**
-   * This (super-unreadable) struct allows for the `Virus` class to override the
-   * _create_vertices virtual method of RenderableBall, which allows it to
-   * have a different visual appearance (wavy border)
+   * Retained purely to keep the virtual-inheritance shape of the renderable
+   * Virus type. The wavy virus border it used to generate per entity now
+   * lives in InstancedBatch's shared geometry (see renderer.hpp).
    */
   template<bool r, unsigned NumSides>
-  struct oVirus : virtual public RenderableMovingBall<NumSides> {
-    void _create_vertices() override {
-      auto num_verts = RenderableMovingBall<NumSides>::NVertices;
-      this->circle.verts[0] = 0;
-      this->circle.verts[1] = 0;
-      this->circle.verts[2] = 0;
-      for (unsigned i = 1; i < num_verts; i++) {
-        auto radius = 1 + sin(30 * M_PI * i / NumSides) / 15;
-        this->circle.verts[i * 3] = radius * cos(i * 2 * M_PI / NumSides);
-        this->circle.verts[i * 3 + 1] = radius * sin(i * 2 * M_PI / NumSides);
-        this->circle.verts[i * 3 + 2] = 0;
-      }
-    }
-  };
+  struct oVirus : virtual public RenderableMovingBall<NumSides> { };
 
   template<unsigned NumSides>
   struct oVirus<false, NumSides> { };

@@ -21,13 +21,17 @@ namespace agario {
     using runtime_error::runtime_error;
   };
 
+  /**
+   * Per-entity color. Geometry and GPU buffers used to live here too, but
+   * entities are now drawn by InstancedBatch from shared geometry, so no
+   * entity owns GL objects: that removes the per-entity vertex array from
+   * every ball (84 B per pellet, 1824 B per virus) and makes the VAO/VBO
+   * leak in move-assignment structurally impossible.
+   */
   template<unsigned NSides>
   class Circle {
   public:
-    GLfloat verts[3 * (NSides + 2)];
     GLfloat color[COLOR_LEN];
-    GLuint vao; // vertex attribute object
-    GLuint vbo; // vertex buffer object (gpu memory)
 
     void set_color(agario::color c) {
       GLfloat *color_array;
@@ -103,91 +107,12 @@ namespace agario {
       circle.set_color(c);
     }
 
-    void draw(Shader &shader, int type) {
-      if (!_initialized) _initialize();
-
-      if(type == 0) // pellets
-        shader.setVec4(shader.loc_color, 1.00f, 0.00f, 0.00f, 1.0);
-      else if(type == 1) //Players
-        shader.setVec4(shader.loc_color, 0.00f, 1.00f, 0.00f, 1.0);
-      else if(type == 2) //Viruses
-        shader.setVec4(shader.loc_color, 0.00f, 0.00f, 1.00f, 1.0);
-      else if(type == 3) //Main Player
-        shader.setVec4(shader.loc_color, 0.9f, 0.0f, 0.0f, 1.0);
-
-      shader.setMat4(shader.loc_model, model_transform());
-
-      // draw (no unbind: every draw path binds its own VAO first)
-      glBindVertexArray(circle.vao);
-      glDrawArrays(GL_TRIANGLE_FAN, 0, NVertices);
-    }
-
-    void draw(Shader &shader) {
-      if (!_initialized) _initialize();
-
-      shader.setVec4(shader.loc_color, circle.color[0], circle.color[1], circle.color[2], 1.0);
-      shader.setMat4(shader.loc_model, model_transform());
-
-      // draw (no unbind: every draw path binds its own VAO first)
-      glBindVertexArray(circle.vao);
-      glDrawArrays(GL_TRIANGLE_FAN, 0, NVertices);
-    }
-
-    /* translation + scale, built directly instead of two mat4 multiplies */
-    glm::mat4 model_transform() const {
-      const float r = static_cast<float>(radius());
-      glm::mat4 m(1.0f);
-      m[0][0] = r;
-      m[1][1] = r;
-      m[2][2] = 0.0f;
-      m[3][0] = static_cast<float>(x);
-      m[3][1] = static_cast<float>(y);
-      return m;
-    }
-
-    ~RenderableBall() override {
-      // If you get a "function not found" compilation error
-      // right here its probably because you didn't link OpenGL
-      if (_initialized) {
-        glDeleteVertexArrays(1, &circle.vao);
-        glDeleteBuffers(1, &circle.vbo);
-      }
-    }
+    ~RenderableBall() override = default;
 
   protected:
     static constexpr unsigned NVertices = NSides + 2;
     Circle<NSides> circle;
     bool _initialized;
-
-    void _initialize() {
-      _create_vertices();
-
-      circle.set_color(color);
-
-      glGenVertexArrays(1, &circle.vao);
-      glGenBuffers(1, &circle.vbo);
-
-      glBindVertexArray(circle.vao);
-      glBindBuffer(GL_ARRAY_BUFFER, circle.vbo);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(circle.verts), circle.verts, GL_STREAM_DRAW);
-
-      // Position attribute
-      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-      glEnableVertexAttribArray(0);
-
-      _initialized = true;
-    }
-
-    virtual void _create_vertices() {
-      circle.verts[0] = 0;
-      circle.verts[1] = 0;
-      circle.verts[2] = 0;
-      for (unsigned i = 1; i < NVertices; i++) {
-        circle.verts[i * 3] = cos(i * 2 * M_PI / NSides);
-        circle.verts[i * 3 + 1] = sin(i * 2 * M_PI / NSides);
-        circle.verts[i * 3 + 2] = 0;
-      }
-    }
   };
 
   template<unsigned NSides>
