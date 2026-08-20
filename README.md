@@ -58,7 +58,7 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 1. **Clone the AgarCL Repository**
    - Clone the repository with the `--recursive` flag to ensure all submodules are included:
      ```bash
-     git clone --recursive git@github.com:machado-research/AgarCL.git
+     git clone --recursive https://github.com/machado-research/AgarCL.git
      ```
 
 2. **Install the Platform**
@@ -69,7 +69,7 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 
    - Run the installation command to set up the platform:
      ```bash
-     python setup.py install --user
+     pip install .
      ```
 
    - This will install the platform in your local user environment.
@@ -81,7 +81,7 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 1. **Clone the AgarCL-benchmark Repository**
    - Clone the repository:
      ```bash
-     git clone git@github.com/AgarCL/AgarCL-benchmark.git
+     git clone https://github.com/AgarCL/AgarCL-benchmark.git
      ```
 
 2. **Navigate to the AgarCL-Benchmark Directory**
@@ -90,10 +90,10 @@ Now, let's install the platform on your system (`agarclcontainer` container):
      cd AgarCL-benchmark
      ```
 
-4. **Clone the AgarCLgit  Repository**
+4. **Clone the AgarCL Repository**
    - Clone the `AgarCL` repository with the `--recursive` flag to ensure all submodules are included:
      ```bash
-     git clone --recursive git@github.com:AgarCL/AgarCL.git
+     git clone --recursive https://github.com/machado-research/AgarCL.git
      ```
 
 5. **Navigate to the AgarCL Directory**
@@ -105,7 +105,7 @@ Now, let's install the platform on your system (`agarclcontainer` container):
 6. **Install the Platform**
    - Run the installation command to set up the platform:
      ```bash
-     python setup.py install --user
+     pip install .
      ```
 
 #### Done!
@@ -132,7 +132,7 @@ Then follow these steps to set up the AgarCL environment on macOS:
 
 1. **Clone the repository:**
    ```bash
-   git clone --recursive git@github.com:AgarCL/AgarCL.git
+   git clone --recursive https://github.com/machado-research/AgarCL.git
    ```
 2. **Change into the project directory:**
    ```bash
@@ -156,7 +156,7 @@ Then follow these steps to set up the AgarCL environment on macOS:
    ```
 7. **Build & install the Python package:**
    ```bash
-   python setup.py install
+   pip install .
     ```
 
 #### Done!
@@ -165,7 +165,7 @@ Then follow these steps to set up the AgarCL environment on macOS:
 
 1. **Clone the repository:**
    ```bash
-   git clone --recursive git@github.com:AgarCL/AgarCL.git
+   git clone --recursive https://github.com/machado-research/AgarCL.git
    ```
 2. **Change into the project directory:**
    ```bash
@@ -194,7 +194,7 @@ Then follow these steps to set up the AgarCL environment on macOS:
    ```
 8. **Build and install the Python package:**
    ```bash
-   python setup.py install
+   pip install .
    ```
 
 ## Running the code
@@ -210,22 +210,101 @@ To run the Screen Observations example, execute the following line:
 python project_path/bench/screen_obs_example.py
 ```
 
+## Configuration reference
+
+All options are passed as keyword arguments to `gym.make`.
+
+### Observation
+
+| option | default | meaning |
+|---|---|---|
+| `obs_type` | `grid` | `screen` (rendered pixels), `grid` (image-like channel stack), or `gobigger` (structured entity lists) |
+| `screen_len` | `84` | width and height of the rendered observation (`screen`) |
+| `agent_view` | `False` | `screen` only: return 4 channels (pellets / other players / viruses / own cells + grid lines) instead of RGB |
+| `grid_size` | `128` | grid resolution (`grid`) |
+| `observe_cells`, `observe_others`, `observe_viruses`, `observe_pellets` | `True` | which channel groups to include (`grid`) |
+| `render_mode` | `None` | `rgb_array` or `human` |
+
+### Game
+
+| option | default | meaning |
+|---|---|---|
+| `arena_size` | `1000` | arena is `arena_size` x `arena_size` world units |
+| `num_pellets` | `1000` | target pellet count |
+| `num_viruses` | `0` | target virus count |
+| `num_bots` | `0` | number of scripted opponents |
+| `pellet_regen` | `True` | top pellets/viruses back up to target every 120 ticks (only where the mode permits regeneration) |
+| `ticks_per_step` | `4` | action repeat: engine ticks advanced per `step()`, after which the state is observed once |
+| `num_agents` | `1` | RL-controlled players; > 1 switches to the multi-agent interface |
+| `mode` | `0` | task selector (see below) |
+
+### Episode and reward
+
+| option | default | meaning |
+|---|---|---|
+| `env_type` | `0` | `0` episodic (truncates at `number_steps`), `1` continuing (never ends) |
+| `number_steps` | `500` | truncation limit when `env_type=0` |
+| `reward_type` | `1` | `0` reward = current mass, `1` reward = change in mass over the step |
+| `c_death` | `0` | penalty subtracted on any step where the agent dies |
+| `add_noise` | `True` | add N(0, 0.1) noise to the continuous action before it is applied |
+
+### Actions
+
+An action is `((dx, dy), a)` where `dx, dy` are in `[-1, 1]` and give the
+direction to move toward, and `a` is `0` (no-op), `1` (split) or `2` (feed).
+
+### Tasks (`mode`)
+
+Mode `0` is the full continual problem used as the paper's primary setting;
+the rest isolate individual skills. Ready-made configurations for each are in
+[`bench/tasks_configs/`](bench/tasks_configs).
+
+| mode | task |
+|---|---|
+| 0 | full game: pellets, viruses, bots, respawning, mass decay |
+| 1 | collect pellets arranged in a square, no decay |
+| 2 | as 1, with mass decay |
+| 3 | reach a target mass (terminates on success) |
+| 4 | pellets with regeneration and decay |
+| 5, 6 | as 2 and 4, starting at mass 1000 |
+| 7–10 | opponent and virus mini-games (episode ends when any player dies) |
+
+## Reproducibility
+
+Seed **before** `reset()`: world generation (pellet and virus placement,
+spawn positions) draws from the engine's generator during `reset()`.
+
+```python
+import gymnasium as gym
+import gym_agario  # registers the agario-* environments
+
+env = gym.make("agario-screen-v0", obs_type="screen")
+env.unwrapped.seed(42)   # seed first
+obs, info = env.reset()  # then generate the world
+```
+
+Given the same seed and the same action sequence, the engine is
+deterministic. Note that `add_noise=True` draws from NumPy's global
+generator, so seed that too (`np.random.seed(...)`) if you need the noise
+reproduced.
+
 ## Using the environment
 
 
 ```python
 import gymnasium as gym
+import gym_agario  # registers the agario-* environments
 
 # Initialise the environment
 env = gym.make("agario-screen-v0", render_mode="human")
 
 # Reset the environment to generate the first observation
-observation = env.reset()
+observation, info = env.reset()
 for _ in range(1000):
-    # this is where you would insert your policy
-    c_target_space = gym.spaces.Box(low=-1, high=1, shape=(2,))
-    d_target_space = gym.spaces.Discrete(3)
-    action = [(c_target_space.sample(), d_target_space.sample())]
+    # this is where you would insert your policy.
+    # an action is ((dx, dy), a) with dx, dy in [-1, 1] and
+    # a in {0: noop, 1: split, 2: feed}
+    action = env.action_space.sample()
 
     # step (transition) through the environment with the action
     # receiving the next observation, reward and if the episode has terminated or truncated
@@ -233,7 +312,7 @@ for _ in range(1000):
 
     # If the episode has ended then we can reset to start a new episode
     if terminated or truncated:
-        observation = env.reset()
+        observation, info = env.reset()
 
 env.close()
 ```
@@ -290,6 +369,7 @@ Here is an example of how to use these methods in a script:
 
 ```python
 import gymnasium as gym
+import gym_agario  # registers the agario-* environments
 
 # Initialize the environment
 env = gym.make("agario-screen-v0", render_mode="human")
@@ -302,7 +382,8 @@ env.reset()
 
 # Perform some steps
 for _ in range(100):
-   action = [(env.action_space.sample(), env.action_space.sample())]
+   # (dx, dy) in [-1, 1] plus a discrete action: 0=noop, 1=split, 2=feed
+   action = env.action_space.sample()
    observation, reward, terminated, truncated, info = env.step(action)
    if terminated or truncated:
       break
@@ -351,6 +432,7 @@ Here is an example of how to record and save a video:
 
 ```python
 import gymnasium as gym
+import gym_agario  # registers the agario-* environments
 
 # Initialize the environment
 env = gym.make("agario-screen-v0", render_mode="rgb_array")
@@ -363,7 +445,8 @@ env.reset()
 
 # Perform some steps
 for _ in range(100):
-   action = [(env.action_space.sample(), env.action_space.sample())]
+   # (dx, dy) in [-1, 1] plus a discrete action: 0=noop, 1=split, 2=feed
+   action = env.action_space.sample()
    observation, reward, terminated, truncated, info = env.step(action)
    if terminated or truncated:
       break
@@ -385,6 +468,7 @@ An example of how to invoke the window:
 
 ```python
 import gymnasium as gym
+import gym_agario  # registers the agario-* environments
 
 # Initialize the environment
 env = gym.make("agario-screen-v0", render_mode="human")
@@ -394,7 +478,8 @@ env.reset()
 
 # Perform some steps
 for _ in range(100):
-   action = [(env.action_space.sample(), env.action_space.sample())]
+   # (dx, dy) in [-1, 1] plus a discrete action: 0=noop, 1=split, 2=feed
+   action = env.action_space.sample()
    observation, reward, terminated, truncated, info = env.step(action)
 
    # Update the on-screen display
@@ -408,8 +493,33 @@ env.close()
 
 This functionality allows you to capture and analyze the agent's performance visually.
 
-## Citation 
-If you use our environment, cite the following reference: 
+## Troubleshooting
+
+**`cmake_minimum_required` / CMake policy error.** CMake 4.x removed support
+for the compatibility range this project declares. Either use CMake 3.x, or
+export the policy floor before configuring:
+
+```bash
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
+```
+
+**Headless rendering on Linux.** Offscreen rendering uses EGL. Set
+
+```bash
+export EGL_PLATFORM=surfaceless
+```
+
+and make sure the EGL runtime is installed (`libegl1-mesa-dev`, plus
+`libgl1-mesa-dri` for software rendering on machines without a GPU).
+
+**`agario-screen-v0` doesn't exist.** The environments are registered when
+`gym_agario` is imported, so `import gym_agario` alongside `gymnasium`.
+
+**Compiler.** Build with `clang++`; `g++` is not supported
+(`export CXX=clang++`).
+
+## Citation
+If you use our environment, cite the following reference:
 ```
 @article{aymanagarcl,
   title={The Cell Must Go On: Agar.io for Continual Reinforcement Learning},
