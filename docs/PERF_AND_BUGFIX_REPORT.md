@@ -18,7 +18,7 @@ against published behavior before merging.
 | Screen env at the 1,024-pellet spec | ~600 → ~3,700 steps/s (**~6×**) |
 | Grid env throughput | 112 → 45 µs/step (**2.5×**) |
 | Engine tick (10 bots, 10 viruses, 1,000 pellets) | 41.5 → 2.6 µs (**16×**) |
-| Test suites | `test-envs` 10/12 → **12/12**; `test-engine` 35/35; `test-engine-renderable` 35/35 |
+| Test suites | `test-engine` 35 → **53**; `test-engine-renderable` 35 → **53**; `test-envs` 10/12 → **12/12**; new Python regression suite **14** |
 | Reproducibility | same seed yields identical rewards **and** identical pixels, verified end to end from Python (previously broken by hash-order dependence, `random_device` reseeding on reset, and bots drawing from the global C RNG) |
 
 Observations were held **byte-identical** through every performance change.
@@ -249,6 +249,25 @@ Found in a later review pass; the bots had gone unaudited.
 
 **Cumulative engine tick: 41.5 → 2.6 µs (16×)** across §3.7 and §3.9.
 
+### 3.11 Regression test suites (`6c992f9`)
+
+The fixes were originally verified with throwaway probes outside the
+repository, so nothing prevented the defects returning. They are now permanent
+tests: **18** in `agario/test/test-regressions.hpp` (built into both the
+renderable and non-renderable engine targets) covering pellet-eating mass
+accounting, virus collisions at every cell size, determinism, seed survival
+across `reset_state`, dead-player centroids, `direction()` correctness and
+round-tripping, `pellet_regen`, mass conservation when cells eat cells, and the
+bot-layer fixes; and **14** in `tests/regression_test.py` covering observation
+delivery for grid and screen, agent-view alpha encoding, finiteness under
+frequent deaths, `c_death`, truncation-vs-termination, seeded reproducibility of
+both rewards and pixels, action noise, and multiple environments per process.
+
+Each test was verified to **fail when its fix is reverted** (the shy-bot mass
+comparison, the `reset_state` reseed, the `pellet_regen` flag and the `c_death`
+sign were reintroduced in turn). CI now runs `test-envs` and the Python suite in
+addition to the engine suites.
+
 ### 3.10 CI, tooling, docs (`eac56f6`, `939189c`, `c2f4635`)
 
 - **CI now validates the deployment target.** It previously built the default
@@ -281,7 +300,10 @@ Found in a later review pass; the bots had gone unaudited.
 Run after the last commit:
 
 - Full CMake build, all targets: clean, zero errors.
-- `test-engine` 35/35, `test-engine-renderable` 35/35, `test-envs` **12/12**.
+- `test-engine` 53/53, `test-engine-renderable` 53/53, `test-envs` 12/12,
+  `tests/regression_test.py` 14/14.
+- **Every fix on this branch now has a permanent regression test** (§3.11).
+  Each was confirmed to fail when its fix is reverted.
 - Determinism probe: identical 3,000-tick traces (8 fighting/splitting
   players) under a fixed seed; divergent under a different seed.
 - Pellet grid mirror probe: 480 checkpoints over 12,000 ticks, exact.
