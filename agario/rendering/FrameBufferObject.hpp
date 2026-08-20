@@ -114,16 +114,24 @@ public:
    * capture. Rendering to the FBO (instead of a hidden window's back
    * buffer) makes the readback well-defined: default-framebuffer pixels
    * of an occluded window fail the pixel-ownership test. */
-  void bind_for_capture() const {
+  void bind_for_capture() {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, _width, _height);
+    capture_bound_ = true;
+  }
+
+  /* the human render path presents to the window, not the FBO */
+  void unbind_capture() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    capture_bound_ = false;
   }
 
   void copy(void *data, bool agent_view) {
-    // read from the FBO attachment when one is bound, else the back buffer
-    GLint bound_read_fbo = 0;
-    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &bound_read_fbo);
-    glReadBuffer(bound_read_fbo != 0 ? GL_COLOR_ATTACHMENT0 : GL_BACK);
+    // Read from the FBO attachment when capture is bound, else the back
+    // buffer. The binding is tracked in a member rather than queried with
+    // glGetIntegerv: driver state queries can act as synchronization points,
+    // and this runs on every observation capture.
+    glReadBuffer(capture_bound_ ? GL_COLOR_ATTACHMENT0 : GL_BACK);
 
     // rows are tightly packed in the observation buffer (width*channels);
     // the GL default pack alignment of 4 would pad rows for widths not
@@ -192,6 +200,7 @@ private:
 
   GLFWwindow *window;
   bool owns_glfw = false;
+  bool capture_bound_ = false; // is the offscreen FBO the current target?
 
 #ifdef USE_EGL
   EGLDisplay egl_display = EGL_NO_DISPLAY;

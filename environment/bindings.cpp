@@ -162,13 +162,19 @@ PYBIND11_MODULE(agarcl, module) {
     .def("get_state", []( ScreenEnvironment &env) {
       py::list obs;
       auto &observation = env.get_state();
-      auto data = (void *) observation.frame_data();
-      auto shape = observation.shape();
-      auto strides = observation.strides();
-      auto format = py::format_descriptor<std::uint8_t>::format();
-      auto buffer = py::buffer_info(data, sizeof(std::uint8_t), format, shape.size(), shape, strides);
-      auto arr = py::array_t<std::uint8_t>(buffer);
-      obs.append(arr);
+      // Own a private copy handed to NumPy via a capsule. Constructing
+      // py::array_t from a buffer_info with no base handle makes pybind11
+      // allocate a throwaway wrapper and then PyArray_NewCopy it, i.e. two
+      // allocations and two traversals of the frame; this does one of each.
+      // A copy is still required because the C++ frame buffer is reused by
+      // the next step.
+      const auto shape = observation.shape();
+      const auto strides = observation.strides();
+      const std::size_t n = observation.length();
+      auto *data = new std::uint8_t[n];
+      std::copy(observation.frame_data(), observation.frame_data() + n, data);
+      py::capsule cleanup(data, [](void *p) { delete[] reinterpret_cast<std::uint8_t *>(p); });
+      obs.append(py::array_t<std::uint8_t>(shape, strides, data, cleanup));
       return obs;
     })
     .def("close", &ScreenEnvironment::close)

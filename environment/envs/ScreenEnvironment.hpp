@@ -45,46 +45,54 @@ namespace agario::env {
       }
 
 
+      /* Remaps the rendered RGBA frame into the agent-view channel encoding.
+       *
+       * Walks whole pixels instead of individual bytes. The byte-wise loop
+       * this replaces branched on `i % 4` for every byte and recomputed
+       * neighbour offsets with modulo arithmetic; the stride is a compile-time
+       * 4 here, so those all fold away. The mutation order is preserved
+       * exactly: the three colour channels of a pixel are processed in order
+       * (each may write that pixel's alpha), and only then is the alpha branch
+       * evaluated - which is what lets it observe the colour channels' writes.
+       * Output is byte-identical.
+       */
       void post_processing_frame_data(std::uint8_t *&data) {
-        auto end_index = _width * _height * (PIXEL_LEN + multi_channel_obs);
+        const int channels = PIXEL_LEN + multi_channel_obs;
+        if (channels != 4) return; // encoding is only defined for RGBA
+        const int row = _width * 4;          // bytes per pixel row
+        const int n_pixels = _width * _height;
 
-        for(int i = 0 ; i < end_index; i++)
-        {
-          // we have 4 channels : 0 1 2 3 (r g b a) (i%4) => (0,1,2,3)
-          // data[i+3] = 0;
-          // 26 is the value of GridLines
-          if(i%4 == 3 && (data[i] == 0 || data[i] == 255))
-          {
-            // two conditions: Above me is a gridLine. If so, make me a gridLine too. Vertical GridLine
-            int above_Gline_index = i - _width * (PIXEL_LEN + multi_channel_obs);
-            int above_above_Gline_index = above_Gline_index - _width * (PIXEL_LEN + multi_channel_obs);
-            if(above_above_Gline_index >= 0 && data[above_Gline_index] !=0 && data[above_above_Gline_index]<=30)
-              data[i] = data[above_above_Gline_index];
-            else
-              data[i] = 0; // make it transparent
+        for (int p = 0; p < n_pixels; ++p) {
+          const int b = p * 4;               // base byte of this pixel
+          const int a = b + 3;               // its alpha byte
+
+          // colour channels: move a non-background value into alpha, or
+          // continue a horizontal grid line from the two preceding pixels
+          for (int k = 0; k < 3; ++k) {
+            const std::uint8_t v = data[b + k];
+            if (v == 0) continue;
+            if (v <= 230) {
+              data[a] = v;
+              data[b + k] = 0;
+            } else {
+              // virus / enemy / pellet: inherit a grid line from the left
+              const int prev_a = b - 1;      // alpha of pixel p-1
+              const int prev_prev_a = b - 5; // alpha of pixel p-2
+              if (prev_prev_a >= 0 && data[prev_prev_a] <= 30 && data[prev_a] <= 30)
+                data[a] = data[prev_a];
+            }
           }
 
-          if(data[i] != 0 && i%4 != 3)
-          {
-              if(data[i] <= 230)
-              {
-                data[i + (3 - i%4)] = data[i];
-                data[i] = 0;
-              }
-              else
-              {
-                //It is a virus, Enemy, or a pellet => check if the previous pixel is a gridLine, simply make data[i + (3 - i%4)] = 26
-                // Horizontal GridLine
-                int prev_Gline_index = i - i%4 - 1;
-                int prev_prev_Gline_index = prev_Gline_index - 4;
-
-                if(prev_prev_Gline_index >= 0 && data[prev_prev_Gline_index]<=30 && data[prev_Gline_index] <= 30)
-                  data[i + (3 - i%4)] = data[prev_Gline_index];
-              }
+          // alpha channel: continue a vertical grid line from directly above
+          if (data[a] == 0 || data[a] == 255) {
+            const int above_a = a - row;
+            const int above_above_a = above_a - row;
+            if (above_above_a >= 0 && data[above_a] != 0 && data[above_above_a] <= 30)
+              data[a] = data[above_above_a];
+            else
+              data[a] = 0; // transparent
           }
         }
-
-
       }
       std::uint8_t *frame_data(int frame_index) const {
 
@@ -180,7 +188,7 @@ namespace agario::env {
       }
 
       void render() override {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        frame_buffer->unbind_capture(); // present to the window, not the FBO
         glViewport(0, 0, screen_width(), screen_height());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

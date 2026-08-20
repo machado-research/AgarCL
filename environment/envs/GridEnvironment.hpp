@@ -214,14 +214,20 @@ namespace agario::env {
         };
       }
 
-      /* stores the given entities in the data array at the given `channel` */
+      /* stores the given entities in the data array at the given `channel`.
+       * The player's centroid is hoisted out of the loop: player.x() and
+       * player.y() are each O(cells) reductions that also call mass(), so
+       * recomputing them per entity cost thousands of redundant traversals
+       * per frame. */
       template<typename U>
       void _store_entities(const std::vector<U> &entities, const Player &player, int channel, calc_type calc = calc_type::total_mass_) {
         float view_size = _view_size(player);
+        const float player_x = static_cast<float>(player.x());
+        const float player_y = static_cast<float>(player.y());
 
         int grid_x, grid_y;
         for (auto &entity : entities) {
-          _world_to_grid(player, entity.location(), view_size, grid_x, grid_y);
+          _world_to_grid(player_x, player_y, entity.location(), view_size, grid_x, grid_y);
 
           int index = _index(channel, grid_x, grid_y);
           if (_inside_grid(grid_x, grid_y)) {
@@ -237,20 +243,31 @@ namespace agario::env {
       }
     }
 
-      /* marks out-of-bounds locations on the given `channel` */
+      /* marks out-of-bounds locations on the given `channel`.
+       *
+       * The player's centroid is computed once instead of once per grid cell:
+       * this loop runs grid_size^2 times (16,384 at the default 128) and each
+       * iteration previously called player.location(), i.e. x() and y(), each
+       * an O(cells) reduction that itself calls mass() - roughly 65,000
+       * redundant cell traversals per frame. The per-axis world offsets are
+       * also loop-invariant, so they are precomputed per row/column. */
       void _mark_out_of_bounds(const Player &player, int channel,
                                agario::distance arena_width, agario::distance arena_height) {
-        float view_size = _view_size(player);
+        const float view_size = _view_size(player);
+        const float player_x = static_cast<float>(player.x());
+        const float player_y = static_cast<float>(player.y());
+        const float centering = config_.grid_size / 2.0f;
+        const float scale = view_size / config_.grid_size;
 
-        int centering = config_.grid_size / 2;
-        for (int i = 0; i < config_.grid_size; i++)
+        for (int i = 0; i < config_.grid_size; i++) {
+          const float wx = player_x + (static_cast<float>(i) - centering) * scale;
+          const bool x_in = (0 <= wx && wx < static_cast<float>(arena_width));
           for (int j = 0; j < config_.grid_size; j++) {
-
-            auto loc = _grid_to_world(player, view_size, i, j);
-            int index = _index(channel, i, j);
-            bool in_bounds = _in_bounds(loc, arena_width, arena_height);
-            data_[index] = in_bounds ? 0 : -1;
+            const float wy = player_y + (static_cast<float>(j) - centering) * scale;
+            const bool in_bounds = x_in && (0 <= wy && wy < static_cast<float>(arena_height));
+            data_[_index(channel, i, j)] = in_bounds ? 0 : -1;
           }
+        }
       }
 
       /* determines what the view size should be, based on the player's mass */
@@ -259,14 +276,15 @@ namespace agario::env {
         return agario::clamp<float>(2 * player.mass(), 100, 300);
       }
 
-      /* converts world-coordinates to grid-coordinates */
-      void _world_to_grid(const Player &player, const Location &loc,
+      /* converts world-coordinates to grid-coordinates, given the player's
+       * already-computed centroid */
+      void _world_to_grid(float player_x, float player_y, const Location &loc,
                           float view_size, int &grid_x, int &grid_y) const {
 
         float centering = config_.grid_size / 2.0;
 
-        auto diff_x = loc.x - player.x();
-        auto diff_y = loc.y - player.y();
+        auto diff_x = loc.x - player_x;
+        auto diff_y = loc.y - player_y;
 
         grid_x = static_cast<int>(config_.grid_size * diff_x / view_size + centering);
         grid_y = static_cast<int>(config_.grid_size * diff_y / view_size + centering);
@@ -449,7 +467,7 @@ namespace agario::env {
       void render() override {
 #ifdef RENDERABLE
 
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      frame_buffer->unbind_capture(); // present to the window, not the FBO
       glViewport(0, 0, frame_buffer->width(), frame_buffer->height());
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

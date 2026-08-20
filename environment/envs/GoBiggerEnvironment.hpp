@@ -642,7 +642,7 @@ template <bool renderable>
 
         void render() override {
             #ifdef RENDERABLE
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                frame_buffer->unbind_capture(); // present to the window, not the FBO
                 glViewport(0, 0, frame_buffer->width(), frame_buffer->height());
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
