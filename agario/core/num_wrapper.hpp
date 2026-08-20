@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 /*
  * Adapted from
  * https://stackoverflow.com/questions/17793298/c-class-wrapper-around-fundamental-types

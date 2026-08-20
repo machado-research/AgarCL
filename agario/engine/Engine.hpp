@@ -108,7 +108,11 @@ namespace agario {
       state.ticks = 0;
       state.next_pid = 0;
       state.main_agent_pid = -1;
-      state.rng.seed(std::random_device{}());
+      /* Deliberately does NOT reseed. This used to do
+       *   state.rng.seed(std::random_device{}());
+       * which silently discarded a seed set through seed(), so a
+       * seed() / reset() / step() sequence was not reproducible. Reseeding is
+       * the caller's decision, via seed(). */
     }
 
     void initialize_game() {

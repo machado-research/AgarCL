@@ -36,7 +36,13 @@ namespace agario {
           auto distance = this->location().distance_to(other_player.location());
 
           // it is scary?
-          if (distance < SHY_RADIUS && other_player.mass() > mass()) {
+          /* `this->mass()` is required: Player is a dependent base, so
+           * unqualified lookup skips it and finds the *type* agario::mass
+           * instead, making `mass()` a cast that yields 0. The comparison was
+           * always true, so this bot fled from any nearby player and the
+           * aggressive branch below was unreachable whenever one was in
+           * range. */
+          if (distance < SHY_RADIUS && other_player.mass() > this->mass()) {
             // yes! run (directly) away!
             this->target = this->location() - (other_player.location() - this->location());
             return;

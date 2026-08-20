@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstdint>
+#include <limits>
+
+
 #include <agario/engine/GameState.hpp>
 #include <agario/core/Player.hpp>
 
@@ -88,13 +92,26 @@ namespace agario {
       }
 
 
+      /* A wander target used when there is nothing to forage. Derived from the
+       * bot's pid and the tick counter rather than std::rand(): the global C
+       * RNG is process-wide shared state, so drawing from it here made a
+       * seeded episode non-reproducible (and impossible to seed per
+       * environment when several share a process). */
+      agario::Location wander_target(const GameState &state) const {
+        const std::uint32_t w = static_cast<std::uint32_t>(state.config.arena_width);
+        const std::uint32_t h = static_cast<std::uint32_t>(state.config.arena_height);
+        if (w == 0 || h == 0) return agario::Location(0, 0); // degenerate arena
+        std::uint32_t s = static_cast<std::uint32_t>(this->pid()) * 2654435761u
+                        + static_cast<std::uint32_t>(state.ticks) * 40503u;
+        s ^= s >> 15; s *= 2246822519u; s ^= s >> 13;
+        return agario::Location(static_cast<agario::distance>(s % w),
+                                static_cast<agario::distance>((s / (w ? w : 1)) % h));
+      }
+
       /* location of the nearest pellet */
       agario::Location nearest_pellet(const GameState &state) const {
-        if (state.pellets.empty()) {
-          return agario::Location(
-          std::rand() % static_cast<int>(state.config.arena_width),
-          std::rand() % static_cast<int>(state.config.arena_height));
-        }
+        if (state.pellets.empty())
+          return wander_target(state);
 
         // 1/10 chance to pick a random pellet
         // if (std::rand() % 10 == 0) {
@@ -106,24 +123,38 @@ namespace agario {
         //   return random_pellet.location();
         // }
 
+        /* The bot's own centroid is loop-invariant but was recomputed for
+         * every pellet, and location() is two O(cells) reductions that each
+         * call mass() - with ~1000 pellets that dominated the tick. Distances
+         * are also compared squared, which removes ~1000 sqrt calls; ordering
+         * and the 0.01 cutoff are unchanged, since both are monotonic in the
+         * squared value. */
+        const agario::Location me = this->location();
+        const float me_x = static_cast<float>(me.x);
+        const float me_y = static_cast<float>(me.y);
+        constexpr float min_sq = 0.01f * 0.01f;
+
         agario::Location target;
-        distance min_distance = agario::distance::max();
+        bool found = false;
+        float best_sq = std::numeric_limits<float>::max();
 
         for (const auto &pellet : state.pellets) {
-          distance dist = pellet.location().distance_to(this->location());
-          if (dist < min_distance && dist > 0.01) {
-              target = pellet.location();
-              min_distance = dist;
+          const float dx = static_cast<float>(pellet.x) - me_x;
+          const float dy = static_cast<float>(pellet.y) - me_y;
+          const float d_sq = dx * dx + dy * dy;
+          if (d_sq < best_sq && d_sq > min_sq) {
+            target = pellet.location();
+            best_sq = d_sq;
+            found = true;
           }
         }
 
-        // If the nearest pellet is at the same location as the bot, adjust the target slightly
-        if (min_distance < 0.01) {
-          target += agario::Location( target.x +
-          std::rand() % static_cast<int>(state.config.arena_width),
-          target.y +
-          std::rand() % static_cast<int>(state.config.arena_height));
-        }
+        /* Every pellet sits on top of the bot (or the list is otherwise
+         * unusable): wander instead. This previously fell through with an
+         * unset target and sent the bot to world origin - the guard it used
+         * was unreachable, since the loop only ever assigned a distance
+         * greater than the cutoff. */
+        if (!found) return wander_target(state);
 
         return target;
       }
