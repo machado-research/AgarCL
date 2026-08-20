@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <sstream>
 #include<set>
+#include <unordered_set>
 #include <numeric>
 #include <fstream>
 #include<random>
@@ -147,56 +148,110 @@ namespace agario {
       return Location(x, y);
     }
 
+    /* locates a cell by id in a vector sorted by id, or nullptr.
+     * std::lower_bound returns the first element *not less than* the key, so
+     * on a miss it points at a valid but different cell; the result must be
+     * checked against the key before use. */
+    static Cell *find_cell_by_id(std::vector<Cell> &cells, int id) {
+      auto it = std::lower_bound(cells.begin(), cells.end(), id,
+                                 [](const Cell &c, int key) { return c.id < key; });
+      if (it != cells.end() && it->id == id) return &(*it);
+      return nullptr;
+    }
+
+    /**
+     * Resolves cell-eats-cell collisions between different players.
+     *
+     * Detection still uses the row-binned PrecisionCollisionDetection
+     * heuristic; only the bookkeeping around it changed:
+     *
+     *  - Cells are copied into the snapshot, not std::move'd out of the live
+     *    player vectors. The originals stayed in those vectors and were
+     *    subsequently indexed and mutated after being moved from.
+     *  - The gallery is a separate vector. solve() moves entries out of the
+     *    gallery, and passing the same vector as query and gallery corrupted
+     *    entries that were still pending as queries.
+     *  - The snapshot is ordered by cell id, and results are applied in
+     *    ascending query order. Both the snapshot (built by iterating an
+     *    unordered_map of players) and the results map are hash-ordered, so
+     *    the order in which mass transfers were applied - and therefore which
+     *    cell won a contested victim - varied between runs and between
+     *    standard library implementations, breaking seeded reproducibility.
+     *  - Cells are looked up by verified id rather than trusting lower_bound,
+     *    which credited mass to the wrong cell and erased an unrelated one.
+     *  - A cell can be eaten at most once per tick, and a cell that has been
+     *    eaten cannot go on to eat: previously two predators could both
+     *    consume the same victim and each gain its full mass.
+     *  - Removal is deferred to a single compaction pass per player. Erasing
+     *    inside the loop invalidated the iterators and references held for
+     *    later iterations and destroyed the sorted-order precondition that
+     *    the binary searches depend on.
+     */
     void players_collision()
     {
-      // to change the hierarchy of: I want pair of player_id and cells: Keep in mind that we will std::move cells
-      std::vector<std::pair<agario::pid, Cell>> cells_per_player;
-
-      for(auto &pair : state.players) {
+      cells_snapshot_.clear();
+      for (auto &pair : state.players) {
         auto &player = *pair.second;
-        sort(player.cells.begin(), player.cells.end());
-        for(auto &cell : player.cells) {
-          cells_per_player.emplace_back(std::make_pair(player.pid(), std::move(cell)));
-        }
+        std::sort(player.cells.begin(), player.cells.end()); // by id
+        for (const auto &cell : player.cells)
+          cells_snapshot_.emplace_back(player.pid(), cell);
       }
+      if (cells_snapshot_.size() < 2) return;
 
-      //change
+      // canonical, hash-independent order
+      std::sort(cells_snapshot_.begin(), cells_snapshot_.end(),
+                [](const std::pair<agario::pid, Cell> &a,
+                   const std::pair<agario::pid, Cell> &b) {
+                  return a.second.id < b.second.id;
+                });
+
+      gallery_ = cells_snapshot_; // assignment reuses capacity across ticks
+
       PrecisionCollisionDetection<renderable> pcd({arena_width(), arena_height()}, 100);
-      //send the cells for each player
-      auto results = pcd.solve(cells_per_player, cells_per_player);
+      auto results = pcd.solve(cells_snapshot_, gallery_);
+      if (results.empty()) return;
 
-      for (const auto& result : results) {
-        const auto& id = result.first;
-        const auto& cells = result.second;
-        for (const auto& vect_id : cells) {
-          auto &eaten_player = get_player(vect_id.first);
-          const auto& cell = vect_id.second;
-          auto &player = get_player(cells_per_player[id].first);
-          auto& eaten_player_cells = eaten_player.cells;
-          auto it = std::lower_bound(player.cells.begin(), player.cells.end(), cells_per_player[id].second.id, [](const Cell& c, int id) {
-            return c.id < id;
-          });
+      eaten_cell_ids_.clear();
 
-          if (it != player.cells.end()) {
-            it->increment_mass(cell.mass());
-            player.cells_eaten++;
-          }
+      for (size_t qi = 0; qi < cells_snapshot_.size(); qi++) {
+        auto res_it = results.find(static_cast<int>(qi));
+        if (res_it == results.end()) continue;
 
-          auto eaten_it = std::lower_bound(eaten_player_cells.begin(), eaten_player_cells.end(), cell.id, [](const Cell& c, int id) {
-            return c.id < id;
-          });
+        const agario::pid eater_pid = cells_snapshot_[qi].first;
+        const int eater_cell_id = cells_snapshot_[qi].second.id;
 
-          if (eaten_it != eaten_player_cells.end()) {
-            eaten_player_cells.erase(eaten_it);
-          }
+        // a cell already consumed this tick cannot eat
+        if (eaten_cell_ids_.find(eater_cell_id) != eaten_cell_ids_.end()) continue;
 
+        auto &eater_player = get_player(eater_pid);
+        Cell *eater_cell = find_cell_by_id(eater_player.cells, eater_cell_id);
+        if (eater_cell == nullptr) continue;
+
+        for (const auto &entry : res_it->second) {
+          const agario::pid victim_pid = entry.first;
+          const int victim_id = entry.second.id;
+          if (victim_id == eater_cell_id) continue;      // never eat itself
+          if (!eaten_cell_ids_.insert(victim_id).second) continue; // already eaten
+
+          auto &victim_player = get_player(victim_pid);
+          Cell *victim = find_cell_by_id(victim_player.cells, victim_id);
+          if (victim == nullptr) continue;
+
+          eater_cell->increment_mass(victim->mass());
+          eater_player.cells_eaten++;
         }
       }
 
-      // do the collision part here:
-      // check_player_collisions();
+      if (eaten_cell_ids_.empty()) return;
 
-      cells_per_player.clear();
+      for (auto &pair : state.players) {
+        auto &cells = pair.second->cells;
+        cells.erase(std::remove_if(cells.begin(), cells.end(),
+                      [this](const Cell &c) {
+                        return eaten_cell_ids_.find(c.id) != eaten_cell_ids_.end();
+                      }),
+                    cells.end());
+      }
     }
 
     /**
@@ -375,6 +430,10 @@ namespace agario {
     std::vector<std::vector<int>> virus_grid;
     // per-tick marker so a pellet can be eaten (credited + removed) at most once
     std::vector<char> pellet_eaten_;
+    // players_collision scratch, reused across ticks to avoid reallocating
+    std::vector<std::pair<agario::pid, Cell>> cells_snapshot_;
+    std::vector<std::pair<agario::pid, Cell>> gallery_;
+    std::unordered_set<int> eaten_cell_ids_;
 
     bool mass_decay_ = true;
     bool is_squared_pellets_ = false;

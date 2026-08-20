@@ -68,39 +68,27 @@ namespace agario {
     agario::color color;
 
     template<typename Loc>
-    explicit RenderableBall(Loc &&loc) : Ball(loc), color(agario::random_color()),
-                                         _initialized(false) {}
+    explicit RenderableBall(Loc &&loc) : Ball(loc), color(agario::random_color()) {}
 
     RenderableBall(agario::distance x, agario::distance y) :
       RenderableBall(Location(x, y)) {}
 
-    // move constructor
-    RenderableBall(RenderableBall &&rb) noexcept : RenderableBall(rb.location()) {
-      if (rb._initialized) {
-        _initialized = true;
-        circle = rb.circle;
-      }
-      color = rb.color;
-      rb._initialized = false;
-    }
-
-    // move assignment
-    RenderableBall &operator=(RenderableBall &&rb) noexcept {
-      x = rb.x;
-      y = rb.y;
-      if (rb._initialized) {
-        _initialized = true;
-        circle = rb.circle;
-      }
-      color = rb.color;
-      rb._initialized = false;
-      return *this;
-    }
-
-    // copy constructor and assignment operator
-    RenderableBall(const RenderableBall &rbm) = delete;
-
-    RenderableBall &operator=(const RenderableBall &rmb) = delete;
+    /* All special members are defaulted. These objects no longer own GL
+     * handles (geometry and buffers live in the renderer's shared instanced
+     * batches), so copies and moves are plain member-wise operations.
+     *
+     * The previous hand-written move operations existed to transfer VAO/VBO
+     * ownership, and were subtly identity-destroying: the move constructor
+     * delegated to the location constructor, which mints a fresh Ball id, and
+     * the move assignment copied position but never the id. Every std::sort
+     * or std::remove_if over renderable cells therefore reassigned or
+     * scrambled cell ids while sorting by id - a comparator whose key mutates
+     * mid-sort is undefined behaviour, and id-based lookups then hit the
+     * wrong cells. Defaulted moves preserve identity. */
+    RenderableBall(const RenderableBall &) = default;
+    RenderableBall &operator=(const RenderableBall &) = default;
+    RenderableBall(RenderableBall &&) noexcept = default;
+    RenderableBall &operator=(RenderableBall &&) noexcept = default;
 
     void set_color(agario::color c) {
       color = c;
@@ -112,7 +100,6 @@ namespace agario {
   protected:
     static constexpr unsigned NVertices = NSides + 2;
     Circle<NSides> circle;
-    bool _initialized;
   };
 
   template<unsigned NSides>
@@ -130,31 +117,11 @@ namespace agario {
     template<typename Loc>
     explicit RenderableMovingBall(Loc &&loc) : RenderableMovingBall(loc, Velocity()) {}
 
-    // move constructor
-    RenderableMovingBall(RenderableMovingBall &&rmb) noexcept :
-      RenderableMovingBall(rmb.location(), rmb.velocity) {
-      if (rmb._initialized) {
-        this->_initialized = true;
-        this->circle = rmb.circle;
-      }
-      this->color = rmb.color;
-      rmb._initialized = false;
-    }
-
-    // move assignment
-    RenderableMovingBall &operator=(RenderableMovingBall &&rmb) noexcept {
-      x = rmb.x;
-      y = rmb.y;
-      velocity = rmb.velocity;
-      if (rmb._initialized) {
-        this->_initialized = true;
-        this->circle = rmb.circle;
-      }
-      this->color = rmb.color;
-      rmb._initialized = false;
-      return *this;
-    }
-
+    /* defaulted for the same identity-preservation reasons as RenderableBall */
+    RenderableMovingBall(const RenderableMovingBall &) = default;
+    RenderableMovingBall &operator=(const RenderableMovingBall &) = default;
+    RenderableMovingBall(RenderableMovingBall &&) noexcept = default;
+    RenderableMovingBall &operator=(RenderableMovingBall &&) noexcept = default;
   };
 
   template<unsigned NLines>
