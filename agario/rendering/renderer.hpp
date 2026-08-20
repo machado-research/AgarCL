@@ -22,6 +22,7 @@
 #include "agario/core/renderables.hpp"
 #include "agario/rendering/Canvas.hpp"
 #include "agario/rendering/shader.hpp"
+#include "agario/rendering/instanced_batch.hpp"
 
 #define NUM_GRID_LINES 8
 
@@ -32,6 +33,37 @@ const char* vertex_shader_src =
 const char* fragment_shader_src =
 #include "shaders/_fragment.glsl"
   ;
+
+/* instanced pipeline: shared unit-circle geometry, per-instance
+ * (offset, radius, color) attributes. One draw call per shape class. */
+const char* instanced_vertex_shader_src = R"GLSL(
+#version 330 core
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec2 offset;
+layout (location = 2) in float radius;
+layout (location = 3) in vec4 inst_color;
+
+uniform mat4 projection_transform;
+uniform mat4 view_transform;
+
+out vec4 frag_color;
+
+void main() {
+    vec2 world = position.xy * radius + offset;
+    gl_Position = projection_transform * view_transform * vec4(world, 0.0, 1.0);
+    frag_color = inst_color;
+}
+)GLSL";
+
+const char* instanced_fragment_shader_src = R"GLSL(
+#version 330 core
+in vec4 frag_color;
+out vec4 colorF;
+
+void main() {
+    colorF = frag_color;
+}
+)GLSL";
 
 namespace agario {
 
@@ -44,8 +76,11 @@ namespace agario {
                       agario::distance arena_height) :
       _canvas(std::move(canvas)),
       arena_width(arena_width), arena_height(arena_height),
-      shader(), grid(arena_width, arena_height) {
+      shader(), grid(arena_width, arena_height),
+      pellet_batch(PELLET_SIDES), food_batch(FOOD_SIDES),
+      cell_batch(CELL_SIDES), virus_batch(VIRUS_SIDES, /*wavy=*/true) {
       shader.compile_shaders(vertex_shader_src, fragment_shader_src);
+      inst_shader.compile_shaders(instanced_vertex_shader_src, instanced_fragment_shader_src);
       shader.use();
     }
 
@@ -135,23 +170,33 @@ namespace agario {
 
       grid.draw(shader);
 
+      // fixed channel-encoding colors (same values as the old type-based draw)
+      pellet_batch.clear();
       for (auto &pellet : state.pellets)
-        pellet.draw(shader, 0);
+        pellet_batch.add(pellet.x, pellet.y, pellet.radius(), 1.0f, 0.0f, 0.0f);
 
+      food_batch.clear();
       for (auto &food : state.foods)
-        food.draw(shader, 0);
+        food_batch.add(food.x, food.y, food.radius(), 1.0f, 0.0f, 0.0f);
 
-      // main agent pid is the first player in the map
-      auto main_agent = state.players[state.main_agent_pid];
-      main_agent->draw(shader, 3);
-      //other players
-      for (auto &pair : state.players){
-        if(pair.first != state.main_agent_pid)
-          pair.second->draw(shader, 1);
+      // main agent first, other players after (they overwrite on overlap,
+      // matching the previous draw order)
+      cell_batch.clear();
+      auto main_it = state.players.find(state.main_agent_pid);
+      if (main_it != state.players.end())
+        for (auto &cell : main_it->second->cells)
+          cell_batch.add(cell.x, cell.y, cell.radius(), 0.9f, 0.0f, 0.0f);
+      for (auto &pair : state.players) {
+        if (pair.first == state.main_agent_pid) continue;
+        for (auto &cell : pair.second->cells)
+          cell_batch.add(cell.x, cell.y, cell.radius(), 0.0f, 1.0f, 0.0f);
       }
 
+      virus_batch.clear();
       for (auto &virus : state.viruses)
-        virus.draw(shader, 2);
+        virus_batch.add(virus.x, virus.y, virus.radius(), 0.0f, 0.0f, 1.0f);
+
+      draw_batches(player);
     }
 
 /**
@@ -170,23 +215,30 @@ namespace agario {
 
       grid.draw(shader);
 
+      pellet_batch.clear();
       for (auto &pellet : state.pellets)
-        pellet.draw(shader);
+        add_colored(pellet_batch, pellet.x, pellet.y, pellet.radius(), pellet.color);
 
+      food_batch.clear();
       for (auto &food : state.foods)
-        food.draw(shader);
+        add_colored(food_batch, food.x, food.y, food.radius(), food.color);
 
+      cell_batch.clear();
       for (auto &pair : state.players)
-        pair.second->draw(shader);
+        for (auto &cell : pair.second->cells)
+          add_colored(cell_batch, cell.x, cell.y, cell.radius(), cell.color);
 
+      virus_batch.clear();
       for (auto &virus : state.viruses)
-        virus.draw(shader);
+        add_colored(virus_batch, virus.x, virus.y, virus.radius(), virus.color);
 
+      draw_batches(player);
     }
 
     void close_program()
     {
       shader.cleanup();
+      inst_shader.cleanup();
     }
     /**
      * Sets the canvas to render to
@@ -206,8 +258,46 @@ namespace agario {
     agario::distance arena_width;
     agario::distance arena_height;
 
-    Shader shader;
+    Shader shader;      // grid lines (model-matrix pipeline)
+    Shader inst_shader; // instanced entities
     agario::Grid<NUM_GRID_LINES> grid;
+
+    InstancedBatch pellet_batch;
+    InstancedBatch food_batch;
+    InstancedBatch cell_batch;
+    InstancedBatch virus_batch;
+
+    /* stage an instance colored via the agario palette */
+    void add_colored(InstancedBatch &batch, float x, float y,
+                     float radius, agario::color c) {
+      const float *rgb;
+      switch (c) {
+        case agario::color::red:    rgb = red_color;    break;
+        case agario::color::blue:   rgb = blue_color;   break;
+        case agario::color::green:  rgb = green_color;  break;
+        case agario::color::orange: rgb = orange_color; break;
+        case agario::color::purple: rgb = purple_color; break;
+        case agario::color::yellow: rgb = yellow_color; break;
+        default:                    rgb = black_color;  break;
+      }
+      batch.add(x, y, radius, rgb[0], rgb[1], rgb[2]);
+    }
+
+    /* upload + draw all staged instances: one draw call per shape class,
+     * in the same category paint order as the old per-entity path */
+    void draw_batches(const Player &player) {
+      inst_shader.use();
+      inst_shader.setMat4(inst_shader.loc_projection, perspective_projection(player));
+      inst_shader.setMat4(inst_shader.loc_view, view_projection(player));
+
+      pellet_batch.flush();
+      food_batch.flush();
+      cell_batch.flush();
+      virus_batch.flush();
+
+      glBindVertexArray(0);
+      shader.use(); // restore the default program for the next grid draw
+    }
   };
 
 }

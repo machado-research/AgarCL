@@ -88,6 +88,7 @@ set(AGARIO_RENDERING_SRC
         rendering/renderer.hpp
         rendering/shader.hpp
         rendering/window.hpp
+        rendering/instanced_batch.hpp
         rendering/FrameBufferObject.hpp)
 
 set (UTILS
