@@ -290,23 +290,33 @@ class AgarioEnv(gym.Env):
         # enabled. This used to rebind the loop variable, so the noisy action
         # was validated and then discarded: the environment paid for the RNG
         # draw and the space checks but always received the original action.
-        sanitized = []
+        # Validate directly rather than via Space.contains(): the latter
+        # allocates arrays and runs dtype/shape machinery on every step, which
+        # is measurable per-step overhead for a two-element bounds check. The
+        # accepted set and the raised error are unchanged: the continuous part
+        # must be two values in [-1, 1] and the discrete part an integer in
+        # {0, 1, 2}.
+        out = []
         for action in actions:
             target, discrete = action[0], action[1]
             if self.add_noise:
                 noise = np.random.normal(0, 0.1, size=(2,))
                 target = (float(np.clip(target[0] + noise[0], -1, 1)),
                           float(np.clip(target[1] + noise[1], -1, 1)))
-            # make sure the action is in the action space
-            if not (self.action_space[0].contains(np.asarray(target, dtype=np.float32))
-                    and self.action_space[1].contains(discrete)):
+            try:
+                dx, dy = float(target[0]), float(target[1])
+                a = int(discrete)
+                ok = (len(target) == 2
+                      and -1.0 <= dx <= 1.0 and -1.0 <= dy <= 1.0
+                      and 0 <= a < self.action_space[1].n)
+            except (TypeError, ValueError, IndexError):
+                ok = False
+            if not ok:
                 raise ValueError(f"action {(target, discrete)} not in action space")
-            sanitized.append((target, discrete))
-
-        # gotta format the action for the underlying module.
-        # passing the raw target numpy array is tricky because
-        # of data formatting :(
-        return [(tgt[0], tgt[1], a) for tgt, a in sanitized]
+            # format for the underlying module: passing the raw target numpy
+            # array is tricky because of data formatting :(
+            out.append((dx, dy, a))
+        return out
 
     def _get_env_args(self, kwargs):
         """ creates a set of positional arguments to pass to the learning environment

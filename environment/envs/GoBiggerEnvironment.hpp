@@ -202,18 +202,21 @@ namespace agario::env {
             explicit PlayerStates(std::unordered_map<int, PlayerState> player_states)
             : player_states(std::move( player_states ) ) { }
 
-            void update_player_state(int player_id, PlayerState player_state) {
+            /* by const reference: PlayerState owns four vectors and a string,
+             * and this used to take it by value and then copy-assign, i.e.
+             * two deep copies per call */
+            void update_player_state(int player_id, const PlayerState &player_state) {
                 player_states[player_id] = player_state;
-
             }
 
-            PlayerState get_player_state(int player_id) {
+            /* Returns a reference so callers can accumulate in place. Returning
+             * by value meant every observation build deep-copied the whole
+             * state, and callers then had to copy it back. */
+            PlayerState &get_player_state(int player_id) {
                 auto it = player_states.find(player_id);
                 if (it == player_states.end()) {
-
-                    std::cerr << "Player id not found in player_states mapping, so creating one" << std::endl;
-
-                    // Create a dummmy player state
+                    // no state yet for this player: create an empty one
+                    // (silently - this is a hot path, once per player per frame)
                     PlayerState ps(player_id,
                                 std::vector<FoodInfo>{},
                                 std::vector<VirusInfo>{},
@@ -224,9 +227,8 @@ namespace agario::env {
                                 true, // can_eject
                                 true  // can_split
                                 );
-                    update_player_state(player_id, ps);
-                    return get_player_state(player_id);
-                    }
+                    it = player_states.emplace(player_id, std::move(ps)).first;
+                }
                 return it->second;
             }
 
@@ -410,8 +412,14 @@ namespace agario::env {
         const dtype* data() const { return observation_data.data(); }
         dtype* data()             { return observation_data.data(); }
 
+        /* The frame count is the configured number of frames, not the running
+         * add_frame counter. `no_frames` only ever increments (nothing but
+         * clear() resets it), so this used to report 0 when the observation
+         * space is built at construction time and then grow without bound as
+         * the episode progressed - making the declared space wrong from the
+         * first step. */
         const std::tuple<int,int,int> shape() const {
-            int frames = num_frames();
+            int frames = std::max(1, config_.num_frames);
             int height = global_state.get_map_height();
             int width  = global_state.get_map_width();
             return {frames, height, width};
@@ -506,8 +514,12 @@ namespace agario::env {
                         throw std::runtime_error("Unknown entity type in _store_entities");
                     }
                     ps.update_score(player.mass());
-                    // commit updated player state
-                    player_states.update_player_state(pid, ps);
+                    /* `ps` is a reference into the player_states map, so the
+                     * accumulated state is already stored - no commit needed.
+                     * This previously called update_player_state() once per
+                     * entity, deep-copying the growing vectors twice each
+                     * time: ~10^6 FoodInfo copies per player per step at 1000
+                     * pellets. The final stored state is identical. */
                 }
             }
         }
@@ -527,7 +539,8 @@ namespace agario::env {
             int channel = 0;
 
             for (auto const &[pid, pl] : game_state.players) {
-                auto pstate = player_states.get_player_state(pid);
+                // reference: accumulate directly into the stored state
+                PlayerState &pstate = player_states.get_player_state(pid);
 
                 // std::cout << "Storing entities to Player ID: " << pid << std::endl;
 
