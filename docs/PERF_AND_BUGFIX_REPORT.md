@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-20
 **Branches:** `master` carries two baseline fixes; `perf/rendering-and-engine`
-(20 commits) carries everything else, kept separate so results can be compared
+(23 commits) carries everything else, kept separate so results can be compared
 against published behavior before merging.
 **Priority target:** headless Linux (EGL) with **screen** observations.
 
@@ -13,13 +13,13 @@ against published behavior before merging.
 | | |
 |---|---|
 | Commits | 22 (2 on `master`, 20 on `perf/rendering-and-engine`) |
-| Bugs fixed | 30+ across engine, RL interface, rendering, build, and docs |
+| Bugs fixed | 40+ across engine, bots, RL interface, rendering, build, and docs |
 | Screen env throughput | 1,527 → ~4,200 steps/s at the 350-pellet bench config |
 | Screen env at the 1,024-pellet spec | ~600 → ~3,700 steps/s (**~6×**) |
 | Grid env throughput | 112 → 45 µs/step (**2.5×**) |
-| Engine tick (10 bots, 10 viruses, 1,000 pellets) | 41.5 → 5.2 µs (**8×**) |
+| Engine tick (10 bots, 10 viruses, 1,000 pellets) | 41.5 → 2.6 µs (**16×**) |
 | Test suites | `test-envs` 10/12 → **12/12**; `test-engine` 35/35; `test-engine-renderable` 35/35 |
-| Reproducibility | same seed now yields the same game (was hash-order dependent) |
+| Reproducibility | same seed yields identical rewards **and** identical pixels, verified end to end from Python (previously broken by hash-order dependence, `random_device` reseeding on reset, and bots drawing from the global C RNG) |
 
 Observations were held **byte-identical** through every performance change.
 The only commits that intentionally alter what an agent sees are the
@@ -207,7 +207,49 @@ and a mid-run reset), the A1 eating invariants, unchanged eating rates
   {0, 26, 229}). The algorithm, mutation order, and neighbor-based grid-line
   reconstruction are unchanged.
 
-### 3.9 CI, tooling, docs (`eac56f6`, `939189c`, `c2f4635`)
+### 3.9 Bot layer (`8583f7a`, `29d2a8e`)
+
+Found in a later review pass; the bots had gone unaudited.
+
+- **Shy bots never compared their own mass.** `HungryShyBot` and
+  `AggressiveShyBot` tested `other_player.mass() > mass()`, where the
+  unqualified `mass()` does not resolve to `Player::mass()`: `Player` is a
+  *dependent* base, so unqualified lookup skips it and finds the **type**
+  `agario::mass`, making `mass()` a cast that yields **0**. The comparison was
+  always true, so both bots fled from every player within `SHY_RADIUS`
+  regardless of size, and `AggressiveShyBot`'s hunting branch was unreachable
+  whenever anyone was in range. Probe: a 5,000-mass bot fled from a 25-mass
+  player. **Two of the four bot types were behaving wrongly.**
+- **`reset_state()` discarded the caller's seed**, reseeding `state.rng` from
+  `std::random_device` — so `seed()` → `reset()` → `step()` was not
+  reproducible. This is the snapshot-load path.
+- **Bots drew from the global C RNG** (`std::rand()`), which cannot be seeded
+  per environment and is shared process-wide. Replaced with a wander target
+  derived from pid and tick; also removes a `% 0` UB on degenerate arenas.
+- **`nearest_pellet` could send a bot to world origin** — its "pellet on top
+  of me" guard was unreachable, so that case fell through with an unset target.
+- **Bot decisions depended on hash-map layout.** Scans took the *first*
+  qualifying player from an `unordered_map`; probe shows a map holding pids
+  {41, 7, 300, 12, 999, 5} iterates as `5, 999, 300, 12, 7, 41`. Scans now use
+  a pid-ordered view. (With the pid patterns `add_player` produces on libc++
+  the order already matched, so this removes a latent hazard rather than a
+  reproduced divergence.)
+- **`target_player` divided by zero mass** (NaN coordinates); **`largest_cell()`
+  threw on a dead bot** — both now guarded.
+- **Performance: engine tick 5.4 → 2.6 µs** (10 bots, 1,000 pellets). The
+  bot's own centroid was recomputed inside the ~1,000-pellet loop — two
+  O(cells) reductions each calling a virtual `mass()` per cell, up to ~64,000
+  cell visits per bot per action. Hoisted, and distances compared squared,
+  removing ~1,000 `sqrt` calls per bot per action. The pellet selected is
+  unchanged (ordering is monotonic in the squared value).
+- Removed dead code (`find_target`, `nearest_food`, two large commented-out
+  blocks, the fully commented-out `utils/structures.hpp` include and CMake
+  entry) and added the missing `#pragma once` to `utils/random.hpp` and
+  `<limits>` to `num_wrapper.hpp`.
+
+**Cumulative engine tick: 41.5 → 2.6 µs (16×)** across §3.7 and §3.9.
+
+### 3.10 CI, tooling, docs (`eac56f6`, `939189c`, `c2f4635`)
 
 - **CI now validates the deployment target.** It previously built the default
   configuration and ran only engine tests — neither the unbound-FBO bug nor
@@ -284,6 +326,8 @@ Run after the last commit:
 | Readback pipelining | perf, **changes semantics** | hiding the drain requires returning the previous frame's pixels, making observations one step stale. Not done: it alters the MDP. |
 | Non-renderable build | build | `GridEnvironment` unconditionally initializes render-only members; `FrameObservation` needs the rendering headers. |
 | GoBigger remainder | bug | stale `observations` vector (only the single live observation is updated), `SporeInfo`/`CloneInfo` owner fields set from the observing player rather than the emitter, hardcoded `teamId`. |
+| `numWrapper` type safety | design | `distance` and `angle` are meant to be distinct types, but implicit conversions let `d = a` and `d < a` compile silently while `d + a` fails as ambiguous; every operator takes `T`, so `double * distance` narrows to float before multiplying. Making the converting constructor `explicit` is the fix but touches a great deal of code — deliberately not attempted. |
+| `no_player` sentinel | latent | `agario::pid` is unsigned, so the `-1` sentinel is `65535`; bots constructed without an explicit pid share it, and `Player::operator==` compares pid only, so two such bots compare equal. Latent because `add_player()` always assigns a real pid. |
 | 2M-step master-vs-branch comparison | validation | tooling committed; isolated worktree builds verified byte-identical and behaviorally fingerprinted. Note master aborts at interpreter teardown (its own bug) and transiently blocks the *next* process, so leave a gap between sequential runs. |
 
 ---
