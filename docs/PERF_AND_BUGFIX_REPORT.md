@@ -75,12 +75,19 @@ agent-view (RGBA + post-processing) paths.
 The grid observation type — the library default — had three independent
 defects:
 
-1. **All observations were zero.** The frame index was derived as
-   `tick_index − (ticks_per_step − num_frames)`, which under the actual
-   call pattern (4 engine ticks, then one observation — standard action
-   repeat) evaluated to −3, so no frame was ever written into the buffer
-   that `_step_hook` had just cleared. Caught independently by the repo's
-   own `EnvTest.GetState` once the test suite could build.
+1. **All grid observations were zero.** The environment's design is
+   standard action repeat: run the engine `ticks_per_step` ticks, then
+   observe the final state once. The grid env's copy-into-buffer step,
+   however, contained leftover arithmetic from an abandoned frame-stacking
+   idea (`tick_index − (ticks_per_step − num_frames)`), which under the
+   actual once-per-step call evaluated to −3 and skipped the copy — so the
+   env cleared its buffer, simulated the game, never wrote the state, and
+   returned the blank buffer. The game underneath (rewards, masses) was
+   correct; only the returned image was empty. Caught independently by the
+   repo's own `EnvTest.GetState` once the test suite could build.
+   **The screen and GoBigger paths were unaffected** — they use the index
+   directly with no arithmetic (verified: screen frames pixel-identical
+   across this fix) — and all published task configs use `obs_type: screen`.
 2. **Python could not construct it**: undefined local variable
    (`UnboundLocalError`), and a 10-vs-11 argument mismatch in the binding.
 3. **User settings were silently discarded**: `kwargs | grid_defaults` has
