@@ -227,12 +227,27 @@ namespace agario {
 
       move_foods(elapsed_seconds);
 
-      if(regen_pellets){ // if there is regeneration to the pellets.
+      /* Regeneration requires both the mode to allow it and the caller to ask
+       * for it. `regen_pellets` is the mode's policy (modes 1, 2 and 5
+       * deliberately disable it); state.config.pellet_regen is the
+       * constructor/Python argument, which used to be stored and never read,
+       * so pellet_regen=false had no effect. Requiring both keeps every
+       * shipped mode config behaving as before (they all pass true) while
+       * making the argument meaningful. */
+      if(regen_pellets && state.config.pellet_regen){
         if(state.ticks%120 == 0){ //every 6 seconds
-          // if (state.config.pellet_regen) {
-            add_pellets(state.config.target_num_pellets - state.pellets.size());
-          // }
-            add_viruses(state.config.target_num_viruses - state.viruses.size());
+          // top up to the target counts; guard against a surplus, since
+          // food-fed viruses can push the count past the target and the
+          // unsigned difference would wrap to a huge value
+          const long pellet_deficit =
+            static_cast<long>(state.config.target_num_pellets) - static_cast<long>(state.pellets.size());
+          if (pellet_deficit > 0)
+            add_pellets(static_cast<int>(pellet_deficit));
+
+          const long virus_deficit =
+            static_cast<long>(state.config.target_num_viruses) - static_cast<long>(state.viruses.size());
+          if (virus_deficit > 0)
+            add_viruses(static_cast<int>(virus_deficit));
         }
       }
       state.ticks++;

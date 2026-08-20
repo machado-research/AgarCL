@@ -617,7 +617,6 @@ template <bool renderable>
             assert(tick_index < this->ticks_per_step());
 
             auto &player = this->engine_.player(this->pids_[agent_index]);
-            this->c_death_ = 0;
 
             // Get player state from the observation.
             // PlayerState player_state = observation.get_player_state(player.pid());

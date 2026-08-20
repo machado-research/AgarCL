@@ -91,54 +91,82 @@ namespace agario {
        */
       std::vector<reward> step() {
         this->_step_hook(); // allow subclass to set itself up for the step
-        is_main_player_respawned = false;
         auto before = masses<float>();
         /* action repeat: advance the engine `ticks_per_step` ticks, then
          * gather a single observation of the resulting state */
         for (int tick = 0; tick < ticks_per_step(); tick++)
           engine_.tick(step_dt_);
 
+        /* Record which agents died, before anything respawns them. Both the
+         * observation hooks (ScreenEnvironment) and repsawn_all_players()
+         * below revive dead players, so death has to be latched here or it
+         * becomes unobservable by the time the reward is computed. Tracked
+         * per agent: a single shared flag cannot describe multiple agents. */
+        died_this_step_.assign(pids_.size(), false);
+        for (size_t i = 0; i < pids_.size(); i++)
+          died_this_step_[i] = engine_.get_player(pids_[i]).dead();
+        is_main_player_respawned = !died_this_step_.empty() && died_this_step_[0];
+
         for (int agent = 0; agent < num_agents(); agent++)
           this->_partial_observation(agent, 0);
 
-        // std::cout <<"HELLO::" << curr_mode_number << std::endl;
         if(curr_mode_number == 0)
             repsawn_all_players();
 
-        else if(curr_mode_number > 6){ //other agents and Virus mini-games
-          // if any bot dies or me, end the game (dones = true)
-          for(auto &pair : this->engine_.state.players){
-            auto pid = pair.first;
-            auto player = pair.second;
-            dones_[0] = player->dead() | is_main_player_respawned;
-            if(player->dead()){
-              dones_[0] = true; // assuming the first agent is the main agent
-              break;
-            }
-          }
-        }
-        // reward could be the current mass or the difference in mass from the last step
+        update_dones();
+
+        // reward is either the current mass, or the change in mass over the
+        // step, minus a penalty c_death on any step where the agent died
         auto rewards = masses<reward>();
-        if(reward_type_){
-          for (int i = 0; i < num_agents(); ++i)
-            rewards[i] -= (before[i] - ((is_main_player_respawned) ? c_death_ : 0));
+        for (size_t i = 0; i < rewards.size(); ++i) {
+          if (reward_type_)
+            rewards[i] -= static_cast<reward>(before[i]);
+          if (i < died_this_step_.size() && died_this_step_[i])
+            rewards[i] -= static_cast<reward>(c_death_);
         }
         return rewards;
       }
 
-        /* the mass of each rl-controlled player */
+      /* Evaluates each mode's termination condition against the state left by
+       * this step. Previously the mode-3 mass condition was evaluated inside
+       * masses() (which is also called *before* the ticks, so it tested the
+       * previous step's state), and the mini-game condition was an assignment
+       * inside a loop over an unordered_map, making the result depend on hash
+       * order rather than on the game. */
+      void update_dones() {
+        if (curr_mode_number == 3) {
+          // reaching the mass target wins the mini-game
+          for (size_t i = 0; i < pids_.size() && i < dones_.size(); i++)
+            if (engine_.get_player(pids_[i]).mass() >= max_mass)
+              dones_[i] = true;
+        } else if (curr_mode_number > 6) {
+          // other-agent and virus mini-games: any death ends the episode
+          bool any_dead = false;
+          for (const auto &pair : engine_.players())
+            if (pair.second->dead()) { any_dead = true; break; }
+          for (bool died : died_this_step_)
+            any_dead = any_dead || died;
+          if (any_dead)
+            for (size_t i = 0; i < dones_.size(); i++)
+              dones_[i] = true;
+        }
+        // mode 0 is the continuing task: it has no termination condition
+      }
+
+      /* the mass of each rl-controlled player, indexed by agent.
+       *
+       * Iterates pids_ rather than engine_.players(): the latter is an
+       * unordered_map, so the returned order did not correspond to the agent
+       * indices used everywhere else (observations, actions, dones), and with
+       * more than one agent reward i could belong to a different agent. This
+       * is now a pure function of the state - the mode-3 termination check it
+       * used to perform lives in update_dones(). */
       template<typename T>
       std::vector<T> masses() const {
         std::vector<T> masses_;
-        masses_.reserve(num_agents());
-        for (const auto &[pid, player] : engine_.players()) {
-          if (player->is_bot) continue;
-          masses_.push_back(static_cast<T>(player->mass()));
-          if(curr_mode_number == 3 && player->mass() >= max_mass)
-          {
-            dones_[0] = true; // assuming the first agent is the main agent
-          }
-        }
+        masses_.reserve(pids_.size());
+        for (auto pid : pids_)
+          masses_.push_back(static_cast<T>(engine_.get_player(pid).mass()));
         return masses_;
       }
 
@@ -345,12 +373,20 @@ namespace agario {
 
         for (int agent_index = 0; agent_index < num_agents(); agent_index++)
             this->_partial_observation(agent_index, 0);
+
+        /* The flag exists so the constructor's reset() does not generate a
+         * random world that is about to be replaced by the snapshot. Once the
+         * snapshot is loaded it must be cleared, otherwise every subsequent
+         * reset() returns immediately and episodes never actually reset. */
+        is_loading_env_state = false;
       }
 
     protected:
       Engine <renderable> engine_;
       std::vector<agario::pid> pids_;
-      mutable std::vector<bool> dones_;
+      std::vector<bool> dones_;
+      /* per-agent death latch for the current step (see step()) */
+      std::vector<bool> died_this_step_;
       int c_death_;
       const int num_agents_;
       const int ticks_per_step_;

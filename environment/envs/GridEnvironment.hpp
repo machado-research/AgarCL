@@ -430,7 +430,6 @@ namespace agario::env {
         assert(agent_index < this->num_agents());
 
         auto &player = this->engine_.player(this->pids_[agent_index]);
-        this-> c_death_ = 0;
 
         Observation &observation = observations[agent_index];
         auto &state = this->engine_.game_state();
