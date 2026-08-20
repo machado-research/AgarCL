@@ -263,7 +263,6 @@ namespace agario {
     void tick(const agario::time_delta &elapsed_seconds) {
       // initalize the pellet_grid
       initialize_pellet_grid();
-      initialize_virus_grid();
       std::vector<int> pellets_to_remove;
       std::vector<int> viruses_to_remove;
       for (auto &pair : state.players) {
@@ -276,7 +275,6 @@ namespace agario {
       remove_pellets(pellets_to_remove);
       remove_viruses(viruses_to_remove);
       pellets_grid.clear();
-      virus_grid.clear();
 
       players_collision();
 
@@ -423,11 +421,10 @@ namespace agario {
     Engine &operator=(Engine &&) = delete; // no move assignment
     int mode_number = 0;
   private:
-    int pellets_grid_size;  int virus_grid_size;
-    int pellets_grid_width; int virus_grid_width;
-    int pellets_grid_height; int virus_grid_height;
+    int pellets_grid_size;
+    int pellets_grid_width;
+    int pellets_grid_height;
     std::vector<std::vector<int>> pellets_grid;
-    std::vector<std::vector<int>> virus_grid;
     // per-tick marker so a pellet can be eaten (credited + removed) at most once
     std::vector<char> pellet_eaten_;
     // players_collision scratch, reused across ticks to avoid reallocating
@@ -1271,73 +1268,35 @@ namespace agario {
       }
     }
 
-    bool check_virus_collisions(Cell &cell, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus) {
-      for (auto it = state.viruses.begin(); it != state.viruses.end();) {
-        Virus &virus = *it;
-
-        if (cell.can_eat(virus) && cell.collides_with(virus)) {
-          /*
-          We have two options:
-                  1: if I am within the time of being splitted (Not yet recombined) and I am trying to eat another virus, good. Eat it!
-                  Note that You can consume viruses if you are split into 16 cells. One of them has to be at least 130 in mass
-                  (or 10% larger than the virus) to consume the viruses. You gain 100 mass from each virus you eat.
-                  2: If I am fully shaped and I am trying to eat a virus, then I will be splitted into multiple cells.
-
-          */
-          if(can_eat_virus)
-            cell.increment_mass(virus.mass());
-          else
-            disrupt(cell, virus, created_cells, create_limit);
-
-          std::swap(*it, state.viruses.back()); // O(1) removal
-          state.viruses.pop_back();
-          return true; // only collide once
-        } else ++it;
-      }
-      return false;
-    }
-
-    void initialize_virus_grid()
-    {
-      virus_grid_size = 25;
-      virus_grid_width = (state.config.arena_width + virus_grid_size - 1) / virus_grid_size;
-      virus_grid_height = (state.config.arena_height + virus_grid_size - 1) / virus_grid_size;
-      virus_grid.resize(virus_grid_width * virus_grid_height);
-
-      for (int i = 0; i < state.viruses.size(); ++i) {
-        const Virus &virus = state.viruses[i];
-        int grid_x = static_cast<int>(virus.x) / virus_grid_size;
-        int grid_y = static_cast<int>(virus.y) / virus_grid_size;
-        virus_grid[grid_y * virus_grid_width + grid_x].push_back(i);
-      }
-
-    }
-
+    /* Rules recap for virus encounters:
+     *   1. A player split into many cells (>= NUM_CELLS_TO_SPLIT) with a
+     *      sufficiently large cell *consumes* the virus, gaining its mass.
+     *   2. A fully-shaped (unsplit) large cell is *disrupted*: popped into
+     *      multiple cells.
+     *
+     * Checks the player's cells against every virus directly.
+     *
+     * This used to consult a spatial grid (25-unit buckets, 3x3 neighborhood
+     * scan). That guarantees seeing viruses only ~25 units from the cell's
+     * center, but collides_with() ranges as far as max(cell_radius,
+     * virus_radius) - so any cell with radius > 25 (mass > ~2000) could
+     * overlap a virus beyond the scanned neighborhood and pass through it
+     * undetected. A direct scan is exact for every cell size, and with the
+     * typical handful of viruses it is also cheaper than building and
+     * tearing down a width*height/625-bucket grid every tick (1,600 buckets
+     * at arena 1000, for ~10 viruses). Same collision predicate, same
+     * first-hit-per-player semantics as before. */
     bool optimized_check_virus_collisions(std::vector<Cell> &cells, std::vector<Cell> &created_cells, int create_limit, bool can_eat_virus, std::vector<int>& viruses_to_remove) {
-
-      // Check for collisions
       for (Cell &cell : cells) {
-        int grid_x = static_cast<int>(cell.x) / virus_grid_size;
-        int grid_y = static_cast<int>(cell.y) / virus_grid_size;
-
-        // Check the cell's grid and neighboring grids
-        for (int dx = -1; dx <= 1; ++dx) {
-          for (int dy = -1; dy <= 1; ++dy) {
-            int nx = grid_x + dx;
-            int ny = grid_y + dy;
-            if (nx >= 0 && nx < virus_grid_width && ny >= 0 && ny < virus_grid_height) {
-              for (int virus_idx : virus_grid[ny * virus_grid_width + nx]) {
-                Virus &virus = state.viruses[virus_idx];
-                if (cell.can_eat(virus) && cell.collides_with(virus)) {
-              if (can_eat_virus)
-                cell.increment_mass(virus.mass());
-              else
-                disrupt(cell, virus, created_cells, create_limit);
-              viruses_to_remove.push_back(virus_idx);
-              return true; // only collide once
-                }
-              }
-            }
+        for (int virus_idx = 0; virus_idx < static_cast<int>(state.viruses.size()); ++virus_idx) {
+          Virus &virus = state.viruses[virus_idx];
+          if (cell.can_eat(virus) && cell.collides_with(virus)) {
+            if (can_eat_virus)
+              cell.increment_mass(virus.mass());
+            else
+              disrupt(cell, virus, created_cells, create_limit);
+            viruses_to_remove.push_back(virus_idx);
+            return true; // only collide once
           }
         }
       }

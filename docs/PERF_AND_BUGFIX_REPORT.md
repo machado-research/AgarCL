@@ -199,7 +199,23 @@ players: identical mass+cell-count traces under the same seed, divergent
 under a different seed) at **engine-tick parity** (interleaved A/B: medians
 43.2 → 43.1 us/tick).
 
-### 3.6 Benchmark tooling (`939189c`)
+### 3.6 Big-cell virus miss (owner-approved fix)
+
+`collides_with(virus)` ranges as far as the cell's radius, but the virus
+check scanned a fixed 3×3 neighborhood of 25-unit grid buckets — seeing
+only ~25 units out. Any cell with radius > 25 (mass ≳ 2,000) could overlap
+a virus beyond that and pass through undetected (probe: mass-10,000 cell
+overlapping a virus by 4 units — no reaction). Replaced the grid with a
+direct scan of the ~10 viruses: exact at every cell size, and faster —
+the grid was rebuilt/torn down every tick (1,600 buckets at arena 1000).
+Cells with radius ≤ 25 behave identically (verified); the 10%-heavier
+interaction rule and consume-vs-disrupt semantics are untouched.
+**Behavior note:** large agents now pop on viruses they previously
+ghosted through — expect dynamics changes in virus-heavy configs.
+Perf: bots benchmark 41.6 vs 42–43 µs/tick; arena 4000 fixed cost
+15.8 → 5.5 µs/tick.
+
+### 3.7 Benchmark tooling (`939189c`)
 
 `bench/screen_perf_run.py` (windowed steps/s, cumulative rate, RSS, reward
 stats, 1-min load average → CSV) and `bench/screen_perf_plot.py`
@@ -242,8 +258,7 @@ are identifiable when comparing runs taken at different times.
 
 | item | type | note |
 |---|---|---|
-| Big-cell virus miss | **bug, needs owner decision** | cells with radius > 25 (mass ≳ 2000) pass through viruses undetected (grid scan range too short). Fixing changes dynamics for large agents in virus modes. |
-| B1 engine redesign | perf | persistent pellet grid (pellets never move; stop rebuilding per tick), calibrated bucket size + dynamic scan radius, brute-force for ~10 viruses. Now the top bottleneck (~115 us/step pellets, ~111 us/step bots). |
+| B1 engine redesign | perf | persistent pellet grid (pellets never move; stop rebuilding per tick), calibrated bucket size + dynamic scan radius. Virus part done (see below). Top remaining bottleneck. |
 | GoBigger cluster | bug+perf | O(n²) deep copies per step (PlayerState by value, committed per entity), unbounded `no_frames` → observation space shape `(0, 512, 512)`, stale `observations` vector, hot-path stderr prints. |
 | GIL release around `step()` | perf | zero parallelism for threaded vector envs today. |
 | Zero-copy observations | perf | double-buffer to drop the 512 KB/step copy; pass a base handle in `get_frame`. |
