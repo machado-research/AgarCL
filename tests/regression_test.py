@@ -279,6 +279,109 @@ class ActionRegressionTest(unittest.TestCase):
         env.close()
 
 
+class VideoRecorderRegressionTest(unittest.TestCase):
+
+    def _record(self, steps, **overrides):
+        env = make(obs_type="screen", render_mode="rgb_array",
+                   screen_len=32, num_pellets=60, num_bots=1, num_viruses=1,
+                   **overrides)
+        env.unwrapped.seed(1)
+        env.reset()
+        env.unwrapped.enable_video_recorder()
+        for _ in range(steps):
+            env.step((np.zeros(2, dtype=np.float32), 0))
+        return env
+
+    def test_recorded_frames_are_2d_rgb_images(self):
+        """Screen observations carry a leading frame dimension. The
+        non-agent_view path returned that 4-D array unchanged, which sized the
+        video as (width, 1) and **crashed the process with a bus error** inside
+        cv2.cvtColor."""
+        for agent_view in (False, True):
+            env = self._record(5, agent_view=agent_view)
+            frames = env.unwrapped.video_recorder
+            env.close()
+            self.assertGreater(len(frames), 0)
+            for f in frames:
+                self.assertEqual(f.ndim, 3, f"agent_view={agent_view}: frame is not 2-D RGB")
+                self.assertEqual(f.shape[2], 3, f"agent_view={agent_view}: not 3 channels")
+                self.assertEqual(f.dtype, np.uint8)
+
+    def test_generate_video_writes_file_and_clears_buffer(self):
+        """The buffer was never cleared, so a second recording appended to the
+        frames already written."""
+        import os
+        import tempfile
+        for agent_view in (False, True):
+            env = self._record(8, agent_view=agent_view)
+            out = tempfile.mkdtemp()
+            env.unwrapped.generate_video(out, "v.avi")
+            path = os.path.join(out, "v.avi")
+            self.assertTrue(os.path.exists(path), "no video file written")
+            self.assertGreater(os.path.getsize(path), 0, "video file is empty")
+            self.assertEqual(len(env.unwrapped.video_recorder), 0,
+                             "frame buffer was not cleared after writing")
+            env.close()
+
+    def test_frame_buffer_is_bounded(self):
+        """Frames are held in memory until generate_video() is called; uncapped
+        this grows without bound (~49 KB per step at 128x128)."""
+        import warnings as w
+        env = make(obs_type="screen", render_mode="rgb_array", screen_len=32,
+                   num_pellets=40, num_bots=0, num_viruses=0, agent_view=False)
+        env.unwrapped.seed(1)
+        env.reset()
+        env.unwrapped.enable_video_recorder(max_frames=6)
+        with w.catch_warnings(record=True) as caught:
+            w.simplefilter("always")
+            for _ in range(20):
+                env.step((np.zeros(2, dtype=np.float32), 0))
+            runtime_warnings = [c for c in caught if issubclass(c.category, RuntimeWarning)]
+        env.close()
+        self.assertEqual(len(env.unwrapped.video_recorder), 6,
+                         "frame buffer exceeded its cap")
+        self.assertEqual(len(runtime_warnings), 1,
+                         "expected exactly one warning when the cap is reached")
+
+    def test_default_fps_is_real_time(self):
+        """fps was hardcoded to 60 while one step advances ticks_per_step ticks
+        of 1/30 s, so playback ran about eight times too fast at the default.
+        Verified by reading the written file back rather than by patching cv2."""
+        import os
+        import tempfile
+
+        import cv2
+
+        env = self._record(6, agent_view=False, ticks_per_step=4)
+        out = tempfile.mkdtemp()
+        env.unwrapped.generate_video(out, "v.avi")
+        env.close()
+
+        cap = cv2.VideoCapture(os.path.join(out, "v.avi"))
+        try:
+            self.assertTrue(cap.isOpened(), "could not reopen the written video")
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        finally:
+            cap.release()
+
+        # 4 ticks per step at 1/30 s each => 7.5 frames per second of game time
+        self.assertAlmostEqual(fps, 30.0 / 4, places=2,
+                              msg="video frame rate is not real time")
+        self.assertEqual((width, height), (32, 32),
+                         "video dimensions do not match the frame size")
+
+
+class DefaultsRegressionTest(unittest.TestCase):
+
+    def test_default_observation_type_is_screen(self):
+        from gym_agario.AgarioEnv import AgarioEnv
+        import inspect
+        default = inspect.signature(AgarioEnv.__init__).parameters["obs_type"].default
+        self.assertEqual(default, "screen")
+
+
 class LifetimeRegressionTest(unittest.TestCase):
 
     def test_multiple_environments_coexist_in_one_process(self):

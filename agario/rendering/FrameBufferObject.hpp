@@ -161,6 +161,20 @@ public:
   }
 
   ~FrameBufferObject() override {
+    /* Make this object's own context current before deleting its GL objects.
+     * With several environments alive, the current context belongs to whichever
+     * was made current last, and destroying that environment's window leaves
+     * *no* current context - so a later destructor would issue glDelete* with
+     * no context at all (a crash at interpreter shutdown), or delete ids that
+     * belong to a different context. */
+#ifdef USE_EGL
+    if (egl_display != EGL_NO_DISPLAY && egl_context != EGL_NO_CONTEXT)
+      eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context);
+#else
+    if (window != nullptr)
+      glfwMakeContextCurrent(window);
+#endif
+
     glDeleteFramebuffers(1, &fbo);
     glDeleteRenderbuffers(1, &rbo_color);
     glDeleteRenderbuffers(1, &rbo_depth);

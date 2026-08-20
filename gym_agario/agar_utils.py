@@ -26,7 +26,10 @@ white_color = np.array([1.0, 1.0, 1.0]) * 255
 
 
 def random_color():
-    return get_color_array(Color(random.randint(1, Color.LAST.value)))
+    # randint is inclusive on both ends, so the original upper bound of
+    # Color.LAST.value could return the LAST sentinel, which get_color_array
+    # rejects with "Not a color".
+    return get_color_array(Color(random.randint(1, Color.LAST.value - 1)))
 
 def get_color_array(c):
     if c == Color.RED:

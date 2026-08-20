@@ -40,13 +40,14 @@ from gymnasium import spaces
 import numpy as np
 import cv2
 import os
+import warnings
 import agarcl
 from .agar_utils import get_color_array, Color
 import random
 class AgarioEnv(gym.Env):
     metadata = {'render_modes': ['human','rgb_array'], 'render_fps': 60}
 
-    def __init__(self, obs_type='grid', render_mode = None, **kwargs):
+    def __init__(self, obs_type='screen', render_mode = None, **kwargs):
         super(AgarioEnv, self).__init__()
 
         if obs_type not in ("ram", "screen", "grid", "gobigger"):
@@ -66,6 +67,12 @@ class AgarioEnv(gym.Env):
 
         self.video_recorder = []
         self.video_recorder_enabled = False
+        # Recorded frames are held in memory until generate_video() is called.
+        # Uncapped, that grows without bound: a 128x128 RGB frame is ~49 KB, so
+        # a million steps would need ~49 GB. Recording stops at this many
+        # frames (one warning, then silence) instead of exhausting memory.
+        self.max_video_frames = kwargs.get("max_video_frames", 20000)
+        self._video_buffer_warned = False
 
         self.agent_view            = kwargs.get("agent_view", False)
         self.add_noise             = kwargs.get("add_noise", True)
@@ -99,8 +106,16 @@ class AgarioEnv(gym.Env):
         self.observations = self._make_observations()
 
         #Assume it is only one agent -> Needs a fix for multi-agent
-        if(self.video_recorder_enabled== True):
-            self.video_recorder.append(self._make_video_observation(self.observations[0]))
+        if self.video_recorder_enabled:
+            if len(self.video_recorder) < self.max_video_frames:
+                self.video_recorder.append(self._make_video_observation(self.observations[0]))
+            elif not self._video_buffer_warned:
+                warnings.warn(
+                    f"video recording stopped after {self.max_video_frames} frames "
+                    f"to bound memory use; pass max_video_frames to raise the cap, "
+                    f"or call generate_video() and disable_video_recorder() sooner",
+                    RuntimeWarning, stacklevel=2)
+                self._video_buffer_warned = True
 
         # get the "done" status of each agent
         dones = self._env.dones()
@@ -160,29 +175,54 @@ class AgarioEnv(gym.Env):
         self._env.close()
 
 
+    # Palette for the agent-view video colouring, indexed by the label image
+    # built in _make_video_observation. Row 0 is the background, which the
+    # original code produced by zeroing the frame and filling channel 0 with
+    # 255; that is preserved exactly here rather than changed.
+    _VIDEO_PALETTE = np.array([
+        [255, 0, 0],                                   # 0: background
+        get_color_array(Color.WHITE),                   # 1: pellets
+        get_color_array(Color.PURPLE),                  # 2: other players
+        get_color_array(Color.GREEN),                   # 3: viruses
+        get_color_array(Color.BLUE),                    # 4: main agent
+        [26, 0, 0],                                     # 5: grid lines
+    ], dtype=np.uint8)
+
     def _make_video_observation(self, observation):
+        """ Builds a single H x W x 3 uint8 RGB frame for the video writer.
+
+        Screen observations carry a leading frame dimension, so the raw
+        observation is 4-D. Returning it unchanged (as the non-agent_view path
+        used to) handed a 4-D array to cv2, which **crashed the process with a
+        bus error**, and sized the video as (width, 1).
+        """
         if self.obs_type == "grid" or self.obs_type == "gobigger":
-            return self._env.get_frame()[0]
+            frame = np.asarray(self._env.get_frame()[0])
+        elif not self.agent_view:
+            frame = np.asarray(observation)
+            if frame.ndim == 4:      # (frames, H, W, C) -> (H, W, C)
+                frame = frame[0]
         else:
-            if not self.agent_view:
-                return observation
-            else:
-                observation = observation[0]
-                RGB_obs = np.zeros_like(observation[..., :3])
-                RGB_obs[...,0].fill(255)  # White background
+            observation = np.asarray(observation)[0]
+            alpha = observation[..., 3]
 
-                pellets_mask = observation[..., 0] != 255
-                bots_mask = observation[..., 1] == 255
-                virus_mask  = observation[..., 2] == 255
-                main_agent_mask = (observation[..., 3] <= 230) & (observation[..., 3] > 30)
-                grid_lines_mask = observation[..., 3] <= 30
+            # Build a label image, then colour it with a single palette
+            # lookup. This replaces five boolean-mask assignments into a
+            # three-channel array (a scatter per class, per channel) with five
+            # writes into a one-channel array plus one take, which is markedly
+            # cheaper per frame. Classes are applied in the same order as
+            # before, so later ones still override earlier ones and the output
+            # is unchanged.
+            labels = np.zeros(observation.shape[:2], dtype=np.uint8)  # 0: background
+            labels[observation[..., 0] != 255] = 1                   # pellets
+            labels[observation[..., 1] == 255] = 2                   # other players
+            labels[observation[..., 2] == 255] = 3                   # viruses
+            labels[(alpha <= 230) & (alpha > 30)] = 4                # main agent
+            labels[alpha <= 30] = 5                                  # grid lines
+            frame = self._VIDEO_PALETTE[labels]
 
-                RGB_obs[pellets_mask] = get_color_array(Color.WHITE)
-                RGB_obs[bots_mask] = get_color_array(Color.PURPLE)
-                RGB_obs[virus_mask] = get_color_array(Color.GREEN)
-                RGB_obs[main_agent_mask] = get_color_array(Color.BLUE)
-                RGB_obs[grid_lines_mask] = [26, 0, 0]
-                return RGB_obs
+        # cv2 needs a contiguous 3-channel uint8 image
+        return np.ascontiguousarray(frame[..., :3], dtype=np.uint8)
 
 
     def _make_observations(self):
@@ -392,14 +432,30 @@ class AgarioEnv(gym.Env):
             self._env.seed(seed)
             return [self._seed]
 
-    def enable_video_recorder(self):
+    def enable_video_recorder(self, max_frames=None):
+        """ starts buffering frames for generate_video().
+        :param max_frames: optional cap on buffered frames (memory bound)
+        """
         self.video_recorder_enabled = True
+        if max_frames is not None:
+            self.max_video_frames = int(max_frames)
 
     def disable_video_recorder(self):
         self.video_recorder_enabled = False
 
 
-    def generate_video(self, path, video_name):
+    def generate_video(self, path, video_name, fps=None):
+        """ Writes the recorded frames to `path/video_name`.
+
+        :param fps: frame rate; defaults to real time. One environment step
+            advances `ticks_per_step` engine ticks of 1/30 s each, so real time
+            is 30 / ticks_per_step frames per second. The previous hardcoded
+            60 fps played the game back roughly eight times too fast at the
+            default of four ticks per step.
+
+        Clears the frame buffer afterwards, so a subsequent recording starts
+        empty rather than being appended to frames already written.
+        """
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)  # Create directory if it doesn't exist
 
@@ -407,20 +463,29 @@ class AgarioEnv(gym.Env):
 
         if self.video_recorder_enabled:
             if len(self.video_recorder) > 0:
-                sz = (self.video_recorder[0].shape[1], self.video_recorder[0].shape[0])  # Get width and height correctly
+                first = self.video_recorder[0]
+                if first.ndim != 3 or first.shape[2] != 3:
+                    raise ValueError(
+                        f"video frames must be H x W x 3, got {first.shape}")
+                height, width = first.shape[:2]
+                if fps is None:
+                    fps = max(1.0, 30.0 / max(1, int(self.ticks_per_step)))
                 fourcc = cv2.VideoWriter_fourcc(*'MJPG')
 
-                video = cv2.VideoWriter(full_path, fourcc, 60.0, sz)
+                video = cv2.VideoWriter(full_path, fourcc, float(fps), (width, height))
                 if not video.isOpened():
                     raise RuntimeError("Error: VideoWriter failed to open.")
 
                 for frame in self.video_recorder:
                     if not isinstance(frame, np.ndarray):
                         raise TypeError("Error: A frame is not a numpy array.")
+                    if frame.shape != first.shape:
+                        raise ValueError(
+                            f"inconsistent frame shapes: {frame.shape} vs {first.shape}")
                     video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))  # Ensure correct format
-
-
                 video.release()
+                self.video_recorder = []
+                self._video_buffer_warned = False
             else:
                 print("No frames to generate video")
         else:
