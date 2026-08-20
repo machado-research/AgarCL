@@ -92,15 +92,31 @@ public:
 #endif
   }
 
+  /* binds the offscreen framebuffer as the render target for observation
+   * capture. Rendering to the FBO (instead of a hidden window's back
+   * buffer) makes the readback well-defined: default-framebuffer pixels
+   * of an occluded window fail the pixel-ownership test. */
+  void bind_for_capture() const {
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, _width, _height);
+  }
+
   void copy(void *data, bool agent_view) {
-    glReadBuffer(GL_BACK);
+    // read from the FBO attachment when one is bound, else the back buffer
+    GLint bound_read_fbo = 0;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &bound_read_fbo);
+    glReadBuffer(bound_read_fbo != 0 ? GL_COLOR_ATTACHMENT0 : GL_BACK);
+
+    // rows are tightly packed in the observation buffer (width*channels);
+    // the GL default pack alignment of 4 would pad rows for widths not
+    // divisible by 4 and write past the allocation
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 #ifdef USE_EGL
     exception_on_egl_error("ReadBuffer");
 #else
     exception_on_gl_error("ReadBuffer");
 #endif
-    // glReadPixels(_width / 2, _height / 2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, data);
 
     glReadPixels(0, 0, _width, _height, (agent_view == true ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, data); // for rgb_array render mode
 
@@ -181,10 +197,12 @@ private:
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
 
-    // Color
+    // Color: RGBA8 to match the precision of the default framebuffer
+    // (RGB565 would quantize the channel values the agent-view
+    // post-processing thresholds depend on)
     glGenRenderbuffers(1, &rbo_color);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo_color);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB565, _width, _height);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, _width, _height);
     glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbo_color);
 
     // Depth

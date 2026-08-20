@@ -213,6 +213,7 @@ namespace agario::env {
 
       // stores current frame into buffer containing the next observation
       void _partial_observation(Player &player, int frame_index) override {
+        frame_buffer->bind_for_capture(); // render offscreen, not to the hidden window
         if(multi_channel_obs == true)
         {
           multi_channel_render_frame(player);
