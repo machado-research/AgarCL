@@ -27,6 +27,13 @@ class Shader {
 public:
   GLuint program;
 
+  /* uniform locations cached at link time; glGetUniformLocation is a
+   * driver-side string lookup and must not run per entity per frame */
+  GLint loc_projection = -1;
+  GLint loc_view = -1;
+  GLint loc_model = -1;
+  GLint loc_color = -1;
+
   Shader() : program(0) {};
 
   Shader(const char *vertex_path, const char *fragment_path) : program(0) {
@@ -102,6 +109,15 @@ public:
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+
+    cache_uniform_locations();
+  }
+
+  void cache_uniform_locations() {
+    loc_projection = glGetUniformLocation(program, "projection_transform");
+    loc_view       = glGetUniformLocation(program, "view_transform");
+    loc_model      = glGetUniformLocation(program, "model_transform");
+    loc_color      = glGetUniformLocation(program, "color");
   }
 
   void use() {
@@ -132,6 +148,15 @@ public:
 
   void setMat4(const std::string &name, const glm::mat4 &matrix) {
     GLint location = glGetUniformLocation(program, name.c_str());
+    glUniformMatrix4fv(location, 1, GL_FALSE, &matrix[0][0]);
+  }
+
+  /* fast paths: pre-resolved uniform locations (no name lookup) */
+  void setVec4(GLint location, float value1, float value2, float value3, float value4) const {
+    glUniform4f(location, value1, value2, value3, value4);
+  }
+
+  void setMat4(GLint location, const glm::mat4 &matrix) const {
     glUniformMatrix4fv(location, 1, GL_FALSE, &matrix[0][0]);
   }
 

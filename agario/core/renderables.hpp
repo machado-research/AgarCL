@@ -107,52 +107,42 @@ namespace agario {
       if (!_initialized) _initialize();
 
       if(type == 0) // pellets
-        shader.setVec4("color", 1.00f, 0.00f, 0.00f, 1.0);
+        shader.setVec4(shader.loc_color, 1.00f, 0.00f, 0.00f, 1.0);
       else if(type == 1) //Players
-        shader.setVec4("color", 0.00f, 1.00f, 0.00f, 1.0);
+        shader.setVec4(shader.loc_color, 0.00f, 1.00f, 0.00f, 1.0);
       else if(type == 2) //Viruses
-        shader.setVec4("color", 0.00f, 0.00f, 1.00f, 1.0);
+        shader.setVec4(shader.loc_color, 0.00f, 0.00f, 1.00f, 1.0);
       else if(type == 3) //Main Player
-        shader.setVec4("color", 0.9f, 0.0f, 0.0f, 1.0);
+        shader.setVec4(shader.loc_color, 0.9f, 0.0f, 0.0f, 1.0);
 
+      shader.setMat4(shader.loc_model, model_transform());
 
-      // world location
-      auto location = glm::vec3(x, y, 0);
-      glm::mat4 position_transform(1);
-      position_transform = glm::translate(position_transform, location);
-
-      // scaling
-      glm::mat4 scale_transform(1);
-      scale_transform = glm::scale(scale_transform, glm::vec3(radius(), radius(), 0));
-
-      shader.setMat4("model_transform", position_transform * scale_transform);
-
-      // draw them!
+      // draw (no unbind: every draw path binds its own VAO first)
       glBindVertexArray(circle.vao);
       glDrawArrays(GL_TRIANGLE_FAN, 0, NVertices);
-      glBindVertexArray(0);
     }
 
     void draw(Shader &shader) {
       if (!_initialized) _initialize();
 
-      shader.setVec4("color", circle.color[0], circle.color[1], circle.color[2], 1.0);
+      shader.setVec4(shader.loc_color, circle.color[0], circle.color[1], circle.color[2], 1.0);
+      shader.setMat4(shader.loc_model, model_transform());
 
-      // world location
-      auto location = glm::vec3(x, y, 0);
-      glm::mat4 position_transform(1);
-      position_transform = glm::translate(position_transform, location);
-
-      // scaling
-      glm::mat4 scale_transform(1);
-      scale_transform = glm::scale(scale_transform, glm::vec3(radius(), radius(), 0));
-
-      shader.setMat4("model_transform", position_transform * scale_transform);
-
-      // draw them!
+      // draw (no unbind: every draw path binds its own VAO first)
       glBindVertexArray(circle.vao);
       glDrawArrays(GL_TRIANGLE_FAN, 0, NVertices);
-      glBindVertexArray(0);
+    }
+
+    /* translation + scale, built directly instead of two mat4 multiplies */
+    glm::mat4 model_transform() const {
+      const float r = static_cast<float>(radius());
+      glm::mat4 m(1.0f);
+      m[0][0] = r;
+      m[1][1] = r;
+      m[2][2] = 0.0f;
+      m[3][0] = static_cast<float>(x);
+      m[3][1] = static_cast<float>(y);
+      return m;
     }
 
     ~RenderableBall() override {
@@ -251,12 +241,12 @@ namespace agario {
     void draw(Shader &shader) {
       if (!_initialized) _initialize(); // lazy initialization
 
-      shader.setVec4("color", color[0], color[1], color[2], 1.0);
+      shader.setVec4(shader.loc_color, color[0], color[1], color[2], 1.0);
 
       glm::mat4 model_matrix(1);
       model_matrix = glm::scale(model_matrix, glm::vec3(arena_width, arena_height, 0));
 
-      shader.setMat4("model_transform", model_matrix);
+      shader.setMat4(shader.loc_model, model_matrix);
 
       // do the actual drawing
       glBindVertexArray(vao);

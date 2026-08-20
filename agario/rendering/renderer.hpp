@@ -78,8 +78,8 @@ namespace agario {
     }
 
     void make_projections(const Player &player) {
-      shader.setMat4("projection_transform", perspective_projection(player));
-      shader.setMat4("view_transform", view_projection(player));
+      shader.setMat4(shader.loc_projection, perspective_projection(player));
+      shader.setMat4(shader.loc_view, view_projection(player));
     }
 
     /**
