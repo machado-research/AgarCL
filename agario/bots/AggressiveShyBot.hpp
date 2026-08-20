@@ -26,11 +26,12 @@ namespace agario {
         : Bot(pid, name, color), targeting(bot::no_player) { }
 
       void take_action(const GameState &state) override {
+        if (this->cells.empty()) return; // dead: nothing to decide
 
         // check if there are any big players nearby
-        for (auto &pair : state.players) {
-          Player &other_player = *pair.second;
-          if (other_player == *this) continue; // skip self
+        for (Player *player_ptr : this->players_by_pid(state)) {
+          Player &other_player = *player_ptr;
+          if (other_player.pid() == this->pid()) continue; // skip self
 
           // is it nearby?
           auto distance = this->location().distance_to(other_player.location());
@@ -52,9 +53,9 @@ namespace agario {
         auto &largest_cell = this->largest_cell();
 
         // check if there are any wimpy players nearby
-        for (auto &pair : state.players) {
-          auto &player = *pair.second;
-          if (player == *this) continue; // skip self
+        for (Player *player_ptr : this->players_by_pid(state)) {
+          Player &player = *player_ptr;
+          if (player.pid() == this->pid()) continue; // skip self
 
           // is it nearby?
           auto distance = this->location().distance_to(player.location());

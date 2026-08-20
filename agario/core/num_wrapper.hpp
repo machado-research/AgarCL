@@ -14,13 +14,13 @@ class numWrapper {
 public:
   typedef T value_type;
 
-  numWrapper() : value() {}
+  constexpr numWrapper() : value() {}
 
-  numWrapper(T v) : value(v) {}
+  constexpr numWrapper(T v) : value(v) {}
 
-  operator T() const { return value; }
+  constexpr operator T() const noexcept { return value; }
 
-  static numWrapper<T, type_distinguisher> max() {
+  static constexpr numWrapper<T, type_distinguisher> max() noexcept {
     return numWrapper(std::numeric_limits<T>::max());
   }
 

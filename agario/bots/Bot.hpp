@@ -13,6 +13,9 @@
 namespace agario {
   namespace bot {
 
+    /* agario::pid is unsigned, so this sentinel is the maximum pid value.
+     * Bots constructed without an explicit pid carry it until the engine
+     * assigns one in add_player(). */
     static constexpr agario::pid no_player = NO_PLAYER;
 
     template<bool renderable>
@@ -26,9 +29,9 @@ namespace agario {
 
     public:
       Bot(agario::pid pid, const std::string &name, agario::color color) : Player(pid, name, color) {this->is_bot = true;}
-      Bot(agario::pid pid, const std::string &name) : Bot(pid, name, default_color)  {this->is_bot = true;}
-      explicit Bot(const std::string &name) : Bot(-1, name) {this->is_bot = true;}
-      explicit Bot(agario::pid pid) : Bot(pid, "Bot") {this->is_bot = true;}
+      Bot(agario::pid pid, const std::string &name) : Bot(pid, name, default_color) {}
+      explicit Bot(const std::string &name) : Bot(no_player, name) {}
+      explicit Bot(agario::pid pid) : Bot(pid, "Bot") {}
 
     protected:
 
@@ -37,50 +40,63 @@ namespace agario {
         this->target = this->nearest_pellet(state);
       }
 
-      agario::pid find_target (const GameState &state, const Cell &largest_cell, agario::distance radius) const {
-
-        agario::pid target = bot::no_player;
-        agario::mass target_mass = 0;
-
-        for (auto &pair : state.players) {
-          auto &player = *pair.second;
-          auto proximity = this->location().distance_to(player.location());
-          if (proximity < radius) {
-            auto mass = this->edible_mass(player, largest_cell);
-            if (target == bot::no_player || mass > target_mass) {
-              target = player.pid();
-              target_mass = mass;
-            }
-          }
-        }
-        return target;
+      /* Players ordered by pid.
+       *
+       * state.players is an unordered_map, and every bot scan below takes the
+       * *first* qualifying player and returns. Iterating the map directly
+       * therefore made "which player do I flee from / attack" depend on hash
+       * bucket layout, which varies with standard library implementation and
+       * insertion history - so a seeded episode was not reproducible across
+       * machines. Iterating in pid order keeps the same first-match rule while
+       * making "first" well defined. The buffer is a member, so the ordering
+       * costs no allocation after the first call. */
+      const std::vector<Player *> &players_by_pid(const GameState &state) const {
+        sorted_players_.clear();
+        sorted_players_.reserve(state.players.size());
+        for (auto &pair : state.players)
+          sorted_players_.push_back(pair.second.get());
+        std::sort(sorted_players_.begin(), sorted_players_.end(),
+                  [](const Player *a, const Player *b) { return a->pid() < b->pid(); });
+        return sorted_players_;
       }
 
       /* weighted average of the cells that we can eat from this player */
       void target_player (const Player &player, const Cell &largest_cell) {
-        agario::mass mass = 0;
+        agario::mass edible = 0;
         agario::Location target;
         for (auto &cell : player.cells) {
           if (largest_cell.can_eat(cell)) {
             target += cell.mass() * cell.location();
-            mass += cell.mass();
+            edible += cell.mass();
           }
         }
-        auto ds = (target / mass) - this->location();
+        /* Nothing edible: dividing by zero mass would yield NaN coordinates,
+         * which propagate into movement and observations (and
+         * static_cast<int>(NaN) is undefined behaviour). Callers currently
+         * pre-check edible_mass > 0, so this is a guard rather than a
+         * behaviour change. */
+        if (edible == 0) return;
+        auto ds = (target / edible) - this->location();
         this->target = this->location() + 3 * ds;
       }
 
-      /* the largest cell that belongs to the bot */
+      /* The largest cell that belongs to the bot.
+       * Requires a live bot: callers must check cells before calling, which
+       * every take_action() now does. Previously .at() would throw
+       * std::out_of_range on a dead bot, and an exception escaping through the
+       * pybind layer would end the episode. */
       const Cell& largest_cell () const {
-        int largest = 0;
-        for (int i = 0; i < this->cells.size(); ++i) {
-          if (i == 0 || this->cells[i].mass() > this->cells[largest].mass()) {
+        std::size_t largest = 0;
+        for (std::size_t i = 1; i < this->cells.size(); ++i) {
+          if (this->cells[i].mass() > this->cells[largest].mass())
             largest = i;
-          }
         }
-        return this->cells.at(largest);
-        // return this->cells[0];
+        return this->cells[largest];
       }
+
+      /* reused ordering buffer for players_by_pid (mutable: the scans that
+       * need it are const) */
+      mutable std::vector<Player *> sorted_players_;
 
       agario::mass edible_mass (const Player &player, const Cell &largest_cell) const {
         agario::mass mass = 0;
@@ -113,15 +129,6 @@ namespace agario {
         if (state.pellets.empty())
           return wander_target(state);
 
-        // 1/10 chance to pick a random pellet
-        // if (std::rand() % 10 == 0) {
-        //   const auto &random_pellet = state.pellets[std::rand() % state.pellets.size()];
-        //   if (random_pellet.location().distance_to(this->location()) < 25) {
-        //         return agario::Location((std::rand() + static_cast<int>(random_pellet.location().x)) % static_cast<int>(state.config.arena_width),
-        //         (std::rand() + static_cast<int>(random_pellet.location().y)) % static_cast<int>(state.config.arena_height));
-        //   }
-        //   return random_pellet.location();
-        // }
 
         /* The bot's own centroid is loop-invariant but was recomputed for
          * every pellet, and location() is two O(cells) reductions that each
@@ -159,52 +166,6 @@ namespace agario {
         return target;
       }
 
-      // agario::Location nearest_pellet (const GameState &state) const {
-      //   if(state.pellets.empty()) {
-      //       return agario::Location(std::rand() % static_cast<int>(state.config.arena_width), std::rand() % static_cast<int>(state.config.arena_height));
-      //   }
-      //   distance min_distance = agario::distance::max();
-      //   agario::Location target;
-
-      //   if(state.pellets.size() %10 == 0)
-      //   {
-      //       std::srand(std::chrono::system_clock::now().time_since_epoch().count());
-      //       auto &pellet = state.pellets[std::rand() % state.pellets.size()];
-      //       if (pellet.location().distance_to(this->location()) == 0) {
-      //           target = pellet.location() + agario::Location(std::rand() % static_cast<int>(state.config.arena_width), std::rand() % static_cast<int>(state.config.arena_height));
-
-      //       }
-      //       else
-      //         target = pellet.location();
-      //   }
-      //   else {
-      //       for (auto &pellet : state.pellets) {
-      //         distance dist = pellet.location().distance_to(this->location());
-      //         if (dist < min_distance) {
-      //           target = pellet.location();
-      //           min_distance = dist;
-      //         }
-      //       }
-      //       if (target.location().distance_to(this->location()) == 0) {
-      //         target = pellet.location() + agario::Location(std::rand() % static_cast<int>(state.config.arena_width), std::rand() % static_cast<int>(state.config.arena_height));
-
-      //     }
-      //   }
-      //   return target;
-      // }
-      /* location of the nearest food */
-      agario::Location nearest_food (const GameState &state) const {
-        distance min_distance = agario::distance::max();
-        agario::Location target;
-        for (auto &food : state.foods) {
-          distance dist = food.location().distance_to(this->location());
-          if (dist < min_distance) {
-            target = food.location();
-            min_distance = dist;
-          }
-        }
-        return target;
-      }
 
     };
   }

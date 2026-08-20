@@ -95,8 +95,7 @@ set (UTILS
         utils/json.hpp
         utils/json_fwd.hpp
         utils/collision_detection.hpp
-        utils/random.hpp
-        utils/structures.hpp)
+        utils/random.hpp)
 
 set(AGARIO_SRC ${AGARIO_CORE_SRC} ${AGARIO_ENGINE_SRC})
 

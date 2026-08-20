@@ -21,12 +21,13 @@ namespace agario {
       explicit HungryShyBot(agario::pid pid) : HungryShyBot(pid, "HungryShyBot") {}
 
       void take_action(const GameState<renderable> &state) override {
+        if (this->cells.empty()) return; // dead: nothing to decide
         this->action = agario::action::none; // no splitting or anything
 
         // check if there are any big players nearby
-        for (auto &pair : state.players) {
-          Player &other_player = *pair.second;
-          if (other_player == *this) continue; // skip self
+        for (Player *player_ptr : this->players_by_pid(state)) {
+          Player &other_player = *player_ptr;
+          if (other_player.pid() == this->pid()) continue; // skip self
 
           // is it nearby?
           auto distance = this->location().distance_to(other_player.location());
