@@ -358,6 +358,8 @@ namespace agario {
     int pellets_grid_height; int virus_grid_height;
     std::vector<std::vector<int>> pellets_grid;
     std::vector<std::vector<int>> virus_grid;
+    // per-tick marker so a pellet can be eaten (credited + removed) at most once
+    std::vector<char> pellet_eaten_;
 
     bool mass_decay_ = true;
     bool is_squared_pellets_ = false;
@@ -964,6 +966,10 @@ namespace agario {
       pellets_grid_width = (state.config.arena_width + pellets_grid_size - 1) / pellets_grid_size;
       pellets_grid_height = (state.config.arena_height + pellets_grid_size - 1) / pellets_grid_size;
       pellets_grid.resize(pellets_grid_width * pellets_grid_height);
+      // grow-only: entries are cleared per-eaten-pellet in remove_pellets,
+      // so everything below state.pellets.size() is already 0 here
+      if (pellet_eaten_.size() < state.pellets.size())
+        pellet_eaten_.resize(state.pellets.size(), 0);
 
       for (int i = 0; i < state.pellets.size(); ++i) {
       const Pellet &pellet = state.pellets[i];
@@ -988,7 +994,8 @@ namespace agario {
             if (nx >= 0 && nx < pellets_grid_width && ny >= 0 && ny < pellets_grid_height && ny * pellets_grid_width + nx < pellets_grid.size()) {
               for (int pellet_idx : pellets_grid[ny * pellets_grid_width + nx]) {
               Pellet &pellet = state.pellets[pellet_idx];
-                if (cell.can_eat(pellet) && cell.collides_with(pellet)) {
+                if (cell.can_eat(pellet) && cell.collides_with(pellet) && !pellet_eaten_[pellet_idx]) {
+                  pellet_eaten_[pellet_idx] = 1;
                   pellets_to_remove.push_back(pellet_idx);
                   cell.increment_mass(PELLET_MASS);
                 }
@@ -999,12 +1006,24 @@ namespace agario {
       }
     }
 
-    void remove_pellets(const std::vector<int>& pellets_to_remove) {
+    /* O(1) swap-and-pop removal. Indices are deduplicated and applied in
+     * descending order: each removal only disturbs positions at or above the
+     * removed index, so smaller pending indices still refer to the pellets
+     * that were actually detected as eaten. */
+    void remove_pellets(std::vector<int>& pellets_to_remove) {
+      std::sort(pellets_to_remove.begin(), pellets_to_remove.end(),
+                [](int a, int b) { return a > b; });
+      pellets_to_remove.erase(
+        std::unique(pellets_to_remove.begin(), pellets_to_remove.end()),
+        pellets_to_remove.end());
+
       for (int idx : pellets_to_remove) {
-        if (idx < state.pellets.size() - 1 && state.pellets.size() > 1)
+        if (idx < 0 || static_cast<size_t>(idx) >= state.pellets.size())
+          continue; // defensive: stale index
+        pellet_eaten_[idx] = 0; // reset mask for the next tick (O(eaten), not O(all))
+        if (static_cast<size_t>(idx) != state.pellets.size() - 1)
           std::swap(state.pellets[idx], state.pellets.back());
-        if (state.pellets.size() >= 1)
-          state.pellets.pop_back();
+        state.pellets.pop_back();
       }
     }
 
@@ -1250,12 +1269,20 @@ namespace agario {
       }
       return false;
     }
-    void remove_viruses(const std::vector<int>& viruses_to_remove) {
+    /* same descending-order swap-and-pop scheme as remove_pellets */
+    void remove_viruses(std::vector<int>& viruses_to_remove) {
+      std::sort(viruses_to_remove.begin(), viruses_to_remove.end(),
+                [](int a, int b) { return a > b; });
+      viruses_to_remove.erase(
+        std::unique(viruses_to_remove.begin(), viruses_to_remove.end()),
+        viruses_to_remove.end());
+
       for (int idx : viruses_to_remove) {
-        if (idx < state.viruses.size() - 1 && state.viruses.size() > 1)
+        if (idx < 0 || static_cast<size_t>(idx) >= state.viruses.size())
+          continue; // defensive: stale index
+        if (static_cast<size_t>(idx) != state.viruses.size() - 1)
           std::swap(state.viruses[idx], state.viruses.back());
-        if (state.viruses.size() >= 1)
-          state.viruses.pop_back();
+        state.viruses.pop_back();
       }
     }
     /* called when `cell` collides with `virus` and is popped/disrupted.
