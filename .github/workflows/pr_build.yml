@@ -28,16 +28,73 @@ jobs:
               run: |
                 sudo apt update
                 sudo apt install -yq libglm-dev libglobjects-dev cmake libgtest-dev libgl1-mesa-dev libglu1-mesa-dev libglfw3-dev freeglut3-dev libstdc++-12-dev
+                # headless rendering: EGL loader/headers plus the Mesa software
+                # driver, so the EGL path can actually run on a GPU-less runner
+                sudo apt install -yq libegl1-mesa-dev libgles2-mesa-dev libgbm-dev mesa-utils
 
-            - name: build
+            - name: build (headless EGL configuration)
               env:
                 CXX: ${{ matrix.cxx }}
               run: |
-                cmake -B build -D CMAKE_BUILD_TYPE=Release
+                cmake -B build -D CMAKE_BUILD_TYPE=Release -D USE_EGL=ON
                 cmake --build build --target all -j4 --config Release
 
             - name: test
               run: |
                 ./build/agario/test-engine
                 ./build/agario/test-engine-renderable
-                ./build/bench/agario-bench
+                ./build/environment/test-envs
+                ./build/bench/agario-bench --benchmark_min_time=0.1s
+
+            - name: headless screen-observation smoke test
+              env:
+                EGL_PLATFORM: surfaceless
+                LIBGL_ALWAYS_SOFTWARE: "1"
+              run: |
+                python3 -m pip install --upgrade pip
+                python3 -m pip install "gymnasium~=0.29" numpy opencv-python-headless
+                python3 -m pip install .
+                python3 - <<'PY'
+                import numpy as np, gymnasium as gym, gym_agario
+
+                # Screen observations through the headless EGL path: the
+                # observation must contain actual rendered content, which is
+                # what regressed silently when capture went to a hidden
+                # window's back buffer instead of the framebuffer object.
+                env = gym.make("agario-screen-v0", obs_type="screen",
+                               render_mode="rgb_array", ticks_per_step=4,
+                               arena_size=500, num_pellets=350, num_viruses=8,
+                               num_bots=6, screen_len=84, agent_view=False,
+                               add_noise=False, mode=0, env_type=1, reward_type=1)
+                env.unwrapped.seed(0)
+                env.reset()
+                rng = np.random.default_rng(0)
+                for _ in range(30):
+                    obs, r, term, trunc, info = env.step(
+                        (rng.uniform(-1, 1, 2).astype(np.float32), int(rng.integers(0, 3))))
+                a = np.asarray(obs)[0]
+                assert a.shape == (84, 84, 3), a.shape
+                assert np.isfinite(float(r))
+                distinct = len(np.unique(a.reshape(-1, 3), axis=0))
+                assert distinct >= 3, f"observation looks blank: {distinct} distinct colors"
+                env.close()
+                print(f"headless screen OK: {a.shape}, {distinct} distinct colors")
+
+                # agent_view uses the alpha channel, which requires the EGL
+                # config to actually provide alpha bits
+                env = gym.make("agario-screen-v0", obs_type="screen",
+                               render_mode="rgb_array", ticks_per_step=4,
+                               arena_size=500, num_pellets=350, num_viruses=8,
+                               num_bots=6, screen_len=84, agent_view=True,
+                               add_noise=False, mode=0, env_type=1, reward_type=1)
+                env.unwrapped.seed(0)
+                env.reset()
+                for _ in range(30):
+                    obs, *_ = env.step((np.zeros(2, dtype=np.float32), 0))
+                a = np.asarray(obs)[0]
+                assert a.shape == (84, 84, 4), a.shape
+                alphas = np.unique(a[..., 3])
+                assert len(alphas) > 1, f"alpha channel is constant ({alphas}): EGL config lacks alpha bits"
+                env.close()
+                print(f"headless agent_view OK: alpha values {alphas[:8]}")
+                PY
