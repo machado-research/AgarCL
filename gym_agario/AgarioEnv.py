@@ -106,10 +106,14 @@ class AgarioEnv(gym.Env):
         dones = self._env.dones()
         assert len(dones) == self.num_agents
 
-        # set the "truncation" status of each agent to 'False'
+        # A step limit is a truncation, not a termination: under the Gymnasium
+        # contract `terminated` means the MDP reached a terminal state, and
+        # value bootstrapping at the boundary is wrong if a time limit is
+        # reported that way. This previously set dones=True and left the
+        # computed truncations unused.
         truncations = [False] * len(dones)
-        if(self.steps >=  self.number_of_steps and self.env_type == 0): #Episodic
-            dones = [True] * len(dones)
+        if(self.steps >= self.number_of_steps and self.env_type == 0): #Episodic
+            truncations = [True] * len(dones)
         # unwrap observations, rewards, dones if not mult-agent
         if not self.multi_agent:
             self.observations = self.observations[0]
@@ -282,22 +286,27 @@ class AgarioEnv(gym.Env):
         if len(actions) != self.num_agents:
             raise ValueError(f"Number of actions {len(actions)} does not match number of agents {self.num_agents}")
 
-        # make sure that the actions are well-formed
+        # make sure that the actions are well-formed, applying action noise if
+        # enabled. This used to rebind the loop variable, so the noisy action
+        # was validated and then discarded: the environment paid for the RNG
+        # draw and the space checks but always received the original action.
+        sanitized = []
         for action in actions:
-            # Add noise to the action
-            noise = [0,0]
-            if  self.add_noise == True:
+            target, discrete = action[0], action[1]
+            if self.add_noise:
                 noise = np.random.normal(0, 0.1, size=(2,))
-            action = ((np.clip(action[0][0] + noise[0], -1, 1), np.clip(action[0][1] + noise[1], -1, 1)), action[1])
-            #make sure the action is in the action space
-            if not (self.action_space[0].contains(action[0]) and self.action_space[1].contains(action[1])):
-                raise ValueError(f"action {action} not in action space")
+                target = (float(np.clip(target[0] + noise[0], -1, 1)),
+                          float(np.clip(target[1] + noise[1], -1, 1)))
+            # make sure the action is in the action space
+            if not (self.action_space[0].contains(np.asarray(target, dtype=np.float32))
+                    and self.action_space[1].contains(discrete)):
+                raise ValueError(f"action {(target, discrete)} not in action space")
+            sanitized.append((target, discrete))
 
         # gotta format the action for the underlying module.
         # passing the raw target numpy array is tricky because
         # of data formatting :(
-        actions = [(tgt[0], tgt[1], a) for tgt, a in actions]
-        return actions
+        return [(tgt[0], tgt[1], a) for tgt, a in sanitized]
 
     def _get_env_args(self, kwargs):
         """ creates a set of positional arguments to pass to the learning environment

@@ -94,4 +94,6 @@ namespace agario {
   };
 
 }
-int agario::Ball::global_id = 1;
+/* inline: this is a definition in a header, so without it any second
+ * translation unit that includes Ball.hpp is a duplicate-symbol link error */
+inline int agario::Ball::global_id = 1;

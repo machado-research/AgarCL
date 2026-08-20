@@ -43,8 +43,11 @@ namespace agario::env {
       using Shape = std::tuple<int, int, int>;
       using Strides = std::tuple<ssize_t, ssize_t, ssize_t>;
 
-      /* construct without configuring. configure() must be called. */
-      GridObservation() : data_(nullptr) { }
+      /* construct without configuring. configure() must be called.
+       * shape_/strides_ are zero-initialised so length() and clear_data()
+       * cannot read indeterminate values before configuration. */
+      GridObservation() : data_(nullptr), shape_{0, 0, 0}, strides_{0, 0, 0},
+                          config_(0, 0, false, false, false, false) { }
 
       /* construct with configuration. configure() need not be called */
       template <typename ...Args>
@@ -54,10 +57,12 @@ namespace agario::env {
         clear_data();
       }
 
-      /* configures the observation for a particular size */
+      /* configures the observation for a particular size.
+       * Configuration has no operator(), so `config_(args...)` did not
+       * compile; it survived only because nothing instantiated this template. */
       template <typename ...Args>
       void configure(Args&&... args) {
-        config_(args...);
+        config_ = Configuration(std::forward<Args>(args)...);
 
         delete[] data_; // might be nullptr, thats ok
 
@@ -123,6 +128,7 @@ namespace agario::env {
       }
 
       void clear_data() {
+        if (!configured()) return; // nothing allocated yet
         std::fill(data_, data_ + length(), 0);
       }
 
