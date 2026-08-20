@@ -1303,11 +1303,13 @@ namespace agario {
 
       agario::mass remaining_mass = pop_mass;
 
+      // fan the popped cells evenly around the parent's heading. `theta` was
+      // previously added to an offset that already included direction(), so
+      // the heading was counted twice.
       agario::angle theta = cell.velocity.direction();
       for (int c = 0; c < num_new_cells; c++) {
-        agario::angle dvel_angle = cell.velocity.direction() + (2 * M_PI * c / num_new_cells);
-
-        auto vel = Velocity(theta + dvel_angle, max_speed(CELL_POP_SIZE));
+        auto vel = Velocity(theta + static_cast<agario::angle>(2 * M_PI * c / num_new_cells),
+                            max_speed(CELL_POP_SIZE));
         auto new_cell_mass = std::min<mass>(remaining_mass, CELL_POP_SIZE);
 
         auto loc = virus.location();

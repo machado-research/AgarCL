@@ -99,18 +99,29 @@ class Player {
 
     void increment_score(score inc) { _score += inc; }
 
+    /* mass-weighted centroid of the player's cells.
+     *
+     * A dead player has no cells, so mass() is 0 and this used to evaluate
+     * 0.0f / 0 = NaN. Callers feed the result into coordinate arithmetic
+     * (grid observations, camera transforms, action targets), where NaN
+     * propagates and static_cast<int>(NaN) is undefined behaviour. Return
+     * 0 for an empty player instead. */
     agario::distance x() const {
+      const agario::mass total = mass();
+      if (total == 0) return agario::distance(0);
       agario::distance x_ = 0;
       for (auto &cell : cells)
         x_ += cell.x * cell.mass();
-      return x_ / mass();
+      return x_ / total;
     }
 
     agario::distance y() const {
+      const agario::mass total = mass();
+      if (total == 0) return agario::distance(0);
       agario::distance y_ = 0;
       for (auto &cell : cells)
         y_ += cell.y * cell.mass();
-      return y_ / mass();
+      return y_ / total;
     }
 
     agario::Location location() const {

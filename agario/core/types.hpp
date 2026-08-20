@@ -164,13 +164,19 @@ namespace agario {
       dy *= new_speed / speed();
     }
 
+    /* Angle of the velocity vector, measured from +x, in (-pi, pi].
+     *
+     * Must be the inverse of the Velocity(angle, speed) constructor, which
+     * builds (dx, dy) = speed * (cos, sin). The previous implementation used
+     * atan(dx/dy), i.e. the angle from the +y axis with the arguments
+     * swapped, so it disagreed with that constructor everywhere except the
+     * diagonals: (dx=1, dy=0) returned pi/2 instead of 0, (dx=-1, dy=0)
+     * returned -3pi/2 (outside the principal range), and dy == 0 divided by
+     * zero. This fed disrupt()'s virus-pop directions and GoBigger's
+     * CloneInfo.direction. */
     agario::angle direction() const {
-      auto angle = std::atan(dx / dy);
-      if (dx < 0) {
-        if (dy > 0) angle += M_PI;
-        else angle -= M_PI;
-      }
-      return static_cast<agario::angle>(angle);
+      return static_cast<agario::angle>(
+        std::atan2(static_cast<float>(dy), static_cast<float>(dx)));
     }
 
     void clamp_speed(float low, float high) {
