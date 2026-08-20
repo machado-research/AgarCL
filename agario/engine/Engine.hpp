@@ -98,11 +98,13 @@ namespace agario {
 
     void reset() {
       state.clear();
+      pellet_grid_ready_ = false; // pellet set rebuilt from scratch
       initialize_game();
     }
 
     void reset_state() {
       state.clear();
+      pellet_grid_ready_ = false; // pellet set rebuilt from scratch
       state.ticks = 0;
       state.next_pid = 0;
       state.main_agent_pid = -1;
@@ -261,8 +263,10 @@ namespace agario {
      * since the previous game tick.
      */
     void tick(const agario::time_delta &elapsed_seconds) {
-      // initalize the pellet_grid
-      initialize_pellet_grid();
+      // pellets never move: the spatial grid persists across ticks and is
+      // rebuilt only after the pellet set changes wholesale (reset/load)
+      if (!pellet_grid_ready_)
+        rebuild_pellet_grid();
       std::vector<int> pellets_to_remove;
       std::vector<int> viruses_to_remove;
       for (auto &pair : state.players) {
@@ -274,7 +278,6 @@ namespace agario {
       // remove pellets that have been eaten
       remove_pellets(pellets_to_remove);
       remove_viruses(viruses_to_remove);
-      pellets_grid.clear();
 
       players_collision();
 
@@ -383,6 +386,7 @@ namespace agario {
       }
 
       // Load pellets
+      pellet_grid_ready_ = false; // pellet set replaced by the snapshot
       state.pellets.clear();
       for (const auto &pellet_data : agarcl_data["pellets"]) {
         state.pellets.emplace_back(Location(static_cast<numWrapper<float, _distance>>(pellet_data["x"]),
@@ -421,10 +425,20 @@ namespace agario {
     Engine &operator=(Engine &&) = delete; // no move assignment
     int mode_number = 0;
   private:
-    int pellets_grid_size;
-    int pellets_grid_width;
-    int pellets_grid_height;
-    std::vector<std::vector<int>> pellets_grid;
+    /* ---- persistent pellet spatial grid ----
+     * Pellets never move, so the grid is built once and maintained
+     * incrementally: appends when pellets regenerate, index fix-ups on
+     * swap-and-pop removal, and a full rebuild only when the pellet set is
+     * reconstructed wholesale (reset, snapshot load, squared-pellet init).
+     * Buckets store (x, y, idx) so the hot scan walks small contiguous
+     * entries instead of dereferencing into scattered Pellet objects. */
+    struct PelletEntry { float x, y; int idx; };
+    static constexpr int PELLET_GRID_SHIFT = 5; // 32-unit buckets
+    std::vector<std::vector<PelletEntry>> pellets_grid;
+    int pellets_grid_width = 0;
+    int pellets_grid_height = 0;
+    bool pellet_grid_ready_ = false;
+
     // per-tick marker so a pellet can be eaten (credited + removed) at most once
     std::vector<char> pellet_eaten_;
     // players_collision scratch, reused across ticks to avoid reallocating
@@ -493,10 +507,15 @@ namespace agario {
       agario::distance pellet_radius = agario::radius_conversion(PELLET_MASS);
       for (int p = 0; p < n; p++) {
         state.pellets.emplace_back(random_location(pellet_radius));
+        if (pellet_grid_ready_) // regeneration path: index the new pellet
+          pellet_grid_insert(static_cast<int>(state.pellets.size()) - 1);
       }
+      if (pellet_eaten_.size() < state.pellets.size())
+        pellet_eaten_.resize(state.pellets.size(), 0);
     }
 
     void create_squared_pellets(int n) {
+      pellet_grid_ready_ = false; // bulk insert; grid rebuilt lazily on first tick
 
       // std::random_device rd;
       // std::mt19937 gen(rd());
@@ -593,7 +612,6 @@ namespace agario {
       for (Cell &cell : player.cells) {
         can_eat_virus &= cell.mass() >= MIN_CELL_SPLIT_MASS;
         may_be_auto_split(cell, created_cells, create_limit, player.cells.size(), player.target);
-        // player.food_eaten +=eat_pellets(cell);
         player.food_eaten +=eat_food(cell);
       }
       create_limit -= created_cells.size();
@@ -1010,70 +1028,94 @@ namespace agario {
       }
     }
 
-    /**
-     * checks for collisions between the given cell and
-     * all of the pellets in the game, removing those pellets
-     * from the game which the cell eats
-     * @param cell the cell which is doing the eating
-     */
-    int eat_pellets(Cell &cell) {
-      auto prev_size = pellet_count();
+    /* NOTE: pellet eating goes through get_pellets_to_remove_and_increment_cells
+     * + remove_pellets, which keep the persistent pellet grid in sync. Any new
+     * code path that mutates state.pellets must either maintain the grid or
+     * set pellet_grid_ready_ = false. (The old erase-based eat_pellets was
+     * removed for exactly that reason.) */
 
-      state.pellets.erase(
-        std::remove_if(state.pellets.begin(), state.pellets.end(),
-                       [&](const Pellet &pellet) {
-                         return cell.can_eat(pellet) && cell.collides_with(pellet);
-                       }),
-        state.pellets.end());
-
-      auto num_eaten = prev_size - pellet_count();
-      cell.increment_mass(num_eaten * PELLET_MASS);
-
-      return num_eaten;
+    int pellet_bucket_of(float x, float y) const {
+      int bx = static_cast<int>(x) >> PELLET_GRID_SHIFT;
+      int by = static_cast<int>(y) >> PELLET_GRID_SHIFT;
+      bx = agario::clamp(bx, 0, pellets_grid_width - 1);
+      by = agario::clamp(by, 0, pellets_grid_height - 1);
+      return by * pellets_grid_width + bx;
     }
 
-    void initialize_pellet_grid() {
-      pellets_grid_size = 510;
-      pellets_grid_width = (state.config.arena_width + pellets_grid_size - 1) / pellets_grid_size;
-      pellets_grid_height = (state.config.arena_height + pellets_grid_size - 1) / pellets_grid_size;
-      pellets_grid.resize(pellets_grid_width * pellets_grid_height);
-      // grow-only: entries are cleared per-eaten-pellet in remove_pellets,
-      // so everything below state.pellets.size() is already 0 here
+    void pellet_grid_insert(int idx) {
+      const Pellet &p = state.pellets[idx];
+      pellets_grid[pellet_bucket_of(p.x, p.y)].push_back(
+          {static_cast<float>(p.x), static_cast<float>(p.y), idx});
+    }
+
+    void rebuild_pellet_grid() {
+      pellets_grid_width  = (static_cast<int>(state.config.arena_width)  >> PELLET_GRID_SHIFT) + 1;
+      pellets_grid_height = (static_cast<int>(state.config.arena_height) >> PELLET_GRID_SHIFT) + 1;
+      pellets_grid.assign(static_cast<size_t>(pellets_grid_width) * pellets_grid_height, {});
+      for (int i = 0; i < static_cast<int>(state.pellets.size()); ++i)
+        pellet_grid_insert(i);
       if (pellet_eaten_.size() < state.pellets.size())
         pellet_eaten_.resize(state.pellets.size(), 0);
-
-      for (int i = 0; i < state.pellets.size(); ++i) {
-      const Pellet &pellet = state.pellets[i];
-      int grid_x = static_cast<int>(pellet.x) / pellets_grid_size;
-      int grid_y = static_cast<int>(pellet.y) / pellets_grid_size;
-      pellets_grid[grid_y * pellets_grid_width + grid_x].push_back(i);
-      }
+      pellet_grid_ready_ = true;
     }
 
+    /* removes the grid entry carrying pellet index `idx` from `bucket` */
+    void pellet_grid_erase_entry(int bucket, int idx) {
+      auto &b = pellets_grid[bucket];
+      for (size_t i = 0; i < b.size(); ++i)
+        if (b[i].idx == idx) { b[i] = b.back(); b.pop_back(); return; }
+    }
+
+    /* rewrites the entry whose pellet moved from old_idx to new_idx */
+    void pellet_grid_reindex_entry(int bucket, int old_idx, int new_idx) {
+      for (auto &e : pellets_grid[bucket])
+        if (e.idx == old_idx) { e.idx = new_idx; return; }
+    }
+
+    /* Finds pellets eaten by `cells` and credits their mass.
+     *
+     * Predicate: the previous code tested can_eat(pellet) &&
+     * collides_with(pellet); for pellets both reduce exactly to
+     * dist^2 <= cell_radius^2 (can_eat is mass > 1.1, always true with a
+     * minimum cell mass of 25; collides_with ranges max(cell_r, pellet_r),
+     * and pellet_r ~= 0.56 is below the smallest cell radius ~= 2.82).
+     * Testing that inline avoids two virtual calls and a pow() per pellet.
+     *
+     * The scanned bucket neighborhood is derived from the cell's radius, so
+     * cells wider than a bucket remain correct. The reach is refreshed on
+     * each hit because eating grows the cell mid-scan, matching the old
+     * behavior of testing collides_with against the current radius. */
     void get_pellets_to_remove_and_increment_cells(std::vector<Cell>& cells,
-                                                   std::vector<int>& pellets_to_remove
-                                                              ) {
-
+                                                   std::vector<int>& pellets_to_remove) {
       for (auto &cell : cells) {
-      int grid_x = static_cast<int>(cell.x) / pellets_grid_size;
-      int grid_y = static_cast<int>(cell.y) / pellets_grid_size;
+        const float cx = static_cast<float>(cell.x);
+        const float cy = static_cast<float>(cell.y);
+        float reach = static_cast<float>(cell.radius());
+        float reach_sq = reach * reach;
 
-        for (int dx = -1; dx <= 1; ++dx) {
-          for (int dy = -1; dy <= 1; ++dy) {
-          int nx = grid_x + dx;
-          int ny = grid_y + dy;
-            if (nx >= 0 && nx < pellets_grid_width && ny >= 0 && ny < pellets_grid_height && ny * pellets_grid_width + nx < pellets_grid.size()) {
-              for (int pellet_idx : pellets_grid[ny * pellets_grid_width + nx]) {
-              Pellet &pellet = state.pellets[pellet_idx];
-                if (cell.can_eat(pellet) && cell.collides_with(pellet) && !pellet_eaten_[pellet_idx]) {
-                  pellet_eaten_[pellet_idx] = 1;
-                  pellets_to_remove.push_back(pellet_idx);
-                  cell.increment_mass(PELLET_MASS);
-                }
+        const int bx = static_cast<int>(cx) >> PELLET_GRID_SHIFT;
+        const int by = static_cast<int>(cy) >> PELLET_GRID_SHIFT;
+        // +1 bucket of slack also covers the radius growth from mid-scan eating
+        const int nr = (static_cast<int>(reach) >> PELLET_GRID_SHIFT) + 1;
+
+        const int x_lo = std::max(bx - nr, 0);
+        const int x_hi = std::min(bx + nr, pellets_grid_width - 1);
+        const int y_lo = std::max(by - nr, 0);
+        const int y_hi = std::min(by + nr, pellets_grid_height - 1);
+
+        for (int ny = y_lo; ny <= y_hi; ++ny)
+          for (int nx = x_lo; nx <= x_hi; ++nx)
+            for (const PelletEntry &e : pellets_grid[ny * pellets_grid_width + nx]) {
+              const float dx = e.x - cx;
+              const float dy = e.y - cy;
+              if (dx * dx + dy * dy <= reach_sq && !pellet_eaten_[e.idx]) {
+                pellet_eaten_[e.idx] = 1;
+                pellets_to_remove.push_back(e.idx);
+                cell.increment_mass(PELLET_MASS);
+                reach = static_cast<float>(cell.radius()); // grows as it eats
+                reach_sq = reach * reach;
               }
             }
-          }
-        }
       }
     }
 
@@ -1092,8 +1134,18 @@ namespace agario {
         if (idx < 0 || static_cast<size_t>(idx) >= state.pellets.size())
           continue; // defensive: stale index
         pellet_eaten_[idx] = 0; // reset mask for the next tick (O(eaten), not O(all))
-        if (static_cast<size_t>(idx) != state.pellets.size() - 1)
+
+        // keep the persistent grid in sync: drop the dying pellet's entry,
+        // and re-point the entry of the pellet that swap-pop moves into idx
+        const Pellet &dying = state.pellets[idx];
+        pellet_grid_erase_entry(pellet_bucket_of(dying.x, dying.y), idx);
+
+        const int last = static_cast<int>(state.pellets.size()) - 1;
+        if (idx != last) {
+          const Pellet &moved = state.pellets[last];
+          pellet_grid_reindex_entry(pellet_bucket_of(moved.x, moved.y), last, idx);
           std::swap(state.pellets[idx], state.pellets.back());
+        }
         state.pellets.pop_back();
       }
     }

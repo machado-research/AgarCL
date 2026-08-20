@@ -215,7 +215,30 @@ ghosted through — expect dynamics changes in virus-heavy configs.
 Perf: bots benchmark 41.6 vs 42–43 µs/tick; arena 4000 fixed cost
 15.8 → 5.5 µs/tick.
 
-### 3.7 Benchmark tooling (`939189c`)
+### 3.7 B1: persistent pellet grid
+
+Pellets never move, yet their spatial index was rebuilt and torn down
+every tick — with a hardcoded 510-unit bucket size that degenerated to a
+2×2 grid at arena 1000, so the "index" scanned the whole arena anyway
+(lookup cost scaled linearly with pellet count). The grid is now built
+once and maintained incrementally (entry fix-ups on eat, appends on
+regeneration, lazy rebuild after reset/snapshot-load), with 32-unit
+buckets, a scan neighborhood derived from the cell's radius (correct at
+any cell size), and bucket-local `(x, y, idx)` entries so the hot loop
+walks contiguous 12-byte records with an inline distance test —
+provably the same predicate as the old `can_eat && collides_with` for
+pellets, minus two virtual calls and a `pow()` per pellet.
+
+Results (interleaved A/B): pellet lookup fixed cost 2.4–30 µs/tick →
+**0.04–0.05 µs/tick, flat** across 250–4,000 pellets and arena
+1,000–4,000; the 10-bot benchmark **41.5 → 5.2 µs/tick (8×)**; screen
+env at the paper-style benchmark config (arena 500, 1,024 pellets,
+6 bots, 8 viruses) **~600 → ~3,470 steps/s (~5.5×)**. Verified by a
+grid↔pellets mirror probe (480 checkpoints over 12,000 ticks incl.
+regeneration and mid-run reset), the A1 eating invariants, the
+determinism probe, snapshot save/load, and all three test suites.
+
+### 3.8 Benchmark tooling (`939189c`)
 
 `bench/screen_perf_run.py` (windowed steps/s, cumulative rate, RSS, reward
 stats, 1-min load average → CSV) and `bench/screen_perf_plot.py`
@@ -258,7 +281,6 @@ are identifiable when comparing runs taken at different times.
 
 | item | type | note |
 |---|---|---|
-| B1 engine redesign | perf | persistent pellet grid (pellets never move; stop rebuilding per tick), calibrated bucket size + dynamic scan radius. Virus part done (see below). Top remaining bottleneck. |
 | GoBigger cluster | bug+perf | O(n²) deep copies per step (PlayerState by value, committed per entity), unbounded `no_frames` → observation space shape `(0, 512, 512)`, stale `observations` vector, hot-path stderr prints. |
 | GIL release around `step()` | perf | zero parallelism for threaded vector envs today. |
 | Zero-copy observations | perf | double-buffer to drop the 512 KB/step copy; pass a base handle in `get_frame`. |
