@@ -168,7 +168,7 @@ if (GTEST_FOUND)
     include_directories(test ${GTEST_INCLUDE_DIRS})
 
     add_executable(test-engine ${TEST_SRC} ${AGARIO_SRC})
-    target_link_libraries(test-engine pthread gtest)
+    target_link_libraries(test-engine pthread GTest::gtest)
 
     find_package(OpenGL REQUIRED)
     if (OpenGL_FOUND)
@@ -177,9 +177,9 @@ if (GTEST_FOUND)
 
         # target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} OpenGL::EGL glad glm glfw)
         if(APPLE)
-            target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} glad glm glfw)
+            target_link_libraries(test-engine-renderable pthread GTest::gtest ${OPENGL_LIBRARIES} glad glm glfw)
         else()
-            target_link_libraries(test-engine-renderable pthread gtest ${OPENGL_LIBRARIES} OpenGL::EGL glad glm glfw)
+            target_link_libraries(test-engine-renderable pthread GTest::gtest ${OPENGL_LIBRARIES} OpenGL::EGL glad glm glfw)
         endif()
         target_compile_definitions(test-engine-renderable PUBLIC RENDERABLE)
 

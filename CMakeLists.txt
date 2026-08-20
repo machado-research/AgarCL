@@ -9,6 +9,10 @@ project(AgarCL
 
 set(CMAKE_CXX_STANDARD 17)
 set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON)
+# don't build google-benchmark's own test-suite; it downloads a second
+# googletest that shadows the system one and breaks test target linking
+set(BENCHMARK_ENABLE_TESTING OFF)
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
 set(GLM_BUILD_TESTS OFF)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")

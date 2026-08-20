@@ -115,12 +115,12 @@ if (GTEST_FOUND)
             test/grid-env-test.hpp)
 
 
-    add_executable(test-envs ${TEST_SRC} ${AGARIO_GRID_ENV_SOURCE})
+    add_executable(test-envs ${TEST_SRC} ${AGARIO_ENVS_SOURCE})
     target_include_directories(test-envs PUBLIC ".." ${GTEST_INDLUCE_DIRS})
     if(APPLE)
-        target_link_libraries(test-envs glad glfw gtest pthread ${OPENGL_LIBRARIES})
+        target_link_libraries(test-envs glad glm glfw GTest::gtest pthread ${OPENGL_LIBRARIES})
     else()
-        target_link_libraries(test-envs glad glfw OpenGL::EGL gtest pthread ${OPENGL_LIBRARIES})
+        target_link_libraries(test-envs glad glm glfw OpenGL::EGL GTest::gtest pthread ${OPENGL_LIBRARIES})
     endif()
 
 else()
