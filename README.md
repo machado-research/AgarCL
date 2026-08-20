@@ -218,7 +218,7 @@ All options are passed as keyword arguments to `gym.make`.
 
 | option | default | meaning |
 |---|---|---|
-| `obs_type` | `grid` | `screen` (rendered pixels), `grid` (image-like channel stack), or `gobigger` (structured entity lists) |
+| `obs_type` | `screen` | `screen` (rendered pixels), `grid` (image-like channel stack), or `gobigger` (structured entity lists) |
 | `screen_len` | `84` | width and height of the rendered observation (`screen`) |
 | `agent_view` | `False` | `screen` only: return 4 channels (pellets / other players / viruses / own cells + grid lines) instead of RGB |
 | `grid_size` | `128` | grid resolution (`grid`) |
@@ -417,6 +417,14 @@ env.generate_video('path_to_save_video', 'video_name.avi')
 ```
 
 This will save the video to the specified path with the given file name.
+
+Frames are buffered in memory until `generate_video` is called, so recording is
+capped at `max_video_frames` (default 20000) to bound memory use; raise it with
+`enable_video_recorder(max_frames=...)` for longer captures. The video is
+written at real time by default (`30 / ticks_per_step` fps); pass
+`fps=` to `generate_video` to override. Recording with the `grid` or `gobigger`
+observation types is considerably more expensive than with `screen`, because
+those observations are not pixels and a separate view must be rendered each step.
 
 #### Disabling Video Recording
 
