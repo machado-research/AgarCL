@@ -59,11 +59,15 @@ namespace {
                 ASSERT_EQ(width, grid_size) << "observation width didn't match grid_size";
                 ASSERT_EQ(height, grid_size) << "observation height didn't match grid_size";
 
+                // must match GridObservation::channels_per_frame(): pellets,
+                // viruses and other players each occupy two channels
+                // (presence/min and total/max mass), own cells one, plus one
+                // out-of-bounds channel
                 int channels_per_frame = 1; // OOB
-                if (observe_cells) channels_per_frame++;
-                if (observe_others) channels_per_frame++;
-                if (observe_viruses) channels_per_frame++;
-                if (observe_pellets) channels_per_frame++;
+                if (observe_cells) channels_per_frame += 1;
+                if (observe_others) channels_per_frame += 2;
+                if (observe_viruses) channels_per_frame += 2;
+                if (observe_pellets) channels_per_frame += 2;
 
                 auto expected_channels = num_frames * channels_per_frame;
                 ASSERT_EQ(channels, expected_channels) << "wrong number of channels in observation";

@@ -623,11 +623,8 @@ template <bool renderable>
             // PlayerState player_state = observation.get_player_state(player.pid());
 
             auto &state = this->engine_.game_state();
-            // We store in the observation the last `num_frames` frames between each step.
-            int frame_index = 0;
-
-            if (frame_index >= 0) // frame skipping
-              observation.add_frame(player, state, frame_index);
+            int frame_index = tick_index;
+            observation.add_frame(player, state, frame_index);
 
             last_player = &player;
             last_frame_index = frame_index;

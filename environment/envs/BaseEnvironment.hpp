@@ -93,6 +93,8 @@ namespace agario {
         this->_step_hook(); // allow subclass to set itself up for the step
         is_main_player_respawned = false;
         auto before = masses<float>();
+        /* action repeat: advance the engine `ticks_per_step` ticks, then
+         * gather a single observation of the resulting state */
         for (int tick = 0; tick < ticks_per_step(); tick++)
           engine_.tick(step_dt_);
 
@@ -201,7 +203,7 @@ namespace agario {
         // the following loop is needed to "initialize" the observation object
         // with the newly reset state so that a call to `get_state` directly
         // after `reset` will return a state representing the fresh beginning
-
+        this->_step_hook(); // clear stale buffers from the previous episode
         for (int agent_index = 0; agent_index < num_agents(); agent_index++)
           this->_partial_observation(agent_index, 0);
       }

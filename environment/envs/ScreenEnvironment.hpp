@@ -231,9 +231,9 @@ namespace agario::env {
       }
 
 
-      void _partial_observation(int agent_index, int tick_index) override{
+      void _partial_observation(int agent_index, int frame_index) override{
         auto &player = this->engine_.player(this->pids_[agent_index]);
-        _partial_observation(player, tick_index);
+        _partial_observation(player, frame_index);
         if (player.dead())
         {
           this->engine_.respawn(player);

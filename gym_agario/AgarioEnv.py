@@ -223,8 +223,12 @@ class AgarioEnv(gym.Env):
                 'observe_pellets': True,
                 'c_death': 0,
             }
+            # `grid_defaults | kwargs` (not the reverse): caller-supplied
+            # values must win over the defaults. With the operands swapped
+            # every user setting was silently overridden by grid_defaults.
+            args = base_args
             env = agarcl.GridEnvironment(*args)
-            env.configure_observation(kwargs | grid_defaults)
+            env.configure_observation(grid_defaults | kwargs)
 
             channels, width, height = env.observation_shape()
             shape = (width, height, channels)

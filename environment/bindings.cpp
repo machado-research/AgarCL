@@ -99,8 +99,13 @@ PYBIND11_MODULE(agarcl, module) {
   using GridEnvironment = agario::env::GridEnvironment<int, renderable>;
 
   py::class_<GridEnvironment>(module, "GridEnvironment")
-    .def(py::init<int, int, int, bool, int, int, int, int, int, int>())
+    .def(py::init<int, int, int, bool, int, int, int, int, int, int, bool>(),
+         py::arg("num_agents"), py::arg("ticks_per_step"), py::arg("arena_size"),
+         py::arg("pellet_regen"), py::arg("num_pellets"), py::arg("num_viruses"),
+         py::arg("num_bots"), py::arg("reward_type") = 0, py::arg("c_death") = 0,
+         py::arg("mode_number") = 0, py::arg("load_env_snapshot") = false)
     .def("seed", &GridEnvironment::seed)
+    .def("load_env_state", &GridEnvironment::load_env_state)
     .def("configure_observation", [](GridEnvironment &env, const py::dict &config) {
 
       int num_frames = config.contains("num_frames")      ? config["num_frames"].cast<int>() : 1;

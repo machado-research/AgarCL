@@ -367,12 +367,16 @@ namespace agario::env {
       using Observation = GridObservation;
 
       explicit GridEnvironment(int num_agents, int ticks_per_step, int arena_size, bool pellet_regen,
-                               int num_pellets, int num_viruses, int num_bots, int reward_type=0, int c_death = 0, int mode_number = 0) :
+                               int num_pellets, int num_viruses, int num_bots, int reward_type=0, int c_death = 0, int mode_number = 0,
+                               bool load_env_snapshot = false) :
         Super(num_agents, ticks_per_step, arena_size, pellet_regen,
-              num_pellets, num_viruses, num_bots,reward_type , 0, mode_number),
-        frame_observation(1, 512, 512),
-        frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false)) {
-
+              num_pellets, num_viruses, num_bots, reward_type, c_death, mode_number,
+              load_env_snapshot),
+        frame_observation(1, 512, 512)
+#ifdef RENDERABLE
+        , frame_buffer(std::make_shared<FrameBufferObject>(512, 512, false))
+#endif
+      {
 #ifdef RENDERABLE
         renderer = std::make_unique<agario::Renderer>(frame_buffer,
                                                       this->engine_.arena_width(),
@@ -409,24 +413,30 @@ namespace agario::env {
           observation.clear_data();
       }
 
-      /* allows for intermediate grid frames to be stored in the GridObservation */
-      void _partial_observation(int agent_index, int tick_index) override {
+      /* stores the post-action-repeat state into the GridObservation.
+       *
+       * `frame_index` selects which frame of the observation to write. The
+       * engine is ticked `ticks_per_step` times and then observed once, so
+       * this is called with frame 0.
+       *
+       * This previously derived the frame from a tick index as
+       *   frame_index = tick_index - (ticks_per_step - num_frames)
+       * which is only meaningful if observations are taken on every tick.
+       * They are not, so with the defaults (num_frames=1, ticks_per_step=4)
+       * it evaluated to -3, add_frame was never called, and get_state()
+       * returned the all-zero buffer that _step_hook had just cleared. */
+      void _partial_observation(int agent_index, int frame_index) override {
 
         assert(agent_index < this->num_agents());
-        assert(tick_index < this->ticks_per_step());
 
-          auto &player = this->engine_.player(this->pids_[agent_index]);
-          this-> c_death_ = 0;
+        auto &player = this->engine_.player(this->pids_[agent_index]);
+        this-> c_death_ = 0;
 
-          Observation &observation = observations[agent_index];
+        Observation &observation = observations[agent_index];
+        auto &state = this->engine_.game_state();
 
-
-          auto &state = this->engine_.game_state();
-          // we store in the observation the last `num_frames` frames between each step
-          int frame_index = tick_index - (this->ticks_per_step() - observation.num_frames());
-          if (frame_index >= 0) // frame skipping
-            observation.add_frame(player, state, frame_index);
-
+        if (frame_index < observation.num_frames())
+          observation.add_frame(player, state, frame_index);
 
         last_player = &player;
         last_frame_index = frame_index;
