@@ -112,18 +112,16 @@ public:
     // divisible by 4 and write past the allocation
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-#ifdef USE_EGL
-    exception_on_egl_error("ReadBuffer");
-#else
-    exception_on_gl_error("ReadBuffer");
-#endif
-
     glReadPixels(0, 0, _width, _height, (agent_view == true ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, data); // for rgb_array render mode
 
+    // error checks are driver round-trips; keep them out of the per-frame
+    // path unless explicitly debugging. Framebuffer completeness and GL
+    // errors are still validated once at initialization.
+#ifdef AGARCL_GL_DEBUG
+    exception_on_gl_error("ReadPixels");
 #ifdef USE_EGL
     exception_on_egl_error("ReadPixels");
-#else
-    exception_on_gl_error("ReadPixels");
+#endif
 #endif
   }
 
