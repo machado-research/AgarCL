@@ -3,6 +3,7 @@
 #include <agario/test/test-core.hpp>
 #include <agario/test/test-entities.hpp>
 #include <agario/test/test-engine.hpp>
+#include <agario/test/test-regressions.hpp>
 
 namespace { }
 

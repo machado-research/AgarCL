@@ -54,6 +54,7 @@ jobs:
                 python3 -m pip install --upgrade pip
                 python3 -m pip install "gymnasium~=0.29" numpy opencv-python-headless
                 python3 -m pip install .
+                python3 -m unittest tests.regression_test -v
                 python3 - <<'PY'
                 import numpy as np, gymnasium as gym, gym_agario
 

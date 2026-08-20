@@ -158,6 +158,7 @@ set(TEST_SRC
         test/test-core.hpp
         test/test-entities.hpp
         test/test-engine.hpp
+        test/test-regressions.hpp
         test/renderable.hpp
         test/main.cpp)
 
