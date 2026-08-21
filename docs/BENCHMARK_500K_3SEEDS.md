@@ -40,5 +40,36 @@ Notes:
 
 ## Master arm (baseline, `8580d4f`)
 
-*Runs in progress; this section and the mean-of-seeds comparison will be
-filled in when they complete.*
+![master 3 seeds](master_500k_3seeds.png)
+
+| seed | mean throughput | window min-max | RSS first -> last | wall time | resets |
+|------|-----------------|----------------|-------------------|-----------|--------|
+| 0    | 561 sps         | 407 - 768      | 148.3 -> 150.1 MB | 14.9 min  | 0      |
+| 1    | 452 sps         | 403 - 543      | 147.5 -> 148.7 MB | 18.5 min  | 0      |
+| 2    | 486 sps         | 410 - 601      | 147.1 -> 148.1 MB | 17.1 min  | 0      |
+
+**Aggregate: 499 +/- 56 steps/s** (~2,002 us/step, ~2,000 engine frames/s).
+
+## Comparison (mean of 3 seeds)
+
+![comparison](compare_500k_3seeds.png)
+
+|                    | master (baseline) | perf branch     | change     |
+|--------------------|-------------------|-----------------|------------|
+| throughput         | 499 +/- 56 sps    | 3,518 +/- 180 sps | **7.04x** |
+| step cost          | 2,002 us          | 284 us          | -86%       |
+| engine frames/s    | ~2,000            | ~14,100         | 7.04x      |
+| memory (steady)    | ~148 MB           | ~125 MB         | -16%       |
+| wall per 500k steps| 14.9 - 18.5 min   | 2.2 - 2.5 min   | ~7x        |
+
+The arms do not overlap anywhere: the slowest branch window (3,021 sps) is
+3.9x faster than the fastest master window (768 sps). Both arms are flat
+over the full run - no degradation, no leak - and both record zero resets.
+The speedup is throughput-only: game semantics are unchanged, and
+observations were verified byte-identical between the two builds on
+seeded rollouts.
+
+Runs were sequential on the same machine; `loadavg1` is logged per window
+in the CSVs to flag contamination from background load. Master's spread
+across seeds (+/- 11%) is larger than the branch's (+/- 5%) mostly because
+its runs are ~7x longer and integrate more background-load variation.
