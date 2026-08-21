@@ -293,6 +293,36 @@ addition to the engine suites.
   All five environment-constructing examples now execute against the built
   module.
 
+### 3.11 Agent-view video decoding and seeded action noise (`ab8a882`)
+
+Both found while visually auditing gameplay videos after the benchmark.
+
+- **Agent-view videos were black** (a blue dot on darkness), on master and
+  branch alike. The video colouriser assumed an encoding the observation does
+  not use — background alpha 255, pellets `ch0 != 255` — so its final
+  `alpha <= 30` grid rule swallowed the whole frame. It now decodes the actual
+  encoding (presence masks at 255; alpha 229 = own cells, 26 = grid/arena
+  boundary, 0 = background) with game-like colours. **Video output only;
+  observations untouched.** The palette row `[26, 0, 0]` in the old code was
+  the encoded *value* 26 pasted in as if it were a colour — a hint the
+  function was never visually verified against the encoding.
+- **Seeded runs were not reproducible with `add_noise=True` (the default):**
+  the action noise drew from numpy's *global* generator, which `env.seed()`
+  did not touch, so identically-seeded runs took different actions and
+  diverged (observed as different cumulative rewards for the same seed).
+  `seed()` now derives an env-local generator for the noise, same
+  distribution; never-seeded environments keep the old global-RNG behaviour.
+
+Regression tests cover both; the Python suite is now 21 tests.
+
+### 3.12 Benchmark: 3 seeds × 500k steps, master vs branch
+
+See `docs/BENCHMARK_500K_3SEEDS.md` (graphs + CSVs alongside). Full-game
+configuration, sequential runs on the same machine: master **499 ± 56**
+steps/s, branch **3,518 ± 180** steps/s — **7.04× mean-of-seeds**, with the
+slowest branch window 3.9× the fastest master window, flat memory and zero
+resets on both arms.
+
 ---
 
 ## 4. Verification of the final tree
@@ -301,7 +331,7 @@ Run after the last commit:
 
 - Full CMake build, all targets: clean, zero errors.
 - `test-engine` 53/53, `test-engine-renderable` 53/53, `test-envs` 12/12,
-  `tests/regression_test.py` 14/14.
+  `tests/regression_test.py` 21/21.
 - **Every fix on this branch now has a permanent regression test** (§3.11).
   Each was confirmed to fail when its fix is reverted.
 - Determinism probe: identical 3,000-tick traces (8 fighting/splitting
@@ -350,7 +380,8 @@ Run after the last commit:
 | GoBigger remainder | bug | stale `observations` vector (only the single live observation is updated), `SporeInfo`/`CloneInfo` owner fields set from the observing player rather than the emitter, hardcoded `teamId`. |
 | `numWrapper` type safety | design | `distance` and `angle` are meant to be distinct types, but implicit conversions let `d = a` and `d < a` compile silently while `d + a` fails as ambiguous; every operator takes `T`, so `double * distance` narrows to float before multiplying. Making the converting constructor `explicit` is the fix but touches a great deal of code — deliberately not attempted. |
 | `no_player` sentinel | latent | `agario::pid` is unsigned, so the `-1` sentinel is `65535`; bots constructed without an explicit pid share it, and `Player::operator==` compares pid only, so two such bots compare equal. Latent because `add_player()` always assigns a real pid. |
-| 2M-step master-vs-branch comparison | validation | tooling committed; isolated worktree builds verified byte-identical and behaviorally fingerprinted. Note master aborts at interpreter teardown (its own bug) and transiently blocks the *next* process, so leave a gap between sequential runs. |
+| ~~master-vs-branch comparison~~ | **done** | 3 seeds × 500k steps: **7.04×** mean-of-seeds — §3.12 and `docs/BENCHMARK_500K_3SEEDS.md`. |
+| editable-install shadowing | tooling gotcha | `pip install -e` here can leave a *concrete* copy of `gym_agario` + the `.so` in site-packages (alongside the editable finder), which wins module resolution for any process launched outside the repo and silently pins old code. If behaviour looks stale after a reinstall, check `python3 -c "import gym_agario; print(gym_agario.__file__)"` from outside the repo and delete the site-packages copies. |
 
 ---
 
