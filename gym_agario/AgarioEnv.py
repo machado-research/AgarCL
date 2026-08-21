@@ -176,16 +176,17 @@ class AgarioEnv(gym.Env):
 
 
     # Palette for the agent-view video colouring, indexed by the label image
-    # built in _make_video_observation. Row 0 is the background, which the
-    # original code produced by zeroing the frame and filling channel 0 with
-    # 255; that is preserved exactly here rather than changed.
+    # built in _make_video_observation. Colours mirror the plain RGB render
+    # (white background, unobtrusive grid) so the video reads like the game;
+    # pellets are orange rather than their in-game random colours because the
+    # encoding only keeps a presence mask, and white would vanish on white.
     _VIDEO_PALETTE = np.array([
-        [255, 0, 0],                                   # 0: background
-        get_color_array(Color.WHITE),                   # 1: pellets
+        [255, 255, 255],                                # 0: background
+        [255, 165, 0],                                  # 1: pellets
         get_color_array(Color.PURPLE),                  # 2: other players
         get_color_array(Color.GREEN),                   # 3: viruses
         get_color_array(Color.BLUE),                    # 4: main agent
-        [26, 0, 0],                                     # 5: grid lines
+        [205, 205, 205],                                # 5: grid lines
     ], dtype=np.uint8)
 
     def _make_video_observation(self, observation):
@@ -206,19 +207,24 @@ class AgarioEnv(gym.Env):
             observation = np.asarray(observation)[0]
             alpha = observation[..., 3]
 
+            # Decode the agent-view channel encoding produced by
+            # ScreenObservation::post_processing_frame_data: the colour
+            # channels are presence masks (255 = pellet / enemy / virus), and
+            # alpha holds the main agent's cells (value in (30, 230]) or grid
+            # lines (in (0, 30]); background pixels are all-zero. The previous
+            # masks here assumed an older encoding (background alpha 255,
+            # pellets `!= 255`), so the final `alpha <= 30` rule swallowed the
+            # whole frame and the video came out black except the main agent.
+            #
             # Build a label image, then colour it with a single palette
-            # lookup. This replaces five boolean-mask assignments into a
-            # three-channel array (a scatter per class, per channel) with five
-            # writes into a one-channel array plus one take, which is markedly
-            # cheaper per frame. Classes are applied in the same order as
-            # before, so later ones still override earlier ones and the output
-            # is unchanged.
+            # lookup: entity classes are applied after the grid so they stay
+            # visible on top of it, and the main agent wins any overlap.
             labels = np.zeros(observation.shape[:2], dtype=np.uint8)  # 0: background
-            labels[observation[..., 0] != 255] = 1                   # pellets
+            labels[(alpha > 0) & (alpha <= 30)] = 5                  # grid lines
+            labels[observation[..., 0] == 255] = 1                   # pellets
             labels[observation[..., 1] == 255] = 2                   # other players
             labels[observation[..., 2] == 255] = 3                   # viruses
-            labels[(alpha <= 230) & (alpha > 30)] = 4                # main agent
-            labels[alpha <= 30] = 5                                  # grid lines
+            labels[(alpha > 30) & (alpha <= 230)] = 4                # main agent
             frame = self._VIDEO_PALETTE[labels]
 
         # cv2 needs a contiguous 3-channel uint8 image
@@ -340,7 +346,11 @@ class AgarioEnv(gym.Env):
         for action in actions:
             target, discrete = action[0], action[1]
             if self.add_noise:
-                noise = np.random.normal(0, 0.1, size=(2,))
+                # env-local RNG when seeded, matching master's distribution;
+                # falls back to the global generator for never-seeded envs
+                rng = getattr(self, "_noise_rng", None)
+                noise = (rng.normal(0, 0.1, size=2) if rng is not None
+                         else np.random.normal(0, 0.1, size=(2,)))
                 target = (float(np.clip(target[0] + noise[0], -1, 1)),
                           float(np.clip(target[1] + noise[1], -1, 1)))
             try:
@@ -430,6 +440,11 @@ class AgarioEnv(gym.Env):
         if seed is not None:
             self._seed = seed
             self._env.seed(seed)
+            # The action noise (add_noise) previously drew from numpy's
+            # global generator, so two runs seeded identically still took
+            # different actions and diverged. An env-local generator makes
+            # seed() cover everything the environment randomises.
+            self._noise_rng = np.random.default_rng(seed)
             return [self._seed]
 
     def enable_video_recorder(self, max_frames=None):

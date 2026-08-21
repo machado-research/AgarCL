@@ -268,6 +268,29 @@ class ActionRegressionTest(unittest.TestCase):
         self.assertNotEqual((dx, dy), (0.0, 0.0),
                             "add_noise did not perturb the action")
 
+    def test_action_noise_is_covered_by_seed(self):
+        """The action noise drew from numpy's global generator, so two runs
+        with the same env seed still took different actions: seeded
+        experiments with add_noise=True (the default) were not reproducible."""
+        def noisy_actions(seed):
+            env = make("agario-grid-v0", obs_type="grid", grid_size=16,
+                       add_noise=True)
+            env.unwrapped.seed(seed)
+            env.reset()
+            acts = [env.unwrapped._sanitize_actions((np.zeros(2, dtype=np.float32), 0))[0]
+                    for _ in range(5)]
+            env.close()
+            return acts
+
+        np.random.seed(123)
+        first = noisy_actions(7)
+        np.random.seed(456)   # perturb the global RNG between runs
+        second = noisy_actions(7)
+        self.assertEqual(first, second,
+                         "same env seed produced different noisy actions")
+        self.assertNotEqual(noisy_actions(7), noisy_actions(8),
+                            "different env seeds produced identical noise")
+
     def test_invalid_actions_are_rejected(self):
         env = make("agario-grid-v0", obs_type="grid", grid_size=16, add_noise=False)
         env.unwrapped.seed(1)
@@ -322,6 +345,43 @@ class VideoRecorderRegressionTest(unittest.TestCase):
             self.assertEqual(len(env.unwrapped.video_recorder), 0,
                              "frame buffer was not cleared after writing")
             env.close()
+
+    def test_agent_view_frames_decode_the_channel_encoding(self):
+        """The agent-view colouriser assumed an obsolete encoding (background
+        alpha 255, pellets ch0 != 255), so its final `alpha <= 30` rule painted
+        the whole frame near-black: videos showed a blue dot on darkness.
+        Assert the palette rows are applied per the actual encoding produced by
+        ScreenObservation::post_processing_frame_data."""
+        # 128x128 (the paper's resolution): at the 32x32 used elsewhere for
+        # speed, cells span less than a pixel and rasterise to nothing.
+        env = make(obs_type="screen", render_mode="rgb_array",
+                   screen_len=128, num_pellets=60, num_bots=1, num_viruses=1,
+                   agent_view=True)
+        env.unwrapped.seed(1)
+        env.reset()
+        env.unwrapped.enable_video_recorder()
+        for _ in range(10):
+            obs, *_ = env.step((np.zeros(2, dtype=np.float32), 0))
+        obs = np.asarray(obs)[0]   # (frames, H, W, 4) -> (H, W, 4)
+        frame = env.unwrapped.video_recorder[-1]
+        env.close()
+
+        background = (obs == 0).all(axis=-1)
+        pellets = obs[..., 0] == 255
+        agent = (obs[..., 3] > 30) & (obs[..., 3] <= 230)
+
+        self.assertGreater(background.sum(), 0, "no background in test scene")
+        self.assertGreater(agent.sum(), 0, "main agent not in its own view")
+        self.assertTrue((frame[background] == [255, 255, 255]).all(),
+                        "background pixels are not white")
+        self.assertTrue((frame[agent] == [0, 0, 255]).all(),
+                        "main agent pixels are not blue")
+        if pellets.sum():
+            self.assertTrue((frame[pellets] == [255, 165, 0]).all(),
+                            "pellet pixels are not orange")
+        # the old bug: near-black [26, 0, 0] dominating the frame
+        dark = (frame == [26, 0, 0]).all(axis=-1).mean()
+        self.assertEqual(dark, 0.0, "obsolete grid colour present in frame")
 
     def test_frame_buffer_is_bounded(self):
         """Frames are held in memory until generate_video() is called; uncapped
