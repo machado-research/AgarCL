@@ -18,6 +18,39 @@ import numpy as np
 COLORS = {"master": "#B0413E", "branch": "#2F6DB0"}
 NICE = {"master": "master (baseline)", "branch": "perf branch"}
 
+# Shade families so multi-seed runs stay readable: labels are matched by
+# prefix ("master*" reds, "branch*" blues) and shaded in order of appearance.
+FAMILIES = {
+    "master": ["#B0413E", "#E07B60", "#7B241C"],
+    "branch": ["#2F6DB0", "#5DADE2", "#1A5276"],
+}
+
+
+def family_of(label):
+    for fam in FAMILIES:
+        if label.startswith(fam):
+            return fam
+    return None
+
+
+def assign_colors(runs):
+    """exact COLORS for legacy labels, family shades for seed suffixes"""
+    seen = {fam: 0 for fam in FAMILIES}
+    out = []
+    for r in runs:
+        lab = r["label"]
+        if lab in COLORS:
+            out.append(COLORS[lab])
+            continue
+        fam = family_of(lab)
+        if fam:
+            shades = FAMILIES[fam]
+            out.append(shades[seen[fam] % len(shades)])
+            seen[fam] += 1
+        else:
+            out.append(None)
+    return out
+
 
 def load(path):
     rows = list(csv.DictReader(open(path)))
@@ -49,8 +82,8 @@ def main():
     ax_sps, ax_cum, ax_rss, ax_time = axes.ravel()
     mstep = 1e-6  # x axis in millions of steps
 
-    for r in runs:
-        c = COLORS.get(r["label"], None)
+    colors = assign_colors(runs)
+    for r, c in zip(runs, colors):
         lab = NICE.get(r["label"], r["label"])
         x = r["step"] * mstep
 
@@ -86,14 +119,16 @@ def main():
                 title="Time to reach step count")
     ax_time.legend(); ax_time.grid(alpha=0.3)
 
-    # speedup annotation
-    if len(runs) == 2:
-        by = {r["label"]: r for r in runs}
-        if "master" in by and "branch" in by:
-            m, b = by["master"], by["branch"]
-            sp = b["cum"][-1] / m["cum"][-1]
-            ax_cum.annotate(f"{sp:.2f}x", xy=(0.62, 0.5), xycoords="axes fraction",
-                            fontsize=22, fontweight="bold", color="#2F6DB0")
+    # speedup annotation: mean of final cumulative throughput per family
+    fams = {}
+    for r in runs:
+        fam = r["label"] if r["label"] in COLORS else family_of(r["label"])
+        if fam:
+            fams.setdefault(fam, []).append(r["cum"][-1])
+    if "master" in fams and "branch" in fams:
+        sp = np.mean(fams["branch"]) / np.mean(fams["master"])
+        ax_cum.annotate(f"{sp:.2f}x", xy=(0.62, 0.5), xycoords="axes fraction",
+                        fontsize=22, fontweight="bold", color="#2F6DB0")
 
     title = args.title or (
         "AgarCL screen env - mode 0 (continuing), random actions\n"
