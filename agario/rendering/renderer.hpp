@@ -170,31 +170,46 @@ namespace agario {
 
       grid.draw(shader);
 
+      // Frustum culling: skip entities that cannot cover a pixel (see
+      // CullRect). Only submission is skipped; the engine has already
+      // ticked every entity this frame.
+      const auto rect = cull_rect(player);
+
       // fixed channel-encoding colors (same values as the old type-based draw)
       pellet_batch.clear();
-      for (auto &pellet : state.pellets)
+      for (auto &pellet : state.pellets) {
+        if (rect.excludes(pellet.x, pellet.y, pellet.radius())) continue;
         pellet_batch.add(pellet.x, pellet.y, pellet.radius(), 1.0f, 0.0f, 0.0f);
+      }
 
       food_batch.clear();
-      for (auto &food : state.foods)
+      for (auto &food : state.foods) {
+        if (rect.excludes(food.x, food.y, food.radius())) continue;
         food_batch.add(food.x, food.y, food.radius(), 1.0f, 0.0f, 0.0f);
+      }
 
       // main agent first, other players after (they overwrite on overlap,
       // matching the previous draw order)
       cell_batch.clear();
       auto main_it = state.players.find(state.main_agent_pid);
       if (main_it != state.players.end())
-        for (auto &cell : main_it->second->cells)
+        for (auto &cell : main_it->second->cells) {
+          if (rect.excludes(cell.x, cell.y, cell.radius())) continue;
           cell_batch.add(cell.x, cell.y, cell.radius(), 0.9f, 0.0f, 0.0f);
+        }
       for (auto &pair : state.players) {
         if (pair.first == state.main_agent_pid) continue;
-        for (auto &cell : pair.second->cells)
+        for (auto &cell : pair.second->cells) {
+          if (rect.excludes(cell.x, cell.y, cell.radius())) continue;
           cell_batch.add(cell.x, cell.y, cell.radius(), 0.0f, 1.0f, 0.0f);
+        }
       }
 
       virus_batch.clear();
-      for (auto &virus : state.viruses)
+      for (auto &virus : state.viruses) {
+        if (rect.excludes(virus.x, virus.y, virus.radius() * VIRUS_EXTENT_FACTOR)) continue;
         virus_batch.add(virus.x, virus.y, virus.radius(), 0.0f, 0.0f, 1.0f);
+      }
 
       draw_batches(player);
     }
@@ -215,22 +230,33 @@ namespace agario {
 
       grid.draw(shader);
 
+      // frustum culling, same reasoning as multi_channel_render_screen
+      const auto rect = cull_rect(player);
+
       pellet_batch.clear();
-      for (auto &pellet : state.pellets)
+      for (auto &pellet : state.pellets) {
+        if (rect.excludes(pellet.x, pellet.y, pellet.radius())) continue;
         add_colored(pellet_batch, pellet.x, pellet.y, pellet.radius(), pellet.color);
+      }
 
       food_batch.clear();
-      for (auto &food : state.foods)
+      for (auto &food : state.foods) {
+        if (rect.excludes(food.x, food.y, food.radius())) continue;
         add_colored(food_batch, food.x, food.y, food.radius(), food.color);
+      }
 
       cell_batch.clear();
       for (auto &pair : state.players)
-        for (auto &cell : pair.second->cells)
+        for (auto &cell : pair.second->cells) {
+          if (rect.excludes(cell.x, cell.y, cell.radius())) continue;
           add_colored(cell_batch, cell.x, cell.y, cell.radius(), cell.color);
+        }
 
       virus_batch.clear();
-      for (auto &virus : state.viruses)
+      for (auto &virus : state.viruses) {
+        if (rect.excludes(virus.x, virus.y, virus.radius() * VIRUS_EXTENT_FACTOR)) continue;
         add_colored(virus_batch, virus.x, virus.y, virus.radius(), virus.color);
+      }
 
       draw_batches(player);
     }
@@ -266,6 +292,38 @@ namespace agario {
     InstancedBatch food_batch;
     InstancedBatch cell_batch;
     InstancedBatch virus_batch;
+
+    /* World-space rectangle visible at the entity plane (z = 0).
+     *
+     * The camera sits directly above (player.x, player.y) looking straight
+     * down, so under the symmetric glm::perspective projection the NDC
+     * bounds map back to an axis-aligned rectangle centred on the player
+     * with half-extents camera_z * tan(fov / 2) * {aspect, 1}. A circle
+     * whose furthest drawn extent lies strictly outside it cannot cover any
+     * pixel centre, so culling against this rectangle is pixel-exact.
+     * CULL_MARGIN absorbs float rounding; it is ~0.1% of a pixel at the
+     * closest zoom, orders of magnitude below where output could change.
+     * Simulation is unaffected: the engine ticks every entity before the
+     * renderer reads the state, so off-screen entities keep evolving. */
+    struct CullRect {
+      float left, right, bottom, top;
+      [[nodiscard]] bool excludes(float x, float y, float extent) const {
+        return x + extent < left || x - extent > right ||
+               y + extent < bottom || y - extent > top;
+      }
+    };
+
+    static constexpr float CULL_MARGIN = 1e-3f;
+    /* the virus border wave reaches sin(...)/15 beyond the nominal radius */
+    static constexpr float VIRUS_EXTENT_FACTOR = 1.0f + 1.0f / 15.0f;
+
+    CullRect cull_rect(const Player &player) {
+      // must match perspective_projection: fov 45, aspect from the canvas
+      const float half_h = camera_z(player) * std::tan(glm::radians(45.0f) / 2.0f);
+      const float half_w = half_h * _canvas->aspect_ratio();
+      return {player.x() - half_w - CULL_MARGIN, player.x() + half_w + CULL_MARGIN,
+              player.y() - half_h - CULL_MARGIN, player.y() + half_h + CULL_MARGIN};
+    }
 
     /* stage an instance colored via the agario palette */
     void add_colored(InstancedBatch &batch, float x, float y,
